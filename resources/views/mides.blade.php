@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-    @include('navbar')
+@include('navbar')
 <div class="container py-5">
     <h2 class="fw-bold mb-2">Welcome to MIDES repository!</h2>
     <div class="mb-3 fs-5">

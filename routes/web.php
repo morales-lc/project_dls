@@ -10,6 +10,8 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\ProfileController;
 
+use App\Http\Controllers\GoogleAuthController;
+use Illuminate\Http\Request;
 
 
 
@@ -26,3 +28,18 @@ Route::view('/mides', 'mides')->name('mides');
 Route::view('/about', 'about')->name('about');
 Route::view('/chart', 'chart')->name('chart');
 Route::view('/', 'login')->name('login');
+
+Route::get('/wiley-login', function () {
+    return view('wiley-auto-login');
+});
+
+
+
+Route::get('auth/google', [GoogleAuthController::class, 'redirectToGoogle']);
+Route::get('auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
+
+Route::get('/profile/complete', function () {
+    return view('profile.complete');
+})->name('profile.complete')->middleware('auth');
+
+Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])->middleware('auth');

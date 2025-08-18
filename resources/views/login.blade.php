@@ -22,12 +22,9 @@
     <div class="login-title">Login with your lccdo email account!</div>
     <div class="login-box shadow-sm">
         <h3 class="fw-bold text-center mb-4">Sign in</h3>
-        <form method="GET" action="{{ route('dashboard') }}">
-            <button type="submit" class="btn w-100 py-2 d-flex align-items-center justify-content-center mb-3" style="background:#fff; color:#222; border:1px solid #ccc;">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width:22px; height:22px; margin-right:10px;"> Sign in with Google
-            </button>
-            <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary w-100 py-2">Cancel</a>
-        </form>
+        <a href="{{ url('auth/google') }}">
+    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Sign in with Google">
+</a>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
