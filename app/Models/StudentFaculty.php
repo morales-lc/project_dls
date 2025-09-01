@@ -9,6 +9,7 @@ class StudentFaculty extends Model
     protected $table = 'student_faculty';
     protected $fillable = [
         'user_id',
+        'school_id',
         'first_name',
         'last_name',
         'username',

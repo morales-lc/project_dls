@@ -16,11 +16,20 @@ class MidesGraduateController extends Controller
 
     public function category($category)
     {
-        $documents = MidesDocument::where('type', 'Graduate Theses')
-            ->where('category', $category)
-            ->orderBy('year', 'desc')
-            ->paginate(12);
-        return view('mides-graduate-list', compact('documents', 'category'));
+        $search = request('search');
+        $sort = request('sort', 'year');
+        $direction = request('direction', 'desc');
+
+        $query = MidesDocument::where('type', 'Graduate Theses')->where('category', $category);
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('author', 'like', "%$search%")
+                  ->orWhere('year', 'like', "%$search%");
+            });
+        }
+        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(['search' => $search, 'sort' => $sort, 'direction' => $direction]);
+        return view('mides-graduate-list', compact('documents', 'category', 'search', 'sort', 'direction'));
     }
 
     public function categories()

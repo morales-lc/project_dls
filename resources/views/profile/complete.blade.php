@@ -34,7 +34,8 @@
             @csrf
             <div class="mb-3">
                 <label for="user_id" class="form-label">Student/Faculty ID</label>
-                <input type="text" name="user_id" id="user_id" class="form-control" value="{{ old('user_id', Auth::user()->studentFaculty->user_id ?? Auth::user()->id) }}" required>
+                    <input type="text" name="school_id" id="school_id" class="form-control" value="{{ old('school_id', Auth::user()->studentFaculty->school_id ?? '') }}" required pattern="[A-Z]{1,2}[0-9]{2}-[0-9]{4}" placeholder="C22-0171">
+                <div class="form-text">Format: C22-0171</div>
             </div>
             <div class="mb-3">
                 <label for="first_name" class="form-label">First Name</label>

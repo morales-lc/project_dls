@@ -8,6 +8,27 @@
 <body>
 @include('navbar')
 <div class="container py-5">
+    <form class="row g-2 mb-3" method="GET" action="">
+        <div class="col-md-3">
+            <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ request('search') }}">
+        </div>
+        <div class="col-md-2">
+            <select name="sort" class="form-select">
+                <option value="year" {{ request('sort') == 'year' ? 'selected' : '' }}>Year</option>
+                <option value="title" {{ request('sort') == 'title' ? 'selected' : '' }}>Title</option>
+                <option value="author" {{ request('sort') == 'author' ? 'selected' : '' }}>Author</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="direction" class="form-select">
+                <option value="desc" {{ request('direction') == 'desc' ? 'selected' : '' }}>Descending</option>
+                <option value="asc" {{ request('direction') == 'asc' ? 'selected' : '' }}>Ascending</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter/Search</button>
+        </div>
+    </form>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">{{ $category }} Theses</h2>
         <div>

@@ -12,5 +12,13 @@
         <li class="nav-item mb-2">
             <a class="nav-link fw-bold" href="{{ route('settings') }}">Settings</a>
         </li>
+
+        <li class="nav-item mb-2">
+            <a class="nav-link fw-bold" href="{{ route('admin.dashboard') }}">Admin Dashboard</a>
+        </li>
+        <li class="nav-item mb-2">
+            <a class="nav-link fw-bold" href="{{ route('librarian.dashboard') }}">Librarian Dashboard</a>
+
+        </div>
     </ul>
 </div>

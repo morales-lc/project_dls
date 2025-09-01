@@ -16,11 +16,20 @@ class MidesUndergradController extends Controller
 
     public function program($program)
     {
-        $documents = MidesDocument::where('type', 'Undergraduate Baby Theses')
-            ->where('program', $program)
-            ->orderBy('year', 'desc')
-            ->paginate(12);
-        return view('mides-undergrad-list', compact('documents', 'program'));
+        $search = request('search');
+        $sort = request('sort', 'year');
+        $direction = request('direction', 'desc');
+
+        $query = MidesDocument::where('type', 'Undergraduate Baby Theses')->where('program', $program);
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('author', 'like', "%$search%")
+                  ->orWhere('year', 'like', "%$search%");
+            });
+        }
+        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(['search' => $search, 'sort' => $sort, 'direction' => $direction]);
+        return view('mides-undergrad-list', compact('documents', 'program', 'search', 'sort', 'direction'));
     }
 
     public function programs()

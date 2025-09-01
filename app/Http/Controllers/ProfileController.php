@@ -16,7 +16,7 @@ class ProfileController extends Controller
     public function completeProfile(Request $request)
     {
         $request->validate([
-            'user_id' => 'required',
+            'school_id' => 'required|regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/',
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'username' => 'required|string|max:255',
@@ -48,12 +48,12 @@ class ProfileController extends Controller
             $file->storeAs('profile_pictures', $profilePic, 'public');
         } elseif (filter_var($profilePic, FILTER_VALIDATE_URL)) {
             // If profile picture is a Google URL, keep it
-            $profilePic = $profilePic;
+            // No action needed
         }
 
         // Update student_faculty table
         $user->studentFaculty->update([
-            'user_id' => $request->user_id,
+            'school_id' => $request->school_id,
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
             'username' => $request->username,
@@ -66,6 +66,6 @@ class ProfileController extends Controller
             'profile_picture' => $profilePic,
         ]);
 
-        return redirect('/home')->with('success', 'Profile completed successfully!');
+        return redirect('/dashboard')->with('success', 'Profile completed successfully!');
     }
 }

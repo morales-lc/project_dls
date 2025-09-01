@@ -7,6 +7,79 @@ use App\Models\MidesDocument;
 
 class MidesController extends Controller
 {
+    public function categoriesPanel()
+    {
+        $categories = \App\Models\MidesCategory::orderBy('type')->orderBy('name')->get();
+        $types = [
+            'Graduate Theses',
+            'Undergraduate Baby Theses',
+            'Senior High School Research Paper',
+        ];
+        return view('mides-categories-panel', compact('categories', 'types'));
+    }
+
+    public function addCategory(Request $request)
+    {
+        $request->validate([
+            'type' => 'required',
+            'name' => 'required|string',
+        ]);
+        \App\Models\MidesCategory::create([
+            'type' => $request->type,
+            'name' => $request->name,
+        ]);
+        return redirect()->route('mides.categories.panel')->with('success', 'Category added successfully!');
+    }
+
+    public function updateCategory(Request $request, $id)
+    {
+        $cat = \App\Models\MidesCategory::findOrFail($id);
+        $cat->type = $request->type;
+        $cat->name = $request->name;
+        $cat->save();
+        return redirect()->route('mides.categories.panel')->with('success', 'Category updated successfully!');
+    }
+
+    public function deleteCategory($id)
+    {
+        $cat = \App\Models\MidesCategory::findOrFail($id);
+        $cat->delete();
+        return redirect()->route('mides.categories.panel')->with('success', 'Category deleted successfully!');
+    }
+    public function update(Request $request, $id)
+    {
+        $doc = MidesDocument::findOrFail($id);
+        $doc->type = $request->type;
+        // Handle category/program logic
+        if ($doc->type === 'Graduate Theses') {
+            $doc->category = $request->category_program;
+            $doc->program = null;
+        } elseif ($doc->type === 'Undergraduate Baby Theses' || $doc->type === 'Senior High School Research Paper') {
+            $doc->program = $request->category_program;
+            $doc->category = null;
+        } else {
+            $doc->category = null;
+            $doc->program = null;
+        }
+        $doc->author = $request->author;
+        $doc->year = $request->year;
+        $doc->title = $request->title;
+        if ($request->hasFile('pdf')) {
+            $pdf = $request->file('pdf');
+            $originalName = $pdf->getClientOriginalName();
+            $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
+            $doc->pdf_path = $pdfPath;
+        }
+        $doc->save();
+        return redirect()->route('mides.management')->with('success', 'Document updated successfully!');
+    }
+
+    public function destroy($id)
+    {
+        $doc = MidesDocument::findOrFail($id);
+        $doc->delete();
+        return redirect()->route('mides.management')->with('success', 'Document deleted successfully!');
+    }
     public function index()
     {
         $query = MidesDocument::query();

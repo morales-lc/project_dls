@@ -43,6 +43,62 @@
         </ul>
     </div>
 
+
+    <!-- Posts by Type -->
+    @php
+        $types = ['Announcement', 'Event', 'Update', 'Post'];
+    @endphp
+    @foreach($types as $type)
+    <div class="mb-5">
+        <h4 class="fw-bold mb-3">{{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}</h4>
+        <div class="row g-4">
+            @if(isset($posts) && $posts->where('type', $type)->count())
+                @foreach($posts->where('type', $type) as $post)
+                <div class="col-md-4 col-sm-6">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <span class="badge bg-secondary mb-2">{{ $post->type }}</span>
+                            <h5 class="fw-bold">{{ $post->title }}</h5>
+                            @if($post->photo)
+                                <img src="{{ asset('storage/' . $post->photo) }}" alt="Photo" class="img-fluid rounded mb-2" style="max-height:180px;object-fit:cover;">
+                            @endif
+                            @if($post->youtube_link)
+                                @php
+                                    preg_match('/v=([^&]+)/', $post->youtube_link, $matches);
+                                    $ytid = $matches[1] ?? null;
+                                @endphp
+                                @if($ytid)
+                                    <div class="ratio ratio-16x9 mb-2">
+                                        <iframe src="https://www.youtube.com/embed/{{ $ytid }}" title="YouTube video" allowfullscreen></iframe>
+                                    </div>
+                                @else
+                                    <a href="{{ $post->youtube_link }}" target="_blank" class="d-block mb-2">
+                                        <img src="https://img.youtube.com/vi/{{ $ytid }}/hqdefault.jpg" alt="YouTube Thumbnail" class="img-fluid rounded w-100" style="max-height:260px;object-fit:cover;">
+                                    </a>
+                                @endif
+                            @endif
+                            @if($post->website_link)
+                                @php
+                                    // Try to get Open Graph thumbnail (fallback to favicon)
+                                    $ogThumb = $post->og_image ?? null;
+                                    $favicon = parse_url($post->website_link, PHP_URL_SCHEME) . '://' . parse_url($post->website_link, PHP_URL_HOST) . '/favicon.ico';
+                                @endphp
+                                <a href="{{ $post->website_link }}" target="_blank" class="d-block mb-2">
+                                    <img src="{{ $ogThumb ?: $favicon }}" alt="Website Thumbnail" class="img-fluid rounded w-100" style="max-height:180px;object-fit:cover;">
+                                </a>
+                            @endif
+                            <p class="text-muted mt-2">{{ $post->description }}</p>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
+            @else
+                <div class="col-12 text-center text-muted">No {{ $type == 'Post' ? 'posts' : strtolower($type) . 's' }} yet.</div>
+            @endif
+        </div>
+    </div>
+    @endforeach
+
     <!-- Featured Resources -->
     <div class="mb-5">
         <h4 class="fw-bold">Featured Resources</h4>

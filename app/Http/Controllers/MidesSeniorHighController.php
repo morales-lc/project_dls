@@ -24,11 +24,21 @@ class MidesSeniorHighController extends Controller
     // Show all records for a selected program
     public function program($program)
     {
-        $records = DB::table('mides_documents')
+    $search = request()->input('search');
+    $sort = request()->input('sort', 'year');
+    $direction = request()->input('direction', 'desc');
+
+        $query = DB::table('mides_documents')
             ->where('type', 'Senior High School Research Paper')
-            ->where('program', $program)
-            ->orderByDesc('year')
-            ->get();
-        return view('mides-seniorhigh-list', compact('program', 'records'));
+            ->where('program', $program);
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('author', 'like', "%$search%")
+                  ->orWhere('year', 'like', "%$search%");
+            });
+        }
+        $records = $query->orderBy($sort, $direction)->get();
+        return view('mides-seniorhigh-list', compact('program', 'records', 'search', 'sort', 'direction'));
     }
 }

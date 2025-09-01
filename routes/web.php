@@ -1,5 +1,7 @@
 
 
+
+
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -21,7 +23,7 @@ use Illuminate\Http\Request;
 
 
 
-Route::get('/dashboard', [HomeController::class, 'index'])->name('dashboard');
+Route::get('/dashboard', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/resource/view', [ResourceController::class, 'show'])->name('resource.view');
 
@@ -50,7 +52,11 @@ Route::get('/profile/complete', function () {
 
 Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])->middleware('auth');
 
+
 Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
+Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
+Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
+Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
 
 
 
@@ -58,6 +64,8 @@ Route::get('/user-management', [UserManagementController::class, 'index'])->name
 Route::get('/mides-management', [MidesController::class, 'index'])->name('mides.management');
 Route::get('/mides-upload', [MidesController::class, 'create'])->name('mides.upload');
 Route::post('/mides-upload', [MidesController::class, 'store'])->name('mides.store');
+Route::put('/mides-management/{id}', [MidesController::class, 'update'])->name('mides.update');
+Route::delete('/mides-management/{id}', [MidesController::class, 'destroy'])->name('mides.delete');
 
 Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
 Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
@@ -81,3 +89,30 @@ Route::get('/mides/faculty-theses', [MidesDashboardController::class, 'facultyTh
 
 Route::get('/mides/seniorhigh/programs', [MidesSeniorHighController::class, 'programs'])->name('mides.seniorhigh.programs');
 Route::get('/mides/seniorhigh/{program}', [MidesSeniorHighController::class, 'program'])->name('mides.seniorhigh.program');
+
+// Admin Category Control Panel
+Route::get('/mides-categories-panel', [MidesController::class, 'categoriesPanel'])->name('mides.categories.panel');
+Route::post('/mides-categories-panel/add', [MidesController::class, 'addCategory'])->name('mides.categories.add');
+Route::put('/mides-categories-panel/{id}', [MidesController::class, 'updateCategory'])->name('mides.categories.update');
+Route::delete('/mides-categories-panel/{id}', [MidesController::class, 'deleteCategory'])->name('mides.categories.delete');
+// Admin Dashboard
+Route::get('/admin-dashboard', function() { return view('admin-dashboard'); })->name('admin.dashboard');
+
+// Librarian Dashboard
+Route::get('/librarian-dashboard', function() { return view('librarian-dashboard'); })->name('librarian.dashboard');
+// Admin Posts Management
+Route::get('/admin-posts-management', [App\Http\Controllers\PostController::class, 'adminManagement'])->name('admin.posts.management');
+Route::get('/admin-posts-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('admin.posts.edit');
+Route::put('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('admin.posts.update');
+Route::delete('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('admin.posts.delete');
+
+
+
+// Post routes
+Route::post('/dashboard/post', [App\Http\Controllers\PostController::class, 'store'])->name('dashboard.post.store');
+
+// Post Management routes
+Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
+Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
+Route::delete('/post-management/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('post.delete');
+Route::get('/post-management', [App\Http\Controllers\PostController::class, 'postManagement'])->name('post.management');

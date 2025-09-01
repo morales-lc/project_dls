@@ -10,7 +10,10 @@
 <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">MIDES Repository Management</h2>
-        <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-primary">MIDES Dashboard</a>
+        <div>
+            <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-primary me-2">MIDES Dashboard</a>
+            <a href="{{ route('librarian.dashboard') }}" class="btn btn-outline-success">Librarian Dashboard</a>
+        </div>
     </div>
     <a href="{{ route('mides.upload') }}" class="btn btn-primary mb-3">Add New Document</a>
     @if(session('success'))
@@ -45,6 +48,9 @@
         <div class="col-md-1">
             <button type="submit" class="btn btn-dark w-100">Filter</button>
         </div>
+        <div class="col-md-1">
+            <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary w-100">Clear</a>
+        </div>
     </form>
 
     <div class="table-responsive">
@@ -57,18 +63,72 @@
                     <th>Year</th>
                     <th>Title</th>
                     <th>PDF</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($documents as $doc)
-                <tr>
-                    <td>{{ $doc->type }}</td>
-                    <td>{{ $doc->category ?: $doc->program }}</td>
-                    <td>{{ $doc->author }}</td>
-                    <td>{{ $doc->year }}</td>
-                    <td>{{ $doc->title }}</td>
-                    <td><a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank">View PDF</a></td>
-                </tr>
+                                <tr>
+                                        <td>{{ $doc->type }}</td>
+                                        <td>{{ $doc->category ?: $doc->program }}</td>
+                                        <td>{{ $doc->author }}</td>
+                                        <td>{{ $doc->year }}</td>
+                                        <td>{{ $doc->title }}</td>
+                                        <td><a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank">View PDF</a></td>
+                                        <td>
+                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal{{ $doc->id }}">Update</button>
+                                                <form method="POST" action="{{ route('mides.delete', $doc->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                                </form>
+                                        </td>
+                                </tr>
+                                <!-- Update Modal -->
+                                <div class="modal fade" id="updateModal{{ $doc->id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ $doc->id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="{{ route('mides.update', $doc->id) }}" enctype="multipart/form-data">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="updateModalLabel{{ $doc->id }}">Update Document</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Type</label>
+                                                        <input type="text" name="type" class="form-control" value="{{ $doc->type }}" required>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Category/Program</label>
+                                                        <input type="text" name="category_program" class="form-control" value="{{ $doc->category ?: $doc->program }}">
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Author</label>
+                                                        <input type="text" name="author" class="form-control" value="{{ $doc->author }}" required>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Year</label>
+                                                        <input type="number" name="year" class="form-control" value="{{ $doc->year }}" required>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">Title</label>
+                                                        <input type="text" name="title" class="form-control" value="{{ $doc->title }}" required>
+                                                    </div>
+                                                    <div class="mb-2">
+                                                        <label class="form-label">PDF (leave blank to keep current)</label>
+                                                        <input type="file" name="pdf" class="form-control" accept="application/pdf">
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
                 @endforeach
             </tbody>
         </table>

@@ -43,9 +43,12 @@ class GoogleAuthController extends Controller
         }
 
         // Ensure student_faculty record exists
+        // Generate a default school_id (e.g., S + user_id padded)
+        $defaultSchoolId = 'S' . str_pad($user->id, 6, '0', STR_PAD_LEFT);
         StudentFaculty::firstOrCreate(
             ['user_id' => $user->id],
             [
+                'school_id' => $defaultSchoolId,
                 'profile_picture' => $profilePicture,
                 'first_name' => $firstName,
                 'last_name' => $lastName,

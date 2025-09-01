@@ -1,5 +1,26 @@
 @include('navbar')
 <div class="container py-4">
+    <form class="row g-2 mb-3" method="GET" action="">
+        <div class="col-md-3">
+            <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ request('search') }}">
+        </div>
+        <div class="col-md-2">
+            <select name="sort" class="form-select">
+                <option value="year" {{ request('sort') == 'year' ? 'selected' : '' }}>Year</option>
+                <option value="title" {{ request('sort') == 'title' ? 'selected' : '' }}>Title</option>
+                <option value="author" {{ request('sort') == 'author' ? 'selected' : '' }}>Author</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <select name="direction" class="form-select">
+                <option value="desc" {{ request('direction') == 'desc' ? 'selected' : '' }}>Descending</option>
+                <option value="asc" {{ request('direction') == 'asc' ? 'selected' : '' }}>Ascending</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">Filter/Search</button>
+        </div>
+    </form>
     <h2 class="mb-4 fw-bold">{{ $program }} Research Papers</h2>
     @if($records->isEmpty())
         <div class="alert alert-info">No records found for this program.</div>
