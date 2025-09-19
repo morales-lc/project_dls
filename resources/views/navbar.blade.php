@@ -16,8 +16,8 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-pink px-4" style="background-color: #e83e8c !important;">
         <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
             <span class="nav-logo-animate d-flex align-items-center gap-2" style="transition:transform 0.35s cubic-bezier(.4,1.6,.6,1);">
-                <img src="{{ asset('images/LCCDO.png') }}" alt="Lourdes College Library Logo" width="38" height="38" style="object-fit:contain; border-radius:8px; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:transform 0.35s cubic-bezier(.4,1.6,.6,1);">
-                <span class="d-none d-md-inline nav-logo-text" style="transition:transform 0.35s cubic-bezier(.4,1.6,.6,1);">Lourdes College Library</span>
+                <img src="{{ asset('images/learningcommons.png') }}" alt="Lourdes College Library Logo" width="38" height="38" style="object-fit:contain; border-radius:8px; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.08); transition:transform 0.35s cubic-bezier(.4,1.6,.6,1);">
+                <span class="d-none d-md-inline nav-logo-text" style="transition:transform 0.35s cubic-bezier(.4,1.6,.6,1);">LC Mides Digital Library</span>
             </span>
         </a>
         <div class="collapse navbar-collapse">

@@ -1,66 +1,114 @@
-<footer class="footer-main mt-auto" style="background: #e83e8c; color: #fff; padding-top: 2rem; padding-bottom: 1rem;">
+<footer class="footer-main mt-auto" style="background: linear-gradient(90deg, #e83e8c 0%, #f06292 100%); color: #fff; padding-top: 3.5rem; padding-bottom: 2.5rem; min-height: 340px; border-top-left-radius: 18px; border-top-right-radius: 18px;">
     <div class="container">
-        <div class="row align-items-center gy-3">
-            <div class="col-md-7 mb-3 mb-md-0">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    <a href="https://facebook.com/LourdesCollegeLibrary" target="_blank" aria-label="Facebook" class="footer-icon-link"><i class="bi bi-facebook"></i></a>
-                    <a href="mailto:library@lccdo.edu.ph" aria-label="Email" class="footer-icon-link"><i class="bi bi-envelope-fill"></i></a>
-                    <a href="tel:+63888584093" aria-label="Telephone" class="footer-icon-link"><i class="bi bi-telephone-fill"></i></a>
-                    <a href="tel:+639123456789" aria-label="Mobile" class="footer-icon-link"><i class="bi bi-phone-fill"></i></a>
-                </div>
-                <div class="footer-contact-info" style="font-size:1.08rem;">
-                    <span class="me-4"><i class="bi bi-envelope me-1"></i> <a href="mailto:library@lccdo.edu.ph" class="footer-link">library@lccdo.edu.ph</a></span>
-                    <span class="me-4"><i class="bi bi-telephone me-1"></i> <a href="tel:+63888584093" class="footer-link">(088) 858-4093 loc. 123</a></span>
-                    <span><i class="bi bi-phone me-1"></i> <a href="tel:+639123456789" class="footer-link">0912-345-6789</a></span>
+    <div class="row gy-4 gx-5 align-items-start">
+            <!-- Column 1: Lourdes College and Slogan -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="footer-header mb-3 text-md-start text-start" style="font-size:1.5rem; font-weight:700; letter-spacing:0.5px; text-shadow:0 2px 8px rgba(232,62,140,0.08);">Lourdes College</div>
+                <div class="d-flex flex-column justify-content-start align-items-md-start align-items-center">
+                    <div class="footer-brand mb-2" style="font-size:1.35rem; font-weight:700; letter-spacing:0.5px; display:flex; align-items:center; gap:0.5rem;">
+                        <i class="bi bi-journal-bookmark-fill" style="color:#fff; font-size:1.7rem;"></i>
+                        <span>Lourdes College Library</span>
+                    </div>
+                    <div class="footer-motto" style="font-size:1.08rem; color:#ffe3f1; font-weight:400; letter-spacing:0.2px;">Empowering Research &amp; Learning</div>
                 </div>
             </div>
-            <div class="col-md-5 text-md-end text-center">
-                <div class="footer-brand mb-1" style="font-size:1.25rem; font-weight:700; letter-spacing:0.5px;">
-                    <i class="bi bi-journal-bookmark-fill me-2" style="color:#fff;"></i>Lourdes College Library
+            <!-- Column 2: Services -->
+            <div class="col-md-4 mb-3 mb-md-0">
+                <div class="footer-header mb-3 text-md-start text-start" style="font-size:1.5rem; font-weight:700; letter-spacing:0.5px; text-shadow:0 2px 8px rgba(232,62,140,0.08);">Services</div>
+                <div class="d-flex flex-column justify-content-start align-items-md-start align-items-start">
+                    <ul class="footer-services-list list-unstyled mb-0" style="font-size:1.08rem;">
+                        <li class="mb-1"><a href="#" class="footer-link">LiRA</a></li>
+                        <li class="mb-1"><a href="{{ route('alert-services.index') }}" class="footer-link">Alert Services</a></li>
+                        <li class="mb-1"><a href="{{ route('alinet.form') }}" class="footer-link">ALINET</a></li>
+                        <li class="mb-1"><a href="#" class="footer-link">Book Borrowing</a></li>
+                        <li class="mb-1"><a href="#" class="footer-link">Information Literacy Alert Schedule</a></li>
+                        <li class="mb-1"><a href="#" class="footer-link">Scanning Services</a></li>
+                        <li><a href="{{ route('learning-spaces') }}" class="footer-link">Learning Spaces</a></li>
+                    </ul>
                 </div>
-                <div class="footer-motto" style="font-size:1.05rem; color:#fff; font-weight:400;">Empowering Research &amp; Learning</div>
+            </div>
+            <!-- Column 3: Contacts -->
+            <div class="col-md-4">
+                <div class="footer-header mb-3 text-md-start text-start" style="font-size:1.5rem; font-weight:700; letter-spacing:0.5px; text-shadow:0 2px 8px rgba(232,62,140,0.08);">Contacts</div>
+                <div class="d-flex flex-column justify-content-start align-items-md-start align-items-start">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <a href="https://www.facebook.com/learningcommonslc" target="_blank" aria-label="Facebook" class="footer-icon-link"><i class="bi bi-facebook"></i></a>
+                        <a href="mailto:library@lccdo.edu.ph" aria-label="Email" class="footer-icon-link"><i class="bi bi-envelope-fill"></i></a>
+                        <a href="tel:+63888584093" aria-label="Telephone" class="footer-icon-link"><i class="bi bi-telephone-fill"></i></a>
+                        <a href="tel:+639123456789" aria-label="Mobile" class="footer-icon-link"><i class="bi bi-phone-fill"></i></a>
+                    </div>
+                    <div class="footer-contact-info" style="font-size:1.09rem;">
+                        <span class="me-4 d-block mb-1"><i class="bi bi-envelope me-1"></i> <a href="mailto:library@lccdo.edu.ph" class="footer-link">library@lccdo.edu.ph</a></span>
+                        <span class="me-4 d-block mb-1"><i class="bi bi-telephone me-1"></i> <a href="tel:+63888584093" class="footer-link">(088) 858-4093 loc. 123</a></span>
+                        <span class="me-4 d-block mb-1"><i class="bi bi-phone me-1"></i> <a href="tel:+639123456789" class="footer-link">0912-345-6789</a></span>
+                        <span class="d-block mb-1"><i class="bi bi-geo-alt me-1"></i> Gen. Capistrano Sts., Cagayan de Oro, Philippines, 9000</span>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="footer-divider my-3" style="border-top:1.5px solid #fff; opacity:0.25;"></div>
-        <div class="footer-bottom text-center" style="font-size:1.02rem; color:#fff; opacity:0.85;">
+    <div class="footer-divider my-4" style="border-top:2px solid #fff; opacity:0.18;"></div>
+        <div class="footer-bottom text-center" style="font-size:1.07rem; color:#fff; opacity:0.85; letter-spacing:0.2px;">
             &copy; {{ date('Y') }} Lourdes College Library. All rights reserved.
         </div>
     </div>
     <style>
+        .footer-main .row > div {
+            min-height: 180px;
+        }
+        .footer-header {
+            margin-bottom: 0.75rem;
+        }
         .footer-main {
             font-family: 'Segoe UI', Arial, sans-serif;
-            box-shadow: 0 -2px 16px 0 rgba(31,38,135,0.08);
+            box-shadow: 0 -2px 24px 0 rgba(31,38,135,0.10);
         }
         .footer-icon-link {
             color: #fff;
-            font-size: 1.45rem;
+            font-size: 1.55rem;
             margin-right: 0.5rem;
-            transition: color 0.18s, transform 0.18s;
+            transition: color 0.18s, transform 0.18s, box-shadow 0.18s;
             display: inline-flex;
             align-items: center;
+            border-radius: 50%;
+            padding: 0.18rem 0.32rem;
         }
         .footer-icon-link:hover {
             color: #ffd1e3;
-            transform: scale(1.12) rotate(-6deg);
+            background: rgba(255,255,255,0.08);
+            box-shadow: 0 2px 8px rgba(232,62,140,0.12);
+            transform: scale(1.13) rotate(-6deg);
             text-decoration: none;
         }
         .footer-link {
             color: #fff;
-            text-decoration: underline dotted #fff 1.5px;
-            transition: color 0.18s;
+            text-decoration: none;
+            transition: color 0.18s, background 0.18s;
+            border-radius: 4px;
+            padding: 0.08rem 0.18rem;
         }
         .footer-link:hover {
             color: #ffd1e3;
-            text-decoration: underline solid #ffd1e3 2px;
+            background: rgba(255,255,255,0.08);
+            text-decoration: none;
         }
         .footer-divider {
-            border-top: 1.5px solid #fff;
-            opacity: 0.25;
+            border-top: 2px solid #fff;
+            opacity: 0.18;
+        }
+        @media (max-width: 991px) {
+            .footer-main { padding-top: 2rem; padding-bottom: 1.2rem; min-height: 220px; border-radius: 0; }
+            .footer-brand { font-size: 1.08rem; }
+            .footer-header { font-size: 1.08rem; }
+            .footer-contact-info { font-size: 0.97rem; }
+            .footer-main .row > div { min-height: 100px; }
         }
         @media (max-width: 767px) {
-            .footer-main { padding-top: 1rem; padding-bottom: 0.5rem; }
+            .footer-main { padding-top: 1.2rem; padding-bottom: 0.7rem; min-height: 180px; border-radius: 0; }
             .footer-brand { font-size: 1rem; }
-            .footer-contact-info { font-size: 0.95rem; }
+            .footer-header { font-size: 1rem; }
+            .footer-contact-info { font-size: 0.93rem; }
+            .footer-main .row > div { min-height: 80px; }
+            .footer-services-list { font-size: 0.97rem; }
         }
     </style>
 </footer>
