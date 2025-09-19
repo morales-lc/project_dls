@@ -62,7 +62,7 @@ class GoogleAuthController extends Controller
             return redirect()->route('profile.complete');
         }
 
-        return redirect('/dashboard');
+        return redirect('/');
     }
 }
 

@@ -1,0 +1,28 @@
+/* MIDES Modern Card Animations and Styles */
+.mides-card-link {
+    display: block;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.mides-card-hover {
+    transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
+}
+.mides-card-link:hover .mides-card-hover,
+.mides-card-link:focus .mides-card-hover {
+    box-shadow: 0 8px 32px 0 rgba(25,118,210,0.13), 0 1.5px 8px 0 rgba(25,118,210,0.10);
+    transform: translateY(-6px) scale(1.025);
+    border-color: #1976d2;
+    z-index: 2;
+}
+.mides-card-link:hover .mides-card-title,
+.mides-card-link:focus .mides-card-title {
+    color: #fff !important;
+    background: linear-gradient(90deg, #1976d2 60%, #f3f4f6 100%);
+    border-radius: 0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    transition: background 0.2s, color 0.2s;
+}
+.mides-table-striped tbody tr:hover {
+    background-color: #e3f2fd;
+    transition: background 0.2s;
+}

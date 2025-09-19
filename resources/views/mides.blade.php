@@ -7,44 +7,7 @@
     <title>Mides</title>
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .card.h-100 {
-            transition: box-shadow .2s, transform .2s, border-color .2s;
-            border: 2px solid transparent;
-        }
-
-        /* Graduate Theses: Blue */
-        .card-graduate:hover {
-            border-color: #1976d2;
-            box-shadow: 0 0.5rem 1.5rem rgba(25, 118, 210, 0.15), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
-            transform: scale(1.04);
-            z-index: 2;
-        }
-
-        /* Undergraduate: Red */
-        .card-undergrad:hover {
-            border-color: #d32f2f;
-            box-shadow: 0 0.5rem 1.5rem rgba(211, 47, 47, 0.15), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
-            transform: scale(1.04);
-            z-index: 2;
-        }
-
-        /* Faculty/Theses/Dissertations: Teal */
-        .card-faculty:hover {
-            border-color: #0097a7;
-            box-shadow: 0 0.5rem 1.5rem rgba(0, 151, 167, 0.15), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
-            transform: scale(1.04);
-            z-index: 2;
-        }
-
-        /* Senior High: Green */
-        .card-seniorhigh:hover {
-            border-color: #388e3c;
-            box-shadow: 0 0.5rem 1.5rem rgba(56, 142, 60, 0.15), 0 0.125rem 0.5rem rgba(0, 0, 0, 0.08);
-            transform: scale(1.04);
-            z-index: 2;
-        }
-    </style>
+    <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
 </head>
 
 <body>
@@ -72,8 +35,8 @@
         </form>
         <div class="row g-4 justify-content-center">
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none">
-                    <div class="card h-100 card-graduate shadow-sm text-center border-0">
+                <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none mides-card-link">
+                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body">
                             <span class="display-4 text-primary"><i class="bi bi-journal-bookmark"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Graduate Theses</h5>
@@ -83,8 +46,8 @@
                 </a>
             </div>
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none">
-                    <div class="card h-100 card-undergrad shadow-sm text-center border-0">
+                <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none mides-card-link">
+                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body">
                             <span class="display-4 text-danger"><i class="bi bi-journal-text"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Undergraduate Baby Thesis</h5>
@@ -94,8 +57,8 @@
                 </a>
             </div>
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none">
-                    <div class="card h-100 card-faculty shadow-sm text-center border-0">
+                <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none mides-card-link">
+                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body">
                             <span class="display-4 text-info"><i class="bi bi-person-badge"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Faculty/Theses/Dissertations</h5>
@@ -105,8 +68,8 @@
                 </a>
             </div>
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none">
-                    <div class="card h-100 card-seniorhigh shadow-sm text-center border-0">
+                <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none mides-card-link">
+                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body">
                             <span class="display-4 text-success"><i class="bi bi-mortarboard"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Senior High School Research Paper</h5>

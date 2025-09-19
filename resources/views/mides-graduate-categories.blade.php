@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Graduate Theses Categories</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
     <style>
         .category-card {
             background: #f3f4f6;
@@ -37,8 +38,8 @@
     <div class="row g-4">
         @foreach($categories as $cat)
         <div class="col-md-4 col-12">
-            <a href="{{ route('mides.graduate.category', ['category' => $cat]) }}" class="text-decoration-none">
-                <div class="category-card">
+            <a href="{{ route('mides.graduate.category', ['category' => $cat]) }}" class="text-decoration-none mides-card-link">
+                <div class="category-card mides-card-hover">
                     <span class="category-icon">
                         @if(str_contains(strtolower($cat), 'library'))
                             <i class="bi bi-journal-bookmark"></i>

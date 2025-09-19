@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Undergraduate Baby Theses Programs</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
     <style>
         .program-card {
             background: #f3f4f6;
@@ -37,8 +38,8 @@
     <div class="row g-4">
         @foreach($programs as $prog)
         <div class="col-md-4 col-12">
-            <a href="{{ route('mides.undergrad.program', ['program' => $prog]) }}" class="text-decoration-none">
-                <div class="program-card">
+            <a href="{{ route('mides.undergrad.program', ['program' => $prog]) }}" class="text-decoration-none mides-card-link">
+                <div class="program-card mides-card-hover">
                     <span class="program-icon">
                         @if(str_contains(strtolower($prog), 'nursing'))
                             <i class="bi bi-heart-pulse"></i>

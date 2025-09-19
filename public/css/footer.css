@@ -1,0 +1,66 @@
+/* Modern footer styles for DLS Project */
+
+.footer-main {
+    background: #ffb6c1;
+    color: #222;
+    padding: 2.5rem 0 1.2rem 0;
+    border-top-left-radius: 2rem;
+    border-top-right-radius: 2rem;
+    box-shadow: 0 -4px 24px rgba(255,182,193,0.08);
+    font-size: 1.05rem;
+}
+.footer-main a {
+    color: #d81b60;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+.footer-main a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+.footer-main .footer-social a {
+    font-size: 1.7rem;
+    margin-right: 1.2rem;
+    display: inline-block;
+    vertical-align: middle;
+    color: #fff;
+    background: #d81b60;
+    border-radius: 50%;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(216,27,96,0.12);
+    transition: background 0.2s, color 0.2s;
+}
+.footer-main .footer-social a:hover {
+    background: #fff;
+    color: #d81b60;
+    border: 1px solid #d81b60;
+}
+.footer-main .footer-social a:last-child {
+    margin-right: 0;
+}
+.footer-main .footer-divider {
+    border-top: 1px solid #e0e0e0;
+    margin: 1.5rem 0 1rem 0;
+}
+.footer-main .footer-bottom {
+    font-size: 0.98rem;
+    color: #bdbdbd;
+    text-align: center;
+}
+.footer-main .fw-semibold {
+    color: #d81b60;
+}
+.footer-main .text-light {
+    color: #fff !important;
+    opacity: 0.9;
+}
+.footer-main span, .footer-main i {
+    color: #222;
+}
+.footer-main .footer-bottom i {
+    color: #d81b60;
+}

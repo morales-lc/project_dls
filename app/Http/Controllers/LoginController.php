@@ -27,7 +27,7 @@ class LoginController extends Controller
             if (Hash::check($request->password, $user->password)) {
                 Auth::login($user);
                 $request->session()->regenerate();
-                return redirect()->intended('dashboard');
+                return redirect()->intended('/');
             }
         }
         return back()->withErrors([

@@ -25,8 +25,15 @@ class PostController extends Controller
             'og_image' => 'nullable|url',
         ]);
 
+
         $photoPath = null;
-        if ($request->hasFile('photo')) {
+        $hasPhoto = $request->hasFile('photo');
+        $hasYoutube = $request->filled('youtube_link');
+        $hasWebsite = $request->filled('website_link');
+        if (!$hasPhoto && !$hasYoutube && !$hasWebsite) {
+            return back()->withInput()->withErrors(['media_type' => 'You must provide an image, YouTube link, or website link.']);
+        }
+        if ($hasPhoto) {
             $photoPath = $request->file('photo')->store('posts', 'public');
         }
 
@@ -62,7 +69,7 @@ class PostController extends Controller
             'og_image' => $ogImage,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Post created successfully!');
+    return redirect()->route('post.management')->with('success', 'Post created successfully!');
     }
 
     public function adminManagement()

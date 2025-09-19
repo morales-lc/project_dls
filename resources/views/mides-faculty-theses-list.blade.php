@@ -24,7 +24,8 @@
     <h2 class="fw-bold mb-3">Faculty/Theses/Dissertations</h2>
     @if($documents->count())
         <div class="table-responsive">
-            <table class="table table-bordered table-striped align-middle">
+            <table class="table table-bordered table-striped align-middle mides-table-striped">
+<link href="{{ asset('css/mides.css') }}" rel="stylesheet">
                 <thead class="table-light">
                     <tr>
                         <th>Title</th>

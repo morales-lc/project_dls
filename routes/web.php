@@ -21,9 +21,12 @@ use App\Http\Controllers\MidesGraduateController;
 use App\Http\Controllers\MidesSeniorHighController;
 use Illuminate\Http\Request;
 
+use App\Http\Controllers\LoginController;
 
 
-Route::get('/dashboard', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
+
+
+
 Route::get('/search', [SearchController::class, 'index'])->name('search');
 Route::get('/resource/view', [ResourceController::class, 'show'])->name('resource.view');
 
@@ -35,7 +38,11 @@ Route::view('/settings', 'settings')->name('settings');
 
 Route::view('/about', 'about')->name('about');
 Route::view('/chart', 'chart')->name('chart');
-Route::view('/', 'login')->name('login');
+
+Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
+Route::view('/login', 'login')->name('login');
+// Logout route
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::get('/wiley-login', function () {
     return view('wiley-auto-login');
@@ -116,3 +123,42 @@ Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::c
 Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
 Route::delete('/post-management/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('post.delete');
 Route::get('/post-management', [App\Http\Controllers\PostController::class, 'postManagement'])->name('post.management');
+
+// Sidlak Journal routes
+use App\Http\Controllers\SidlakJournalController;
+Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
+Route::get('/sidlak-journals/create', [SidlakJournalController::class, 'create'])->name('sidlak.create');
+Route::post('/sidlak-journals', [SidlakJournalController::class, 'store'])->name('sidlak.store');
+Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->name('sidlak.show');
+// Sidlak Journal CRUD Management
+Route::get('/sidlak/manage', [\App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
+Route::get('/sidlak/{id}/edit', [\App\Http\Controllers\SidlakJournalController::class, 'edit'])->name('sidlak.edit');
+Route::put('/sidlak/{id}', [\App\Http\Controllers\SidlakJournalController::class, 'update'])->name('sidlak.update');
+Route::delete('/sidlak/{id}', [\App\Http\Controllers\SidlakJournalController::class, 'destroy'])->name('sidlak.destroy');
+
+
+// Alert Services routes
+use App\Http\Controllers\AlertServiceController;
+Route::get('/alert-services', [AlertServiceController::class, 'index'])->name('alert-services.index');
+Route::get('/alert-services/manage', [AlertServiceController::class, 'manage'])->name('alert-services.manage');
+Route::get('/alert-services/create', [AlertServiceController::class, 'create'])->name('alert-services.create');
+Route::post('/alert-services', [AlertServiceController::class, 'store'])->name('alert-services.store');
+Route::get('/alert-services/{id}/edit', [AlertServiceController::class, 'edit'])->name('alert-services.edit');
+Route::put('/alert-services/{id}', [AlertServiceController::class, 'update'])->name('alert-services.update');
+Route::delete('/alert-services/{id}', [AlertServiceController::class, 'destroy'])->name('alert-services.destroy');
+Route::get('/alert-services/{year}/{month}/{group}/{value}', [AlertServiceController::class, 'group'])->name('alert-services.group');
+
+use App\Http\Controllers\AlinetController;
+// ALINET Appointment
+Route::get('/alinet', [AlinetController::class, 'showForm'])->name('alinet.form');
+Route::post('/alinet', [AlinetController::class, 'submitForm'])->name('alinet.submit');
+
+use App\Http\Controllers\AlinetAppointmentManageController;
+// ALINET Appointment Management
+Route::get('/alinet/manage', [AlinetAppointmentManageController::class, 'index'])->name('alinet.manage');
+Route::post('/alinet/{id}/status', [AlinetAppointmentManageController::class, 'updateStatus'])->name('alinet.status');
+
+// Learning Spaces page
+Route::get('/learning-spaces', function () {
+    return view('learning-spaces');
+})->name('learning-spaces');
