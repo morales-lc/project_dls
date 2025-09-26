@@ -7,15 +7,17 @@
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
-<body>
+<body class="bg-light">
     <div id="dashboardWrapper" class="d-flex position-relative">
         @include('components.admin-sidebar')
         <div class="flex-grow-1">
-            <div class="container mt-5">
-                <h2 class="mb-4">User Management</h2>
-                <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-person-plus me-1"></i> Add User</button>
-                <table class="table table-bordered table-striped">
-                        <thead>
+            <div class="container py-5">
+                <h2 class="fw-bold mb-4 text-pink">User Management</h2>
+                <button class="btn btn-pink mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-person-plus me-1"></i> Add User</button>
+                <div class="card p-3 shadow rounded-4" style="max-width: 1200px; margin:auto;">
+                <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle bg-white rounded-4">
+                        <thead class="table-pink">
                                 <tr>
                                         <th>ID</th>
                                         <th>Name</th>
@@ -50,11 +52,11 @@
                                                 <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($user->first_name . ' ' . $user->last_name)) }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
                                         </td>
                                         <td>
-                                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal{{ $user->id }}"><i class="bi bi-pencil-square"></i></button>
+                                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal{{ $user->id }}">Update</button>
                                                 <form method="POST" action="{{ route('user.delete', $user->id) }}" style="display:inline-block;">
                                                         @csrf
                                                         @method('DELETE')
-                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user?')"><i class="bi bi-trash"></i></button>
+                                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user?')">Delete</button>
                                                 </form>
                                         </td>
                                 </tr>
@@ -120,6 +122,8 @@
                                 @endforeach
                         </tbody>
                 </table>
+                </div>
+                </div>
                 <!-- Add User Modal -->
                 <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
                     <div class="modal-dialog modal-lg">

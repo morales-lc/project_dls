@@ -36,6 +36,8 @@ Route::view('/history', 'history')->name('history');
 Route::view('/settings', 'settings')->name('settings');
 
 Route::view('/about', 'about')->name('about');
+use App\Http\Controllers\ContactController;
+Route::get('/about/contact', [ContactController::class, 'index'])->name('about.contact');
 Route::view('/chart', 'chart')->name('chart');
 
 Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
@@ -186,3 +188,12 @@ Route::get('/libraries/staff/{id}/edit', [LibraryStaffController::class, 'edit']
 Route::put('/libraries/staff/{id}', [LibraryStaffController::class, 'update'])->name('libraries.staff.update');
 Route::delete('/libraries/staff/{id}', [LibraryStaffController::class, 'destroy'])->name('libraries.staff.destroy');
 
+// Feedback routes (only for authenticated users)
+Route::middleware('auth')->group(function () {
+    Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
+    Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
+});
+Route::get('/admin/feedback', [App\Http\Controllers\FeedbackController::class, 'adminList'])->name('feedback.admin');
+Route::get('/admin/feedback/{id}/followup', [App\Http\Controllers\FeedbackController::class, 'followUp'])->name('feedback.followup');
+// Feedback delete route
+Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'delete'])->name('feedback.delete');

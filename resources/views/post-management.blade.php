@@ -10,19 +10,19 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 
-<body style="min-height: 100vh; background-color: #f8f9fa;">
+<body class="bg-light" style="min-height: 100vh;">
     <div id="dashboardWrapper" class="d-flex position-relative">
         @include('components.admin-sidebar')
         <div class="flex-grow-1">
-            @include('navbar')
+            
             <div class="container py-5">
                 <div class="mb-3">
                     <button class="btn btn-outline-secondary" onclick="window.history.back()">
                         &larr; Go Back
                     </button>
                 </div>
-                <h2 class="fw-bold mb-4">Manage Posts & Announcements</h2>
-                <div class="card mb-5 shadow-sm border-0">
+                <h2 class="fw-bold mb-4 text-pink">Manage Posts & Announcements</h2>
+                <div class="card mb-5 shadow rounded-4 border-0" style="max-width:1200px;margin:auto;">
                     <div class="card-header bg-white border-bottom-0 pb-0">
                         <h4 class="fw-bold mb-0">Add New Post / Announcement</h4>
                     </div>
@@ -124,8 +124,8 @@
                 <div class="tab-content" id="postTypeTabsContent">
                     @foreach($types as $i => $type)
                     <div class="tab-pane fade @if($i === 0) show active @endif" id="pane-{{ strtolower($type) }}" role="tabpanel" aria-labelledby="tab-{{ strtolower($type) }}">
-                        <div class="card shadow-sm border-0 mb-5">
-                            <div class="card-header bg-primary text-white">
+                        <div class="card shadow rounded-4 border-0 mb-5">
+                            <div class="card-header bg-white border-bottom-0">
                                 <h5 class="mb-0">{{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}</h5>
                             </div>
                             <div class="card-body">

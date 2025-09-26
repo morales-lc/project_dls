@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AlinetAppointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\AlinetAppointmentAccepted;
+use App\Mail\AlinetAppointmentRejected;
 
 class AlinetAppointmentManageController extends Controller
 {
@@ -35,17 +37,18 @@ class AlinetAppointmentManageController extends Controller
     {
         $request->validate([
             'status' => 'required|in:accepted,rejected',
+            'reason' => 'nullable|string|max:5000',
         ]);
         $appointment = AlinetAppointment::findOrFail($id);
         $appointment->status = $request->status;
         $appointment->save();
 
-        // Send email to requester
-        $emailView = $request->status === 'accepted' ? 'alinet.email_accepted' : 'alinet.email_rejected';
-        Mail::send($emailView, ['appointment' => $appointment], function ($message) use ($appointment) {
-            $message->to($appointment->email)
-                ->subject('ALINET Appointment ' . ucfirst($appointment->status));
-        });
+        // Send email to requester using Mailable classes
+        if ($request->status === 'accepted') {
+            Mail::to($appointment->email)->send(new AlinetAppointmentAccepted($appointment));
+        } else {
+            Mail::to($appointment->email)->send(new AlinetAppointmentRejected($appointment, $request->input('reason')));
+        }
 
         return redirect()->route('alinet.manage')->with('success', 'Appointment status updated and email sent.');
     }

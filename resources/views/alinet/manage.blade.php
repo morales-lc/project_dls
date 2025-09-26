@@ -1,14 +1,20 @@
 
 
+<!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALINET Appointments Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
+<body class="bg-light">
 <div id="dashboardWrapper" class="d-flex position-relative">
     @include('components.admin-sidebar')
     <div class="flex-grow-1">
-        @include('navbar')
         <div class="container py-4">
     <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1400px; margin:auto; background: #fff;">
         <h2 class="fw-bold mb-4 text-center" style="color: #1976d2;">ALINET Appointments Management</h2>
@@ -101,11 +107,7 @@
                                 <input type="hidden" name="status" value="accepted">
                                 <button class="btn btn-success btn-sm mb-1" type="submit">Accept</button>
                             </form>
-                            <form method="POST" action="{{ route('alinet.status', $a->id) }}" class="d-inline">
-                                @csrf
-                                <input type="hidden" name="status" value="rejected">
-                                <button class="btn btn-danger btn-sm mb-1" type="submit">Reject</button>
-                            </form>
+                            <button class="btn btn-danger btn-sm mb-1" type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" data-action="{{ route('alinet.status', $a->id) }}" data-name="{{ $a->firstname }} {{ $a->lastname }}">Reject</button>
                             @else
                                 <span class="text-muted">—</span>
                             @endif
@@ -122,10 +124,53 @@
                 Showing {{ $appointments->firstItem() ?? 0 }}–{{ $appointments->lastItem() ?? 0 }} of {{ $appointments->total() }}
             </div>
             <div>
-                {{ $appointments->onEachSide(1)->links() }}
+                {{ $appointments->onEachSide(1)->links('pagination::bootstrap-5') }}
             </div>
+        </div>
+    </div>
+    </div>
+    </div>
+</div>
+<!-- Rejection Modal -->
+<div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reject Appointment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" id="rejectModalForm">
+                @csrf
+                <input type="hidden" name="status" value="rejected">
+                <div class="modal-body">
+                    <div class="mb-2 text-muted" id="rejectModalName"></div>
+                    <label class="form-label">Reason (optional)</label>
+                    <textarea name="reason" class="form-control" rows="4" placeholder="Provide a brief explanation"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">Send Rejection</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-@include('footer')
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var rejectModal = document.getElementById('rejectModal');
+    rejectModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var action = button.getAttribute('data-action');
+        var name = button.getAttribute('data-name');
+        var form = document.getElementById('rejectModalForm');
+        var nameEl = document.getElementById('rejectModalName');
+        form.setAttribute('action', action);
+        nameEl.textContent = 'Rejecting: ' + name;
+        form.querySelector('textarea[name="reason"]').value = '';
+    });
+});
+</script>
+</body>
+</html>

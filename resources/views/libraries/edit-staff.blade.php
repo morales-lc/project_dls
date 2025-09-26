@@ -94,7 +94,7 @@
                         </div>
                         @endif
                     </div>
-                    <button type="submit" class="btn btn-pink w-100">Update Staff</button>
+                    <button type="submit" class="btn btn-warning w-100">Update Staff</button>
                 </form>
             </div>
 

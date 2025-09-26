@@ -4,14 +4,20 @@
     <meta charset="UTF-8">
     <title>Upload MIDES Document</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
-<body>
-@include('navbar')
-<div class="container py-5">
-    <div class="mb-3">
-        <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary">&larr; Back to MIDES Management</a>
-    </div>
-    <h2 class="fw-bold mb-4">Upload MIDES Document</h2>
+<body class="bg-light">
+<div id="dashboardWrapper" class="d-flex position-relative">
+    @include('components.admin-sidebar')
+    <div class="flex-grow-1">
+        <div class="container py-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="fw-bold mb-0 text-pink">Upload MIDES Document</h2>
+                <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary">&larr; Back to MIDES Management</a>
+            </div>
+            <div class="card p-4 shadow rounded-4" style="max-width:900px;margin:auto;">
     <form method="POST" action="{{ route('mides.store') }}" enctype="multipart/form-data">
         @csrf
         <div class="mb-3">
@@ -66,8 +72,13 @@
             <label for="pdf" class="form-label">PDF Document</label>
             <input type="file" name="pdf" id="pdf" class="form-control" accept="application/pdf" required>
         </div>
-        <button type="submit" class="btn btn-success">Upload</button>
+        <div class="text-end">
+            <button type="submit" class="btn btn-success">Upload</button>
+        </div>
     </form>
+            </div>
+        </div>
+    </div>
 </div>
 <script>
 function toggleFields() {

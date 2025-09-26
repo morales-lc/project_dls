@@ -43,7 +43,7 @@ class LiRAController extends Controller
             'typeA43' => 'Yes',
             'titlesOf' => '',
         ];
-        // Use http_build_query with PHP_QUERY_RFC3986 to avoid + for spaces
+        //  http_build_query with PHP_QUERY_RFC3986 to avoid + for spaces
         $jotformUrl = $baseUrl . '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
         return view('lira.jotform', compact('jotformUrl'));
     }

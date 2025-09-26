@@ -7,20 +7,20 @@
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
-<body>
+<body class="bg-light">
     <div id="dashboardWrapper" class="d-flex position-relative">
         @include('components.admin-sidebar')
         <div class="flex-grow-1">
-            @include('navbar')
+            
             <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">MIDES Repository Management</h2>
+        <h2 class="fw-bold mb-0 text-pink">MIDES Repository Management</h2>
         <div>
             <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-primary me-2">MIDES Dashboard</a>
             <a href="{{ route('librarian.dashboard') }}" class="btn btn-outline-success">Librarian Dashboard</a>
         </div>
     </div>
-    <a href="{{ route('mides.upload') }}" class="btn btn-primary mb-3">Add New Document</a>
+    <a href="{{ route('mides.upload') }}" class="btn btn-pink mb-3"><i class="bi bi-plus-lg"></i> Add New Document</a>
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
@@ -58,9 +58,10 @@
         </div>
     </form>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead>
+    <div class="card p-3 shadow rounded-4" style="max-width:1200px;margin:auto;">
+        <div class="table-responsive">
+        <table class="table table-hover align-middle bg-white rounded-4">
+            <thead class="table-pink">
                 <tr>
                     <th>Type</th>
                     <th>Category/Program</th>
@@ -81,12 +82,12 @@
                                         <td>{{ $doc->title }}</td>
                                         <td><a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank">View PDF</a></td>
                                         <td>
-                                                <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal{{ $doc->id }}">Update</button>
-                                                <form method="POST" action="{{ route('mides.delete', $doc->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                                </form>
+                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal{{ $doc->id }}">Update</button>
+                        <form method="POST" action="{{ route('mides.delete', $doc->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                        </form>
                                         </td>
                                 </tr>
                                 <!-- Update Modal -->
@@ -137,6 +138,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     </div>
     <div class="mt-4">
         {{ $documents->links() }}

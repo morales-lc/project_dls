@@ -7,19 +7,20 @@
     <title>Alert Services Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ 'css/styles.css' }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
-<body style="background: #f7f8fa; min-height: 100vh;">
+<body class="bg-light" style="min-height: 100vh;">
     <div id="dashboardWrapper" class="d-flex position-relative">
         @include('components.admin-sidebar')
         <div class="flex-grow-1">
-            @include('navbar')
+           
             <div class="container py-5 d-flex flex-column align-items-center justify-content-center">
         <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
             <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
                 <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Alert Services Control Panel</h2>
                 <div class="d-flex gap-2">
-                    <a href="{{ route('alert-services.create') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.1rem;">+ Add New Book</a>
+                    <a href="{{ route('alert-services.create') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.1rem;"><i class="bi bi-plus-lg"></i> Add New Book</a>
                 </div>
             </div>
             @if(session('success'))
@@ -59,9 +60,10 @@
                 </div>
             </form>
 
-            <div class="table-responsive rounded-3 border bg-light-subtle p-2">
-                <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 1rem; overflow: hidden;">
-                    <thead class="table-light">
+            <div class="card p-3 shadow rounded-4 w-100" style="max-width:1100px;">
+                <div class="table-responsive">
+                <table class="table table-hover align-middle bg-white rounded-4 mb-0">
+                    <thead class="table-pink">
                         <tr style="font-size:1.05rem;">
                             <th style="width:70px">Cover</th>
                             <th>Title</th>
@@ -88,11 +90,11 @@
                             <td>{{ $book->year }}</td>
                             <td><a href="{{ asset('storage/'.$book->pdf_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-3">View PDF</a></td>
                             <td>
-                                <a href="{{ route('alert-services.edit', $book->id) }}" class="btn btn-sm btn-outline-secondary px-3 me-1">Edit</a>
+                                <a href="{{ route('alert-services.edit', $book->id) }}" class="btn btn-sm btn-warning px-3 me-1">Edit</a>
                                 <form action="{{ route('alert-services.destroy', $book->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-outline-danger px-3" onclick="return confirm('Delete this book?')">Delete</button>
+                                    <button type="submit" class="btn btn-sm btn-danger px-3" onclick="return confirm('Delete this book?')">Delete</button>
                                 </form>
                             </td>
                         </tr>
@@ -101,6 +103,7 @@
                         @endforelse
                     </tbody>
                 </table>
+                </div>
                 <div class="d-flex justify-content-center mt-4">
                     <nav aria-label="Page navigation">
                         {{ $books->onEachSide(1)->links('pagination::bootstrap-5') }}
