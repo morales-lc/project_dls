@@ -4,10 +4,15 @@
     <meta charset="UTF-8">
     <title>Mides Repository Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
-    @include('navbar')
-<div class="container py-5">
+    <div id="dashboardWrapper" class="d-flex position-relative">
+        @include('components.admin-sidebar')
+        <div class="flex-grow-1">
+            @include('navbar')
+            <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">MIDES Repository Management</h2>
         <div>
@@ -86,7 +91,7 @@
                                 </tr>
                                 <!-- Update Modal -->
                                 <div class="modal fade" id="updateModal{{ $doc->id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ $doc->id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
+                                    <div class="modal-dialog modal-lg">
                                         <div class="modal-content">
                                             <form method="POST" action="{{ route('mides.update', $doc->id) }}" enctype="multipart/form-data">
                                                 @csrf

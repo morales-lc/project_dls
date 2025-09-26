@@ -20,10 +20,33 @@ class AlertServiceController extends Controller
         return view('alert-services.group', compact('books', 'displayName', 'displayMonth', 'year'));
     }
 
-    public function manage()
+    public function manage(Request $request)
     {
-        $books = AlertBook::with('department')->orderByDesc('year')->orderByDesc('month')->paginate(10);
-        return view('alert-services.manage', compact('books'));
+        $query = AlertBook::with('department');
+        $departments = AlertDepartment::all();
+
+        // Filtering
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                  ->orWhere('year', 'like', "%$search%");
+            });
+        }
+        if ($request->filled('department')) {
+            $query->where('department_id', $request->input('department'));
+        }
+
+        // Sorting
+        $sort = $request->input('sort', 'year');
+        $direction = $request->input('direction', 'desc');
+        $query->orderBy($sort, $direction);
+        if ($sort !== 'year') {
+            $query->orderByDesc('year'); // secondary sort by year
+        }
+
+        $books = $query->paginate(10)->appends($request->except('page'));
+        return view('alert-services.manage', compact('books', 'departments'));
     }
 
     public function edit($id)

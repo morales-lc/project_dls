@@ -66,12 +66,17 @@
     <section class="{{ $i % 2 == 0 ? 'section-white' : 'section-pink' }} rounded-4 shadow-sm p-4 mb-5 position-relative" style="border:2.5px solid #4a90e2;">
         <h4 class="fw-bold mb-3 {{ $i % 2 == 0 ? 'text-pink' : 'text-white' }}">{{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}</h4>
         <div class="news-carousel-wrap">
-            <button class="carousel-btn modern-btn left" type="button" aria-label="Scroll left" tabindex="0">
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="14" cy="14" r="13" stroke="#d81b60" stroke-width="2.5" fill="#fff"/>
-                    <path d="M16.5 9L12 14L16.5 19" stroke="#d81b60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
+            @php
+                $cardCount = isset($posts) ? $posts->where('type', $type)->count() : 0;
+            @endphp
+            @if($cardCount > 3)
+                <button class="carousel-btn modern-btn left" type="button" aria-label="Scroll left" tabindex="0">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="14" r="13" stroke="#d81b60" stroke-width="2.5" fill="#fff"/>
+                        <path d="M16.5 9L12 14L16.5 19" stroke="#d81b60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            @endif
             <div class="news-carousel" id="news-carousel-{{ $i }}">
                 @if(isset($posts) && $posts->where('type', $type)->count())
                     @foreach($posts->where('type', $type)->values() as $j => $post)
@@ -123,12 +128,14 @@
                     <div class="carousel-card w-100 text-center text-muted" style="min-width:220px;">No {{ $type == 'Post' ? 'posts' : strtolower($type) . 's' }} yet.</div>
                 @endif
             </div>
-            <button class="carousel-btn modern-btn right" type="button" aria-label="Scroll right" tabindex="0">
-                <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="14" cy="14" r="13" stroke="#d81b60" stroke-width="2.5" fill="#fff"/>
-                    <path d="M11.5 9L16 14L11.5 19" stroke="#d81b60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </button>
+            @if($cardCount > 3)
+                <button class="carousel-btn modern-btn right" type="button" aria-label="Scroll right" tabindex="0">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="14" cy="14" r="13" stroke="#d81b60" stroke-width="2.5" fill="#fff"/>
+                        <path d="M11.5 9L16 14L11.5 19" stroke="#d81b60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            @endif
         </div>
         <div class="carousel-dots mt-3 text-center" id="carousel-dots-{{ $i }}"></div>
     </section>
@@ -458,13 +465,7 @@
         </ul>
     </div>
 
-    <!-- Library Contacts -->
-    <div class="mb-5">
-        <h4 class="fw-bold">Contact Us</h4>
-        <p>Email: <a href="mailto:library@lccdo.edu.ph">library@lccdo.edu.ph</a></p>
-        <p>Phone: (088) 858-4093 loc. 123</p>
-        <p>Facebook: <a href="#">Lourdes College Library</a></p>
-    </div>
+
 </div>
 
 

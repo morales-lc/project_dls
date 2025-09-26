@@ -5,10 +5,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alert Services Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body style="background: #f7f8fa; min-height: 100vh;">
-    @include('navbar')
-    <div class="container py-5 d-flex flex-column align-items-center justify-content-center">
+    <div id="dashboardWrapper" class="d-flex position-relative">
+        @include('components.admin-sidebar')
+        <div class="flex-grow-1">
+            @include('navbar')
+            <div class="container py-5 d-flex flex-column align-items-center justify-content-center">
         <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
             <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
                 <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Alert Services Control Panel</h2>
@@ -19,6 +25,40 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
+
+            <!-- Filter & Sort Form -->
+            <form method="GET" action="{{ route('alert-services.manage') }}" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search by title, year..." value="{{ request('search') }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="department" class="form-select">
+                        <option value="">All Departments</option>
+                        @foreach($departments as $dept)
+                            <option value="{{ $dept->id }}" {{ request('department') == $dept->id ? 'selected' : '' }}>{{ $dept->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="year" {{ request('sort') == 'year' ? 'selected' : '' }}>Year</option>
+                        <option value="title" {{ request('sort') == 'title' ? 'selected' : '' }}>Title</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="direction" class="form-select">
+                        <option value="desc" {{ request('direction') == 'desc' ? 'selected' : '' }}>Descending</option>
+                        <option value="asc" {{ request('direction') == 'asc' ? 'selected' : '' }}>Ascending</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ route('alert-services.manage') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                </div>
+            </form>
+
             <div class="table-responsive rounded-3 border bg-light-subtle p-2">
                 <table class="table table-hover align-middle mb-0" style="background: #fff; border-radius: 1rem; overflow: hidden;">
                     <thead class="table-light">

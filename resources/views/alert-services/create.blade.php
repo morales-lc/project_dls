@@ -4,11 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alert Services</title>
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 </head>
 <body style="background: #f7f8fa; min-height: 100vh;">
-    @include('navbar')
-    <div class="container py-5 d-flex flex-column align-items-center justify-content-center">
-    <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 800px; background: #fff;">
+    <div id="dashboardWrapper" class="d-flex position-relative">
+        @include('components.admin-sidebar')
+        <div class="flex-grow-1">
+            @include('navbar')
+            <div class="container py-5 d-flex flex-column align-items-center justify-content-center">
+                <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 800px; background: #fff;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <a href="{{ route('alert-services.manage') }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Manage</a>
                 <span></span>
@@ -57,6 +61,9 @@
                     <button class="btn btn-lg px-5 py-2" type="submit" style="font-size:1.1rem; font-weight:600; background:#d81b60; color:#fff; border:none; border-radius:2em;">Post Book</button>
                 </div>
             </form>
+        </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

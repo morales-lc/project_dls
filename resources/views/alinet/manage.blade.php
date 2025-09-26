@@ -1,7 +1,15 @@
 
 
-@include('navbar')
-<div class="container py-4">
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
+<div id="dashboardWrapper" class="d-flex position-relative">
+    @include('components.admin-sidebar')
+    <div class="flex-grow-1">
+        @include('navbar')
+        <div class="container py-4">
     <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1400px; margin:auto; background: #fff;">
         <h2 class="fw-bold mb-4 text-center" style="color: #1976d2;">ALINET Appointments Management</h2>
         @if(session('success'))
@@ -113,7 +121,9 @@
             <div class="small text-muted">
                 Showing {{ $appointments->firstItem() ?? 0 }}–{{ $appointments->lastItem() ?? 0 }} of {{ $appointments->total() }}
             </div>
-            <!-- Pagination links removed as requested -->
+            <div>
+                {{ $appointments->onEachSide(1)->links() }}
+            </div>
         </div>
     </div>
 </div>

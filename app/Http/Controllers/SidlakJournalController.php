@@ -77,6 +77,40 @@ class SidlakJournalController extends Controller
             }
         }
 
+        // Handle research articles update, addition, and deletion
+        if ($request->articles) {
+            foreach ($request->articles as $article) {
+                // Remove article if flagged
+                if (isset($article['remove']) && $article['remove'] == '1' && isset($article['id'])) {
+                    SidlakArticle::where('id', $article['id'])->delete();
+                    continue;
+                }
+                // Update existing article
+                if (isset($article['id'])) {
+                    $existing = SidlakArticle::find($article['id']);
+                    if ($existing) {
+                        $existing->title = $article['title'] ?? $existing->title;
+                        $existing->authors = $article['authors'] ?? $existing->authors;
+                        if (isset($article['pdf_file']) && is_object($article['pdf_file'])) {
+                            $existing->pdf_file = $article['pdf_file']->store('sidlak_articles', 'public');
+                        }
+                        $existing->save();
+                    }
+                } else {
+                    // Add new article
+                    $pdfPath = null;
+                    if (isset($article['pdf_file']) && is_object($article['pdf_file'])) {
+                        $pdfPath = $article['pdf_file']->store('sidlak_articles', 'public');
+                    }
+                    $journal->articles()->create([
+                        'title' => $article['title'] ?? '',
+                        'authors' => $article['authors'] ?? '',
+                        'pdf_file' => $pdfPath,
+                    ]);
+                }
+            }
+        }
+
         return redirect()->route('sidlak.manage')->with('success', 'Journal updated successfully!');
     }
 

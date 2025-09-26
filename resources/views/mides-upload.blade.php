@@ -8,6 +8,9 @@
 <body>
 @include('navbar')
 <div class="container py-5">
+    <div class="mb-3">
+        <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary">&larr; Back to MIDES Management</a>
+    </div>
     <h2 class="fw-bold mb-4">Upload MIDES Document</h2>
     <form method="POST" action="{{ route('mides.store') }}" enctype="multipart/form-data">
         @csrf

@@ -56,13 +56,19 @@
     @if($books->count())
         <div class="netflix-grid">
             @foreach($books as $book)
-                @if($book->cover_image)
-                    <a href="{{ asset('storage/'.$book->pdf_path) }}" target="_blank">
-                        <img src="{{ asset('storage/'.$book->cover_image) }}" class="netflix-cover" alt="Cover">
+                <div class="d-flex flex-column align-items-center" style="width:100%;">
+                    @if($book->cover_image)
+                        <a href="{{ asset('storage/'.$book->pdf_path) }}" target="_blank">
+                            <img src="{{ asset('storage/'.$book->cover_image) }}" class="netflix-cover" alt="Cover">
+                        </a>
+                    @else
+                        <div class="d-flex align-items-center justify-content-center netflix-cover bg-light text-muted" style="height:300px;">No Cover</div>
+                    @endif
+                    <div class="fw-semibold text-center mt-2" style="font-size:1.08rem; color:#d81b60; max-width:90%; word-break:break-word;">{{ $book->title ?? 'Untitled' }}</div>
+                    <a href="{{ route('lira.jotform', ['examplePurposive' => $book->title]) }}" class="btn btn-sm btn-pink mt-2" style="background:#e83e8c;color:#fff;border-radius:1em;font-weight:600;">
+                        <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                     </a>
-                @else
-                    <div class="d-flex align-items-center justify-content-center netflix-cover bg-light text-muted" style="height:300px;">No Cover</div>
-                @endif
+                </div>
             @endforeach
         </div>
     @else

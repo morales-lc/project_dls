@@ -41,19 +41,46 @@
             <a href="{{ route('mides.undergrad.program', ['program' => $prog]) }}" class="text-decoration-none mides-card-link">
                 <div class="program-card mides-card-hover">
                     <span class="program-icon">
-                        @if(str_contains(strtolower($prog), 'nursing'))
-                            <i class="bi bi-heart-pulse"></i>
-                        @elseif(str_contains(strtolower($prog), 'business'))
-                            <i class="bi bi-building"></i>
-                        @elseif(str_contains(strtolower($prog), 'psychology'))
-                            <i class="bi bi-person"></i>
-                        @elseif(str_contains(strtolower($prog), 'it'))
-                            <i class="bi bi-laptop"></i>
-                        @elseif(str_contains(strtolower($prog), 'hotel'))
-                            <i class="bi bi-cup-hot"></i>
-                        @else
-                            <i class="bi bi-book"></i>
-                        @endif
+                        @php
+                            $icon = 'bi-book';
+                            $p = strtolower($prog);
+                            if(str_contains($p, 'nursing')) {
+                                $icon = 'bi-heart-pulse';
+                            } elseif(str_contains($p, 'nutrition')) {
+                                $icon = 'bi-apple';
+                            } elseif(str_contains($p, 'pharmacy')) {
+                                $icon = 'bi-capsule';
+                            } elseif(str_contains($p, 'mass communication')) {
+                                $icon = 'bi-mic';
+                            } elseif(str_contains($p, 'library')) {
+                                $icon = 'bi-journal-bookmark';
+                            } elseif(str_contains($p, 'psychology')) {
+                                $icon = 'bi-person';
+                            } elseif(str_contains($p, 'accountancy')) {
+                                $icon = 'bi-calculator';
+                            } elseif(str_contains($p, 'business')) {
+                                $icon = 'bi-building';
+                            } elseif(str_contains($p, 'feasibility')) {
+                                $icon = 'bi-bar-chart';
+                            } elseif(str_contains($p, 'hotel')) {
+                                $icon = 'bi-cup-hot';
+                            } elseif(str_contains($p, 'tourism')) {
+                                $icon = 'bi-geo-alt';
+                            } elseif(str_contains($p, 'information technology') || str_contains($p, 'it')) {
+                                $icon = 'bi-laptop';
+                            } elseif(str_contains($p, 'social work')) {
+                                $icon = 'bi-people';
+                            } elseif(str_contains($p, 'elementary education')) {
+                                $icon = 'bi-pencil';
+                            } elseif(str_contains($p, 'secondary education')) {
+                                $icon = 'bi-book-half';
+                            } elseif(str_contains($p, 'english')) {
+                                $icon = 'bi-book';
+                            } elseif(str_contains($p, 'filipino')) {
+                                $icon = 'bi-book';
+                            }
+                        @endphp
+                        <i class="bi {{ $icon }}"></i>
                     </span>
                     <div class="fw-bold text-center">{{ $prog }}</div>
                 </div>

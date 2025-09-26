@@ -41,15 +41,30 @@
             <a href="{{ route('mides.graduate.category', ['category' => $cat]) }}" class="text-decoration-none mides-card-link">
                 <div class="category-card mides-card-hover">
                     <span class="category-icon">
-                        @if(str_contains(strtolower($cat), 'library'))
-                            <i class="bi bi-journal-bookmark"></i>
-                        @elseif(str_contains(strtolower($cat), 'business'))
-                            <i class="bi bi-building"></i>
-                        @elseif(str_contains(strtolower($cat), 'hospitality'))
-                            <i class="bi bi-person-workspace"></i>
-                        @else
-                            <i class="bi bi-book"></i>
-                        @endif
+                        @php
+                            $icon = 'bi-book';
+                            $c = strtolower($cat);
+                            if(str_contains($c, 'library')) {
+                                $icon = 'bi-journal-bookmark';
+                            } elseif(str_contains($c, 'business')) {
+                                $icon = 'bi-building';
+                            } elseif(str_contains($c, 'hospitality')) {
+                                $icon = 'bi-person-workspace';
+                            } elseif(str_contains($c, 'education')) {
+                                $icon = 'bi-pencil';
+                            } elseif(str_contains($c, 'english')) {
+                                $icon = 'bi-book';
+                            } elseif(str_contains($c, 'physical')) {
+                                $icon = 'bi-bicycle';
+                            } elseif(str_contains($c, 'human resource')) {
+                                $icon = 'bi-people';
+                            } elseif(str_contains($c, 'home economics')) {
+                                $icon = 'bi-house-heart';
+                            } elseif(str_contains($c, 'social work')) {
+                                $icon = 'bi-people-fill';
+                            }
+                        @endphp
+                        <i class="bi {{ $icon }}"></i>
                     </span>
                     <div class="fw-bold text-center">{{ $cat }}</div>
                 </div>

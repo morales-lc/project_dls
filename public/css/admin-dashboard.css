@@ -1,0 +1,93 @@
+/* Lourdes College Admin Dashboard Theme */
+body {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    background: #f8f9fa;
+}
+#dashboardWrapper {
+    gap: 1.25rem;
+}
+.sidebar {
+    width: 260px;
+    min-height: 100vh;
+    background: #fff;
+    transition: width 0.25s cubic-bezier(.4,1.6,.6,1);
+    box-shadow: 0 1px 2px rgba(216,27,96,0.04);
+    z-index: 100;
+}
+.sidebar-collapsed {
+    width: 64px !important;
+}
+.sidebar-header {
+    border-bottom: 1.5px solid #ffd1e3;
+    background: #ffe3ef;
+}
+.sidebar .nav-link {
+    color: #a0003a;
+    font-weight: 500;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0.7rem;
+    margin-bottom: 0.2rem;
+    transition: background 0.18s, color 0.18s;
+}
+.sidebar .nav-link.active,
+.sidebar .nav-link:hover {
+    background: #ffd1e3;
+    color: #d81b60;
+}
+.btn-pink, .btn-outline-pink {
+    background: #e83e8c;
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    border-radius: 0.7rem;
+    transition: background 0.18s, color 0.18s;
+}
+.btn-pink:hover, .btn-pink:focus {
+    background: #d81b60;
+    color: #fff;
+}
+.btn-outline-pink {
+    background: transparent;
+    color: #d81b60;
+    border: 2px solid #d81b60;
+}
+.btn-outline-pink:hover {
+    background: #ffd1e3;
+    color: #d81b60;
+}
+.text-pink {
+    color: #d81b60 !important;
+}
+.dashboard-card {
+    border-radius: 1.5rem !important;
+    background: linear-gradient(135deg, #fff 80%, #ffe3f1 100%);
+    box-shadow: 0 1px 8px rgba(232,62,140,0.04);
+    margin-bottom: 1.5rem;
+}
+.dashboard-card .card-title {
+    color: #e83e8c;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+.dashboard-card .btn-pink {
+    margin-top: 0.5rem;
+}
+@media (max-width: 991px) {
+    .sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        z-index: 1050;
+        width: 220px;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(.4,1.6,.6,1);
+    }
+    .sidebar.sidebar-collapsed {
+        transform: translateX(0);
+        width: 220px !important;
+    }
+    #dashboardWrapper {
+        flex-direction: column;
+    }
+}

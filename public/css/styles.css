@@ -1,9 +1,12 @@
 
-.bg-pink {
-    background-color: #e83e8c;
+.btn-pink {
+    background-color: #e83e8c !important;
+    color: #fff !important;
+    border: none !important;
 }
 
 .search-box .form-control::placeholder {
     color: #ccc;
     font-style: italic;
 }
+

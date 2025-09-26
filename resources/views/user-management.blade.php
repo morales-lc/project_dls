@@ -4,9 +4,14 @@
     <meta charset="UTF-8">
     <title>User Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body>
-    <div class="container mt-5">
+    <div id="dashboardWrapper" class="d-flex position-relative">
+        @include('components.admin-sidebar')
+        <div class="flex-grow-1">
+            <div class="container mt-5">
                 <h2 class="mb-4">User Management</h2>
                 <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal"><i class="bi bi-person-plus me-1"></i> Add User</button>
                 <table class="table table-bordered table-striped">

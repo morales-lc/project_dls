@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        #articles-list {
+            background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);
+        }
+        .article-row, .editor-row, .reviewer-row {
+            transition: opacity 0.5s;
+            opacity: 1;
+            border: 1.5px solid #0d6efd;
+            border-radius: 1rem;
+            background: #fff;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(13,110,253,0.07);
+        }
+        .article-row.fade-out {
+            opacity: 0.2;
+        }
+        .editor-row, .reviewer-row {
+            padding: 1rem 0.5rem 0.5rem 0.5rem;
+        }
+        .article-row {
+            padding: 1rem 0.5rem 0.5rem 0.5rem;
+        }
+    </style>
     <meta charset="UTF-8">
     <title>Edit Sidlak Journal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -50,19 +73,17 @@
     <h4 class="fw-bold mb-3 text-primary">Editors</h4>
     <div id="editors-list" class="row g-3">
             @foreach($journal->editors as $idx => $editor)
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm p-3 mb-3 bg-light rounded-4">
-                    <div class="row mb-2">
-                        <div class="col-md-8">
-                            <label class="form-label">Editor Name</label>
-                            <input type="text" name="editors[{{ $idx }}][name]" class="form-control" value="{{ $editor->name }}" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="editors[{{ $idx }}][title]" class="form-control" value="{{ $editor->title }}" required>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmRemoveEditor(this)">Remove Editor</button>
+            <div class="row g-3 mb-2 editor-row">
+                <div class="col-md-8">
+                    <label class="form-label">Editor Name</label>
+                    <input type="text" name="editors[{{ $idx }}][name]" class="form-control" value="{{ $editor->name }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="editors[{{ $idx }}][title]" class="form-control" value="{{ $editor->title }}" required>
+                </div>
+                <div class="col-md-1 d-flex align-items-end">
+                    <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmRemoveEditor(this)">Remove</button>
                 </div>
             </div>
             @endforeach
@@ -72,34 +93,123 @@
     <h4 class="fw-bold mb-3 text-primary">Peer Reviewers</h4>
     <div id="reviewers-list" class="row g-3">
             @foreach($journal->peerReviewers as $idx => $reviewer)
-            <div class="col-md-6">
-                <div class="card border-0 shadow-sm p-3 mb-3 bg-light rounded-4">
-                    <div class="row mb-2">
-                        <div class="col-md-4">
-                            <label class="form-label">Reviewer Name</label>
-                            <input type="text" name="peer_reviewers[{{ $idx }}][name]" class="form-control" value="{{ $reviewer->name }}" required>
-                        </div>
-                        <div class="col-md-2">
-                            <label class="form-label">Title</label>
-                            <input type="text" name="peer_reviewers[{{ $idx }}][title]" class="form-control" value="{{ $reviewer->title }}" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Institution</label>
-                            <input type="text" name="peer_reviewers[{{ $idx }}][institution]" class="form-control" value="{{ $reviewer->institution }}" required>
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">City</label>
-                            <input type="text" name="peer_reviewers[{{ $idx }}][city]" class="form-control" value="{{ $reviewer->city }}" required>
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="confirmRemoveReviewer(this)">Remove Reviewer</button>
+            <div class="row g-2 mb-2 reviewer-row">
+                <div class="col-md-5">
+                    <label class="form-label">Reviewer Name</label>
+                    <input type="text" name="peer_reviewers[{{ $idx }}][name]" class="form-control" value="{{ $reviewer->name }}" required>
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">Title</label>
+                    <input type="text" name="peer_reviewers[{{ $idx }}][title]" class="form-control" value="{{ $reviewer->title }}" required>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmRemoveReviewer(this)">Remove</button>
+                </div>
+                <div class="w-100"></div>
+                <div class="col-md-6">
+                    <label class="form-label">Institution</label>
+                    <input type="text" name="peer_reviewers[{{ $idx }}][institution]" class="form-control" value="{{ $reviewer->institution }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">City</label>
+                    <input type="text" name="peer_reviewers[{{ $idx }}][city]" class="form-control" value="{{ $reviewer->city }}" required>
                 </div>
             </div>
             @endforeach
         </div>
     <button type="button" class="btn btn-outline-primary mb-3 rounded-pill px-4 shadow-sm" onclick="addReviewer()"><i class="bi bi-plus-circle me-1"></i>Add Peer Reviewer</button>
     <!-- Buttons moved to top right -->
+    <hr class="my-4">
+    <h4 class="fw-bold mb-3">Research Articles</h4>
+    <div id="articles-list" class="p-3 rounded-4 bg-light shadow-sm border border-2 border-primary mb-4">
+        @foreach($journal->articles as $idx => $article)
+        <div class="row g-3 mb-2 article-row">
+            <input type="hidden" name="articles[{{ $idx }}][id]" value="{{ $article->id }}">
+            <div class="col-md-5">
+                <label class="form-label">Article Title</label>
+                <input type="text" name="articles[{{ $idx }}][title]" class="form-control border-primary shadow-sm" value="{{ $article->title }}" required>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Authors</label>
+                <input type="text" name="articles[{{ $idx }}][authors]" class="form-control border-primary shadow-sm" value="{{ $article->authors }}" required>
+            </div>
+            <div class="col-md-12 mt-2">
+                <label class="form-label">PDF File</label>
+                <input type="file" name="articles[{{ $idx }}][pdf_file]" class="form-control border-primary shadow-sm" accept="application/pdf">
+                @if($article->pdf_file)
+                <a href="{{ asset('storage/' . $article->pdf_file) }}" target="_blank" class="d-block mt-2">Current PDF</a>
+                @endif
+            </div>
+            <div class="col-md-12 mt-2 d-flex justify-content-end">
+                <button type="button" class="btn btn-sm btn-danger remove-article-btn px-3" data-idx="{{ $idx }}"><i class="bi bi-trash me-1"></i>Remove Article</button>
+                <input type="hidden" name="articles[{{ $idx }}][remove]" value="0" class="remove-flag">
+            </div>
+        </div>
+        @endforeach
+    </div>
+    <button type="button" class="btn btn-outline-primary mb-3" onclick="addArticle()">Add Article</button>
+    <script>
+    let articleIdx = Number("{{ $journal->articles->count() }}");
+    function addArticle() {
+        const list = document.getElementById('articles-list');
+        const row = document.createElement('div');
+    row.className = 'row g-3 mb-2 article-row';
+        row.innerHTML = `
+            <div class="col-md-5">
+                <label class="form-label">Article Title</label>
+                <input type="text" name="articles[${articleIdx}][title]" class="form-control border-primary shadow-sm" required>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Authors</label>
+                <input type="text" name="articles[${articleIdx}][authors]" class="form-control border-primary shadow-sm" required>
+            </div>
+            <div class="col-md-12 mt-2">
+                <label class="form-label">PDF File</label>
+                <input type="file" name="articles[${articleIdx}][pdf_file]" class="form-control border-primary shadow-sm" accept="application/pdf" required>
+            </div>
+            <div class="col-md-12 mt-2 d-flex justify-content-end">
+                <button type="button" class="btn btn-sm btn-danger remove-article-btn px-3"><i class="bi bi-trash me-1"></i>Remove Article</button>
+            </div>
+        `;
+        list.appendChild(row);
+        articleIdx++;
+    }
+
+    // Remove existing article using event delegation
+    document.addEventListener('DOMContentLoaded', function() {
+        function handleRemoveArticle(btn) {
+            if (confirm('Are you sure you want to remove this article?')) {
+                let row = btn.parentElement;
+                while (row && !(row.classList.contains('article-row'))) {
+                    row = row.parentElement;
+                }
+                if (row) {
+                    row.classList.add('fade-out');
+                    setTimeout(function() {
+                        row.style.display = 'none';
+                        const flag = row.querySelector('.remove-flag');
+                        if (flag) flag.value = '1';
+                    }, 500);
+                }
+            }
+        }
+        document.querySelectorAll('.remove-article-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                handleRemoveArticle(btn);
+            });
+        });
+        // For dynamically added articles
+        document.getElementById('articles-list').addEventListener('click', function(e) {
+            if (e.target.classList.contains('remove-article-btn')) {
+                handleRemoveArticle(e.target);
+            }
+        });
+    });
+    </script>
     </form>
+    <div class="d-flex justify-content-end mt-4">
+        <button type="submit" form="sidlak-edit-form" class="btn btn-success px-4 shadow-sm">Update</button>
+    </div>
 </div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -109,67 +219,63 @@
 
     function addEditor() {
         const list = document.getElementById('editors-list');
-        const divCol = document.createElement('div');
-        divCol.className = 'col-md-6';
-        divCol.innerHTML = `
-            <div class="card p-3 mb-3">
-                <div class="row mb-2">
-                    <div class="col-md-8">
-                        <label class="form-label">Editor Name</label>
-                        <input type="text" name="editors[${editorIdx}][name]" class="form-control" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Title</label>
-                        <input type="text" name="editors[${editorIdx}][title]" class="form-control" required>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-danger" onclick="confirmRemoveEditor(this)">Remove Editor</button>
+        const row = document.createElement('div');
+        row.className = 'row g-3 mb-2';
+        row.innerHTML = `
+            <div class="col-md-8">
+                <label class="form-label">Editor Name</label>
+                <input type="text" name="editors[${editorIdx}][name]" class="form-control" required>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Title</label>
+                <input type="text" name="editors[${editorIdx}][title]" class="form-control" required>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmRemoveEditor(this)">Remove</button>
             </div>
         `;
-        list.appendChild(divCol);
+        list.appendChild(row);
         editorIdx++;
     }
 
     function addReviewer() {
         const list = document.getElementById('reviewers-list');
-        const divCol = document.createElement('div');
-        divCol.className = 'col-md-6';
-        divCol.innerHTML = `
-            <div class="card p-3 mb-3">
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <label class="form-label">Reviewer Name</label>
-                        <input type="text" name="peer_reviewers[${reviewerIdx}][name]" class="form-control" required>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">Title</label>
-                        <input type="text" name="peer_reviewers[${reviewerIdx}][title]" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Institution</label>
-                        <input type="text" name="peer_reviewers[${reviewerIdx}][institution]" class="form-control" required>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">City</label>
-                        <input type="text" name="peer_reviewers[${reviewerIdx}][city]" class="form-control" required>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-sm btn-danger" onclick="confirmRemoveReviewer(this)">Remove Reviewer</button>
+        const row = document.createElement('div');
+        row.className = 'row g-3 mb-2';
+        row.innerHTML = `
+            <div class="col-md-3">
+                <label class="form-label">Reviewer Name</label>
+                <input type="text" name="peer_reviewers[${reviewerIdx}][name]" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Title</label>
+                <input type="text" name="peer_reviewers[${reviewerIdx}][title]" class="form-control" required>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Institution</label>
+                <input type="text" name="peer_reviewers[${reviewerIdx}][institution]" class="form-control" required>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">City</label>
+                <input type="text" name="peer_reviewers[${reviewerIdx}][city]" class="form-control" required>
+            </div>
+            <div class="col-md-1 d-flex align-items-end">
+                <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmRemoveReviewer(this)">Remove</button>
             </div>
         `;
-        list.appendChild(divCol);
+        list.appendChild(row);
         reviewerIdx++;
     }
 
     function confirmRemoveEditor(btn) {
         if (confirm('Are you sure you want to remove this editor?')) {
-            btn.parentElement.remove();
+            btn.closest('.row').remove();
         }
     }
 
     function confirmRemoveReviewer(btn) {
         if (confirm('Are you sure you want to remove this peer reviewer?')) {
-            btn.parentElement.remove();
+            btn.closest('.row').remove();
         }
     }
 </script>

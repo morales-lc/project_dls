@@ -1,7 +1,6 @@
 
 
 
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -162,3 +161,28 @@ Route::post('/alinet/{id}/status', [AlinetAppointmentManageController::class, 'u
 Route::get('/learning-spaces', function () {
     return view('learning-spaces');
 })->name('learning-spaces');
+
+
+// LiRA Jotform
+use App\Http\Controllers\LiRAController;
+Route::get('/lira/form', [LiRAController::class, 'showForm'])->middleware('auth')->name('lira.form');
+
+// LiRA Jotform autofill route
+Route::get('/lira/jotform', [App\Http\Controllers\LiRAController::class, 'showForm'])->name('lira.jotform');
+
+
+
+// Library department routes
+use App\Http\Controllers\LibraryStaffController;
+Route::get('/libraries/college', [LibraryStaffController::class, 'index'])->defaults('department', 'college')->name('libraries.college');
+Route::get('/libraries/graduate', [LibraryStaffController::class, 'index'])->defaults('department', 'graduate')->name('libraries.graduate');
+Route::get('/libraries/senior-high', [LibraryStaffController::class, 'index'])->defaults('department', 'senior_high')->name('libraries.senior_high');
+Route::get('/libraries/ibed', [LibraryStaffController::class, 'index'])->defaults('department', 'ibed')->name('libraries.ibed');
+Route::get('/libraries/staff/add', [LibraryStaffController::class, 'create'])->name('libraries.staff.create');
+Route::post('/libraries/staff/add', [LibraryStaffController::class, 'store'])->name('libraries.staff.store');
+// Library Staff Management
+Route::get('/libraries/staff/manage', [LibraryStaffController::class, 'manage'])->name('libraries.staff.manage');
+Route::get('/libraries/staff/{id}/edit', [LibraryStaffController::class, 'edit'])->name('libraries.staff.edit');
+Route::put('/libraries/staff/{id}', [LibraryStaffController::class, 'update'])->name('libraries.staff.update');
+Route::delete('/libraries/staff/{id}', [LibraryStaffController::class, 'destroy'])->name('libraries.staff.destroy');
+

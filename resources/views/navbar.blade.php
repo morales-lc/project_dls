@@ -33,9 +33,13 @@
                         Libraries
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#wileyModal">WILEY E-BOOKS</a></li>
+                        <li><a class="dropdown-item" href="{{ route('libraries.college') }}">College Library</a></li>
+                        <li><a class="dropdown-item" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
+                        <li><a class="dropdown-item" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
+                        <li><a class="dropdown-item" href="{{ route('libraries.ibed') }}">IBED Library</a></li>
+                        <!-- <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#wileyModal">WILEY E-BOOKS</a></li>
                         <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#galeModal">GALE</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#proquestModal">ProQuest</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#proquestModal">ProQuest</a></li> -->
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
@@ -43,7 +47,7 @@
                         Services
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-                        <li><a class="dropdown-item" href="#">LiRA</a></li>
+                        <li><a class="dropdown-item" href="{{ route('lira.form') }}">LiRA</a></li>
                         <li><a class="dropdown-item" href="{{ route('alert-services.index') }}">Alert Services</a></li>
                         <li><a class="dropdown-item" href="{{ route('alinet.form') }}">ALINET</a></li>
                         <li><a class="dropdown-item" href="#">Book borrowing</a></li>

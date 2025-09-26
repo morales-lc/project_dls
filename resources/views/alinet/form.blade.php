@@ -2,7 +2,7 @@
 @include('navbar')
 <style>
     body {
-        background: #fcb6d0 !important;
+        background: #ffffffff !important;
         min-height: 100vh;
     }
     .alinet-form-card {
@@ -157,7 +157,7 @@
             </div>
             <div class="alinet-form-divider"></div>
             <div class="d-flex justify-content-center align-items-center mt-4">
-                <button type="submit" class="alinet-btn-outline">Save</button>
+                <button type="submit" class="alinet-btn-outline">Send</button>
             </div>
         </form>
     </div>
