@@ -10,16 +10,17 @@
     <ul class="nav flex-column mt-4 px-2">
         @php
         $sidebarItems = [
-            [ 'route' => 'admin.dashboard', 'icon' => 'bi-house-door', 'label' => 'Dashboard Home' ],
-            [ 'route' => 'user.management', 'icon' => 'bi-people', 'label' => 'User Management' ],
-            [ 'route' => 'libraries.staff.manage', 'icon' => 'bi-person-badge', 'label' => 'Manage Library Staff' ],
-            [ 'route' => 'mides.management', 'icon' => 'bi-journal-text', 'label' => 'Mides Management' ],
-            [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],
-            [ 'route' => 'alinet.manage', 'icon' => 'bi-calendar-check', 'label' => 'ALINET Appointments' ],
-            [ 'route' => 'feedback.admin', 'icon' => 'bi-chat-dots', 'label' => 'Feedback' ],
-            [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
-            [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'Sidlak Journals' ],
-            [ 'route' => 'mides.categories.panel', 'icon' => 'bi-tags', 'label' => 'Mides Categories' ],
+        [ 'route' => 'admin.dashboard', 'icon' => 'bi-house-door', 'label' => 'Dashboard Home' ],
+        [ 'route' => 'user.management', 'icon' => 'bi-people', 'label' => 'User Management' ],
+        [ 'route' => 'libraries.staff.manage', 'icon' => 'bi-person-badge', 'label' => 'Manage Library Staff' ],
+        [ 'route' => 'mides.management', 'icon' => 'bi-journal-text', 'label' => 'Mides Management' ],
+        [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],
+        [ 'route' => 'alinet.manage', 'icon' => 'bi-calendar-check', 'label' => 'ALINET Appointments' ],
+        [ 'route' => 'feedback.admin', 'icon' => 'bi-chat-dots', 'label' => 'Feedback' ],
+        [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
+        [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'Sidlak Journals' ],
+        [ 'route' => 'mides.categories.panel', 'icon' => 'bi-tags', 'label' => 'Mides Categories' ],
+        [ 'route' => 'admin.contact-info', 'icon' => 'bi-telephone', 'label' => 'Contact Info Management' ],
         ];
         @endphp
         @foreach($sidebarItems as $item)

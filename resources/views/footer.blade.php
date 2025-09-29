@@ -1,4 +1,9 @@
+
+
 <footer class="footer-main mt-auto" style="background: linear-gradient(90deg, #e83e8c 0%, #f06292 100%); color: #fff; padding-top: 3.5rem; padding-bottom: 2.5rem; min-height: 340px; border-top-left-radius: 18px; border-top-right-radius: 18px;">
+@php
+    $contactInfo = \App\Models\ContactInfo::first();
+@endphp
     <div class="container">
     <div class="row gy-4 gx-5 align-items-start">
             <!-- Column 1: Lourdes College and Slogan -->
@@ -32,15 +37,15 @@
                 <div class="footer-header mb-3 text-md-start text-start" style="font-size:1.5rem; font-weight:700; letter-spacing:0.5px; text-shadow:0 2px 8px rgba(232,62,140,0.08);">Contacts</div>
                 <div class="d-flex flex-column justify-content-start align-items-md-start align-items-start">
                     <div class="d-flex align-items-center gap-3 mb-3">
-                        <a href="https://www.facebook.com/learningcommonslc" target="_blank" aria-label="Facebook" class="footer-icon-link"><i class="bi bi-facebook"></i></a>
-                        <a href="mailto:library@lccdo.edu.ph" aria-label="Email" class="footer-icon-link"><i class="bi bi-envelope-fill"></i></a>
-                        <a href="tel:+63888584093" aria-label="Telephone" class="footer-icon-link"><i class="bi bi-telephone-fill"></i></a>
-                        <a href="tel:+639123456789" aria-label="Mobile" class="footer-icon-link"><i class="bi bi-phone-fill"></i></a>
+                        <a href="{{ $contactInfo?->facebook_url ?? '#' }}" target="_blank" aria-label="Facebook" class="footer-icon-link"><i class="bi bi-facebook"></i></a>
+                        <a href="mailto:{{ $contactInfo?->email ?? '' }}" aria-label="Email" class="footer-icon-link"><i class="bi bi-envelope-fill"></i></a>
+                        <a href="tel:{{ $contactInfo?->phone_college ?? '' }}" aria-label="Telephone" class="footer-icon-link"><i class="bi bi-telephone-fill"></i></a>
+                        <a href="tel:{{ $contactInfo?->phone_graduate ?? '' }}" aria-label="Mobile" class="footer-icon-link"><i class="bi bi-phone-fill"></i></a>
                     </div>
                     <div class="footer-contact-info" style="font-size:1.09rem;">
-                        <span class="me-4 d-block mb-1"><i class="bi bi-envelope me-1"></i> <a href="mailto:library@lccdo.edu.ph" class="footer-link">library@lccdo.edu.ph</a></span>
-                        <span class="me-4 d-block mb-1"><i class="bi bi-telephone me-1"></i> <a href="tel:+63888584093" class="footer-link">(088) 858-4093 loc. 123</a></span>
-                        <span class="me-4 d-block mb-1"><i class="bi bi-phone me-1"></i> <a href="tel:+639123456789" class="footer-link">0912-345-6789</a></span>
+                        <span class="me-4 d-block mb-1"><i class="bi bi-envelope me-1"></i> <a href="mailto:{{ $contactInfo?->email ?? '' }}" class="footer-link">{{ $contactInfo?->email ?? '—' }}</a></span>
+                        <span class="me-4 d-block mb-1"><i class="bi bi-telephone me-1"></i> <a href="tel:{{ $contactInfo?->phone_college ?? '' }}" class="footer-link">{{ $contactInfo?->phone_college ?? '—' }}</a></span>
+                        <span class="me-4 d-block mb-1"><i class="bi bi-phone me-1"></i> <a href="tel:{{ $contactInfo?->phone_graduate ?? '' }}" class="footer-link">{{ $contactInfo?->phone_graduate ?? '—' }}</a></span>
                         <span class="d-block mb-1"><i class="bi bi-geo-alt me-1"></i> Gen. Capistrano Sts., Cagayan de Oro, Philippines, 9000</span>
                     </div>
                 </div>

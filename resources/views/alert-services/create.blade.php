@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alert Services</title>
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 </head>
 <body style="background: #f7f8fa; min-height: 100vh;">
     <div id="dashboardWrapper" class="d-flex position-relative">

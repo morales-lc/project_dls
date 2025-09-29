@@ -38,6 +38,10 @@ Route::view('/settings', 'settings')->name('settings');
 Route::view('/about', 'about')->name('about');
 use App\Http\Controllers\ContactController;
 Route::get('/about/contact', [ContactController::class, 'index'])->name('about.contact');
+
+// Admin Contact Info Management
+Route::get('/admin/contact-info', [ContactController::class, 'adminContactInfo'])->name('admin.contact-info');
+Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
 Route::view('/chart', 'chart')->name('chart');
 
 Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');

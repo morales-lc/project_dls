@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
@@ -103,6 +104,7 @@
                                 <a href="{{ route('post.management') }}" class="btn btn-outline-pink"><i class="bi bi-file-earmark-post me-2"></i>Posts</a>
                                 <a href="{{ route('sidlak.manage') }}" class="btn btn-outline-pink"><i class="bi bi-journal-richtext me-2"></i>Sidlak</a>
                                 <a href="{{ route('mides.categories.panel') }}" class="btn btn-outline-pink"><i class="bi bi-tags me-2"></i>MIDES Categories</a>
+                                    <a href="{{ route('admin.contact-info') }}" class="btn btn-outline-pink"><i class="bi bi-telephone me-2"></i>Contact Info</a>
                             </div>
                         </div>
                     </div>

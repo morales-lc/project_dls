@@ -14,4 +14,31 @@ class ContactController extends Controller
         $libraryStaff = LibraryStaff::orderBy('department')->orderBy('first_name')->get();
         return view('contact', compact('contact', 'libraryStaff'));
     }
+
+        // Admin view for managing contact info
+        public function adminContactInfo()
+        {
+            $contact = ContactInfo::first();
+            return view('admin-contact-info', compact('contact'));
+        }
+
+        // Update contact info logic
+        public function updateContactInfo(Request $request)
+        {
+            $contact = ContactInfo::first();
+            if (!$contact) {
+                $contact = new ContactInfo();
+            }
+            $contact->fill($request->only([
+                'phone_college',
+                'phone_graduate',
+                'phone_senior_high',
+                'phone_ibed',
+                'facebook_url',
+                'email',
+                'website_url',
+            ]));
+            $contact->save();
+            return redirect()->route('admin.contact-info')->with('success', 'Contact info updated successfully.');
+        }
 }
