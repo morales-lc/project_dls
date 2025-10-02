@@ -27,11 +27,19 @@
     <meta charset="UTF-8">
     <title>Edit Sidlak Journal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+</head>
 </head>
 <body style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);">
-@include('navbar')
-<div class="container py-5">
+@include('components.admin-topnav')
+<div id="dashboardWrapper" class="d-flex position-relative">
+    @include('components.admin-sidebar')
+    <div class="flex-grow-1">
+        <div class="container py-5">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <h2 class="fw-bold mb-0 text-primary" style="letter-spacing:1px;">Edit Sidlak Journal</h2>
         <div class="d-none d-md-flex align-items-center gap-2">
@@ -209,6 +217,8 @@
     </form>
     <div class="d-flex justify-content-end mt-4">
         <button type="submit" form="sidlak-edit-form" class="btn btn-success px-4 shadow-sm">Update</button>
+    </div>
+        </div>
     </div>
 </div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">

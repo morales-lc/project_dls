@@ -12,6 +12,7 @@
 
 <body>
     @include('navbar')
+
     <div class="container py-5">
         <h2 class="mb-2 fw-bold">Welcome to MIDES repository!</h2>
         <div class="mb-3 text-secondary">
@@ -33,11 +34,12 @@
             </select>
             <button class="btn btn-dark" type="submit">Search</button>
         </form>
+        <div style="margin-bottom: 50px; display: inline-block;"></div>
         <div class="row g-4 justify-content-center">
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-primary"><i class="bi bi-journal-bookmark"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Graduate Theses</h5>
                             <div class="text-muted small">Masters and related research</div>
@@ -48,7 +50,7 @@
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-danger"><i class="bi bi-journal-text"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Undergraduate Baby Thesis</h5>
                             <div class="text-muted small">Undergraduate research</div>
@@ -59,7 +61,7 @@
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-info"><i class="bi bi-person-badge"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Faculty/Theses/Dissertations</h5>
                             <div class="text-muted small">Faculty publications, theses, and dissertations</div>
@@ -70,7 +72,7 @@
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body">
+                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-success"><i class="bi bi-mortarboard"></i></span>
                             <h5 class="mt-3 mb-1 fw-bold">Senior High School Research Paper</h5>
                             <div class="text-muted small">ABM, HUMSS, STEM, TVL, ICT, Culinary Arts</div>
@@ -80,6 +82,8 @@
             </div>
         </div>
     </div>
+    <div style="margin-bottom: 200px; display: inline-block;"></div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -102,7 +106,7 @@
     <!-- Bootstrap Icons CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
-
+    @include('footer')
 </body>
 
 </html>

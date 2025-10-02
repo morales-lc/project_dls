@@ -1,7 +1,9 @@
 @include('navbar')
+
 <div class="container py-4">
+    <h2 class="fw-bold mb-3">Faculty/Theses/Dissertations</h2>
     <form class="row g-2 mb-3" method="GET" action="">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ request('search') }}">
         </div>
         <div class="col-md-2">
@@ -21,7 +23,7 @@
             <button type="submit" class="btn btn-primary w-100">Filter/Search</button>
         </div>
     </form>
-    <h2 class="fw-bold mb-3">Faculty/Theses/Dissertations</h2>
+    
     @if($documents->count())
         <div class="table-responsive">
             <table class="table table-bordered table-striped align-middle mides-table-striped">

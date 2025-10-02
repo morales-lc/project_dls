@@ -8,8 +8,9 @@
 <body>
 @include('navbar')
 <div class="container py-5">
+    <h2 class="fw-bold mb-0">{{ $program }} Theses</h2>
     <form class="row g-2 mb-3" method="GET" action="">
-        <div class="col-md-3">
+        <div class="col-md-6">
             <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ request('search') }}">
         </div>
         <div class="col-md-2">
@@ -30,7 +31,7 @@
         </div>
     </form>
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold mb-0">{{ $program }} Theses</h2>
+        
         <div>
             <a href="{{ route('mides.undergrad') }}" class="btn btn-outline-secondary me-2">&#8592; Back to Programs</a>
             <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-primary">MIDES Dashboard</a>

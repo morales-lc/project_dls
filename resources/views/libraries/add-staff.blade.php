@@ -5,13 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 </head>
 <body class="bg-light">
+    @include('components.admin-topnav')
     <div id="dashboardWrapper" class="d-flex position-relative">
         @include('components.admin-sidebar')
         <div class="flex-grow-1">
-            @include('navbar')
+        
             <div class="container py-5">
                 <h2 class="fw-bold mb-4 text-pink">Add Library Staff</h2>
                 <a href="{{ route('libraries.staff.manage') }}" class="btn btn-outline-secondary mb-3">&larr; Back to Management</a>

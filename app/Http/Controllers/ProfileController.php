@@ -66,6 +66,6 @@ class ProfileController extends Controller
             'profile_picture' => $profilePic,
         ]);
 
-        return redirect('/dashboard')->with('success', 'Profile completed successfully!');
+        return redirect('/')->with('success', 'Profile completed successfully!');
     }
 }

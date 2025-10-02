@@ -20,7 +20,7 @@ class GoogleAuthController extends Controller
 
         // Restrict to @lccdo.edu.ph emails
         if (!str_ends_with($googleUser->getEmail(), '@lccdo.edu.ph')) {
-            return redirect('/')->with('error', 'Only LCCDO emails are allowed.');
+            return redirect('/')->with('error', 'Only @lccdo emails are allowed.');
         }
 
         // Create or get user

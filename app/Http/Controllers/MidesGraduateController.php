@@ -22,14 +22,20 @@ class MidesGraduateController extends Controller
 
         $query = MidesDocument::where('type', 'Graduate Theses')->where('category', $category);
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
-                  ->orWhere('author', 'like', "%$search%")
-                  ->orWhere('year', 'like', "%$search%");
+                    ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('year', 'like', "%$search%");
             });
         }
         $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(['search' => $search, 'sort' => $sort, 'direction' => $direction]);
         return view('mides-graduate-list', compact('documents', 'category', 'search', 'sort', 'direction'));
+    }
+
+    public function viewer($id)
+    {
+        $doc = \App\Models\MidesDocument::findOrFail($id);
+        return view('mides-pdf-viewer', compact('doc'));
     }
 
     public function categories()

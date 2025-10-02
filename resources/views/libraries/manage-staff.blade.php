@@ -12,6 +12,7 @@
 </head>
 
 <body class="bg-light">
+    @include('components.admin-topnav')
     <div id="dashboardWrapper" class="d-flex position-relative">
         @include('components.admin-sidebar')
         <div class="flex-grow-1">
