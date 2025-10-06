@@ -41,4 +41,11 @@ class MidesSeniorHighController extends Controller
         $records = $query->orderBy($sort, $direction)->get();
         return view('mides-seniorhigh-list', compact('program', 'records', 'search', 'sort', 'direction'));
     }
+
+    public function viewer($id)
+{
+    $doc = \App\Models\MidesDocument::findOrFail($id);
+    return view('mides-pdf-viewer', compact('doc'));
+}
+
 }

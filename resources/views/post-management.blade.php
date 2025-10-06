@@ -1,22 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.management')
+@push('management-head')
+<link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@endpush
+@section('title','Post Management')
 
-<head>
-    <meta charset="UTF-8">
-    <title>Post Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
-
-<body class="bg-light" style="min-height: 100vh;">
-    @include('components.admin-topnav')
-    <div id="dashboardWrapper" class="d-flex position-relative">
-        @include('components.admin-sidebar')
-        <div class="flex-grow-1">
-            
-            <div class="container py-5">
+@section('content')
+    <div class="py-5">
+        <div class="container">
                 <div class="mb-3">
                     <button class="btn btn-outline-secondary" onclick="window.history.back()">
                         &larr; Go Back
@@ -82,6 +73,7 @@
                                 </div>
                             </div>
                         </form>
+                        @push('management-scripts')
                         <script>
                             function toggleMediaInputs() {
                                 var type = document.getElementById('mediaType').value;
@@ -107,6 +99,7 @@
                                 }
                             }
                         </script>
+                        @endpush
                     </div>
                 </div>
                 @php
@@ -194,7 +187,6 @@
                     @endforeach
                 </div>
             </div>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+        </div>
+    </div>
+@endsection

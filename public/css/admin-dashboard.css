@@ -58,6 +58,12 @@ body {
     font-weight: 500;
     letter-spacing: 0.5px;
 }
+
+/* When sidebar is collapsed, hide the label text but keep icons visible and centered */
+.sidebar.sidebar-collapsed .nav-link span { display: none; }
+.sidebar.sidebar-collapsed .nav-link i { display: inline-block; margin: 0; font-size: 1.25rem; }
+.sidebar.sidebar-collapsed .nav-link { padding-left: 0.9rem; padding-right: 0.9rem; justify-content: center; }
+.sidebar .nav-link i { width: 28px; text-align: center; }
 .btn-pink, .btn-outline-pink {
     background: #e83e8c;
     color: #fff;
@@ -115,3 +121,5 @@ body {
         flex-direction: column;
     }
 }
+
+

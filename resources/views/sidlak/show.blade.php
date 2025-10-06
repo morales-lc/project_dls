@@ -20,7 +20,7 @@
     <div class="container py-5">
         <div class="row justify-content-center mb-4">
             <div class="col-12 col-md-10 col-lg-8">
-                <div class="card border-0 shadow-lg rounded-4 bg-white position-relative overflow-hidden sidlak-card-hover">
+                <div class="card border-0 shadow-lg rounded-4 bg-white position-relative overflow-hidden sidlak-card-hover mb-4">
                     <div class="row g-0 align-items-center">
                         <div class="col-md-5 text-center p-4">
                             @if($journal->cover_photo)
@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <div class="card border-0 shadow-lg rounded-4">
+    <div class="card border-0 shadow-lg rounded-4 mb-4">
             <div class="card-body p-4">
                 <ul class="nav nav-tabs mb-4 border-0" id="sidlakTab" role="tablist">
                     <li class="nav-item" role="presentation">
@@ -130,7 +130,13 @@
             </div>
             
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-            @include('footer')
+        </div>
+
+    </div>
+
+
+    <div class="mt-5"></div>
+    @include('footer')
 </body>
 
 </html>

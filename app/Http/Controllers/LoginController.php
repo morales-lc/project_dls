@@ -42,6 +42,9 @@ class LoginController extends Controller
                     if ($user->role === 'admin') {
                         return redirect()->intended(route('admin.dashboard'));
                     }
+                    if ($user->role === 'librarian') {
+                        return redirect()->intended(route('librarian.dashboard'));
+                    }
                     return redirect()->intended('/');
                 }
                 // If student/faculty (created via Google login, no username)

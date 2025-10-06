@@ -24,6 +24,7 @@
         </div>
     </form>
     
+<link href="{{ asset('css/mides.css') }}" rel="stylesheet">
     @if($documents->count())
         <div class="table-responsive">
             <table class="table table-bordered table-striped align-middle mides-table-striped">
@@ -43,8 +44,35 @@
                             <td>{{ $doc->author }}</td>
                             <td>{{ $doc->year }}</td>
                             <td>
-                                <a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank" class="btn btn-outline-primary btn-sm">View PDF</a>
-                                <a href="{{ asset('storage/' . $doc->pdf_path) }}" download="{{ basename($doc->pdf_path) }}" class="btn btn-outline-success btn-sm">Download</a>
+                                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#pdfModal{{ $doc->id }}">View PDF</button>
+                                @auth
+                                    @if(optional(auth()->user()->studentFaculty)->id)
+                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline ms-2">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $doc->id }}">
+                                            <input type="hidden" name="type" value="mides">
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">Bookmark</button>
+                                        </form>
+                                    @endif
+                                @endauth
+                                
+                                <!-- PDF Modal -->
+                                <div class="modal fade" id="pdfModal{{ $doc->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $doc->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="pdfModalLabel{{ $doc->id }}">{{ $doc->title }} ({{ $doc->year }})</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <iframe
+                                                src="{{ route('mides.viewer', $doc->id) }}"
+                                                width="100%"
+                                                height="100%"
+                                                style="border:none; min-height:70vh;">
+                                            </iframe>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -60,5 +88,7 @@
     <div class="mt-4 text-center">
         <a href="{{ route('mides.dashboard') }}" class="btn btn-secondary">Back to MIDES Dashboard</a>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </div>
 

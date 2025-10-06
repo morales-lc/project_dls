@@ -54,7 +54,11 @@ class MidesController extends Controller
         if ($doc->type === 'Graduate Theses') {
             $doc->category = $request->category_program;
             $doc->program = null;
-        } elseif ($doc->type === 'Undergraduate Baby Theses' || $doc->type === 'Senior High School Research Paper') {
+        } elseif ($doc->type === 'Undergraduate Baby Theses') {
+            // Save selected program in category column
+            $doc->category = $request->category_program;
+            $doc->program = null;
+        } elseif ($doc->type === 'Senior High School Research Paper') {
             $doc->program = $request->category_program;
             $doc->category = null;
         } else {
@@ -147,10 +151,18 @@ class MidesController extends Controller
         $originalName = $pdf->getClientOriginalName();
         $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
 
+        // Always save undergraduate program in category column for Undergraduate Baby Theses
+        $category = $request->category;
+        $program = null;
+        if ($request->type === 'Undergraduate Baby Theses') {
+            $category = $request->undergrad_program;
+        } elseif ($request->type === 'Senior High School Research Paper') {
+            $program = $request->senior_high_program;
+        }
         MidesDocument::create([
             'type' => $request->type,
-            'category' => $request->category,
-            'program' => $request->program,
+            'category' => $category,
+            'program' => $program,
             'author' => $request->author,
             'year' => $request->year,
             'title' => $request->title,

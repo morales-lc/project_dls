@@ -1,21 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.management')
 
-<head>
-    <meta charset="UTF-8">
-    <title>Mides Repository Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
+@push('management-head')
+<link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@endpush
 
-<body class="bg-light">
-    @include('components.admin-topnav')
-    <div id="dashboardWrapper" class="d-flex position-relative">
-        @include('components.admin-sidebar')
-        <div class="flex-grow-1">
 
-            <div class="container py-5">
+@section('title','MIDES Repository Management')
+
+@section('content')
+    <div class="py-5">
+        <div class="container">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="fw-bold mb-0 text-pink">MIDES Repository Management</h2>
 
@@ -144,7 +139,6 @@
                     {{ $documents->links() }}
                 </div>
             </div>
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+        </div>
+    </div>
+@endsection

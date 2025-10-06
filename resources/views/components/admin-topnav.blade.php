@@ -1,5 +1,8 @@
-<nav class="navbar navbar-expand-lg navbar-light" style="background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%); border-bottom: 2px solid #d81b60; box-shadow: 0 4px 16px rgba(232,62,140,0.10);">
+<nav id="adminTopnav" class="navbar navbar-expand-lg navbar-light sticky-top" style="background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%); border-bottom: 2px solid #d81b60; box-shadow: 0 4px 16px rgba(232,62,140,0.10); height:72px;">
     <div class="container-fluid px-4">
+        <button id="sidebarToggleTop" class="btn btn-outline-pink d-none d-lg-inline me-3" type="button" aria-label="Toggle sidebar">
+            <i class="bi bi-list fs-2"></i>
+        </button>
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('admin.dashboard') }}" style="color:#d81b60;">
             <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38" style="object-fit:contain; border-radius:8px; background:#fff; padding:2px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
             <span class="d-none d-md-inline" style="font-weight:600; color:#d81b60;">Admin Panel</span>

@@ -1,24 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alert Services</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="{{ 'css/styles.css' }}">
-    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    
-</head>
-<body style="background: #f7f8fa; min-height: 100vh;">
-    @include('components.admin-topnav')
-    <div id="dashboardWrapper" class="d-flex position-relative">
-        @include('components.admin-sidebar')
-        <div class="flex-grow-1">
-            
-            <div class="container py-5 d-flex flex-column align-items-center justify-content-center">
-                <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 800px; background: #fff;">
+
+@extends('layouts.management')
+@push('management-head')
+<link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@endpush
+@section('title', 'Alert Services - Create')
+
+@section('content')
+    <div class="py-5 d-flex flex-column align-items-center justify-content-center">
+        <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 800px; background: #fff;">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <a href="{{ route('alert-services.manage') }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Manage</a>
                 <span></span>
@@ -68,10 +58,6 @@
                 </div>
             </form>
         </div>
-                </div>
-            </div>
-        </div>
     </div>
-</body>
-</html>
+@endsection
 

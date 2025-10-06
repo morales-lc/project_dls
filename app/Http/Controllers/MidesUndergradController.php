@@ -20,7 +20,7 @@ class MidesUndergradController extends Controller
         $sort = request('sort', 'year');
         $direction = request('direction', 'desc');
 
-        $query = MidesDocument::where('type', 'Undergraduate Baby Theses')->where('program', $program);
+    $query = MidesDocument::where('type', 'Undergraduate Baby Theses')->where('category', $program);
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
@@ -34,7 +34,14 @@ class MidesUndergradController extends Controller
 
     public function programs()
     {
-    $programs = MidesCategory::where('type', 'Undergraduate Baby Theses')->select('name')->distinct()->pluck('name');
-    return view('mides-undergrad-programs', compact('programs'));
+        $programs = MidesCategory::where('type', 'Undergraduate Baby Theses')->select('name')->distinct()->pluck('name');
+        return view('mides-undergrad-programs', compact('programs'));
+    }
+
+    // PDF viewer for Undergraduate Baby Theses
+    public function viewer($id)
+    {
+        $doc = \App\Models\MidesDocument::findOrFail($id);
+        return view('mides-pdf-viewer', compact('doc'));
     }
 }

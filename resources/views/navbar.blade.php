@@ -80,19 +80,28 @@
             <div class="d-flex align-items-center text-white">
                 @if(session()->has('login') || Auth::check())
                     @php
-                    $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
-                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                    $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
+                        $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
+                        $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                        $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
                     @endphp
-                    <a href="{{ route('profile') }}">
-                        <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}" alt="Profile Picture" class="rounded-circle me-2" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
-                    </a>
-                    <div class="d-flex flex-column">
-                        <span class="fw-semibold">{{ $fullName ?: Auth::user()->name }}</span>
-                        <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
-                            @csrf
-                            <button type="submit" class="btn btn-link text-white p-0 m-0 align-baseline" style="text-decoration:underline;">Logout</button>
-                        </form>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}" alt="Profile Picture" class="rounded-circle me-2" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
+                            <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
+                            <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
+                            <li><a class="dropdown-item" href="{{ route('bookmarks.index') }}"><i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items</a></li>
+                            <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
+                            <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                                </form>
+                            </li>
+                        </ul>
                     </div>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>

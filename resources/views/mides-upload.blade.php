@@ -1,24 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Upload MIDES Document</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
-    @include('components.admin-topnav')
-<div id="dashboardWrapper" class="d-flex position-relative">
-    @include('components.admin-sidebar')
-    <div class="flex-grow-1">
-        <div class="container py-5">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="fw-bold mb-0 text-pink">Upload MIDES Document</h2>
-                <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary">&larr; Back to MIDES Management</a>
-            </div>
-            <div class="card p-4 shadow rounded-4" style="max-width:900px;margin:auto;">
+@extends('layouts.management')
+
+@push('management-head')
+<link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@endpush
+@section('title','Upload MIDES Document')
+
+@section('content')
+    <div class="py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0 text-pink">Upload MIDES Document</h2>
+            <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary">&larr; Back to MIDES Management</a>
+        </div>
+        <div class="card p-4 shadow rounded-4" style="max-width:900px;margin:auto;">
     <form method="POST" action="{{ route('mides.store') }}" enctype="multipart/form-data">
         @csrf
         <div class="mb-3">
@@ -40,8 +34,8 @@
             </select>
         </div>
         <div class="mb-3" id="undergradProgram" style="display:none;">
-            <label for="program" class="form-label">Undergraduate Program</label>
-            <select name="program" id="program" class="form-select">
+            <label for="undergrad_program" class="form-label">Undergraduate Program</label>
+            <select name="undergrad_program" id="undergrad_program" class="form-select">
                 <option value="">-- Select Program --</option>
                 @foreach($undergradPrograms as $prog)
                     <option value="{{ $prog }}">{{ $prog }}</option>
@@ -50,7 +44,7 @@
         </div>
         <div class="mb-3" id="seniorHighProgram" style="display:none;">
             <label for="senior_high_program" class="form-label">Senior High School Program</label>
-            <select name="program" id="senior_high_program" class="form-select">
+            <select name="senior_high_program" id="senior_high_program" class="form-select">
                 <option value="">-- Select Program --</option>
                 @foreach($seniorHighPrograms as $sh)
                     <option value="{{ $sh }}">{{ $sh }}</option>
@@ -81,15 +75,16 @@
         </div>
     </div>
 </div>
+@push('management-scripts')
 <script>
 function toggleFields() {
     var type = document.getElementById('type').value;
     var categoryField = document.getElementById('category');
-    var programField = document.getElementById('program');
+    var undergradProgramField = document.getElementById('undergrad_program');
+    var seniorHighProgField = document.getElementById('senior_high_program');
     var gradCatDiv = document.getElementById('graduateCategory');
     var undergradProgDiv = document.getElementById('undergradProgram');
     var seniorHighProgDiv = document.getElementById('seniorHighProgram');
-    var seniorHighProgField = document.getElementById('senior_high_program');
 
     if (type === 'Graduate Theses') {
         gradCatDiv.style.display = 'block';
@@ -102,7 +97,7 @@ function toggleFields() {
         undergradProgDiv.style.display = 'block';
     } else {
         undergradProgDiv.style.display = 'none';
-        if (programField) programField.value = '';
+        if (undergradProgramField) undergradProgramField.value = '';
     }
 
     if (type === 'Senior High School Research Paper') {
@@ -115,6 +110,6 @@ function toggleFields() {
 document.getElementById('type').addEventListener('change', toggleFields);
 document.addEventListener('DOMContentLoaded', toggleFields);
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+@endpush
+    </div>
+@endsection

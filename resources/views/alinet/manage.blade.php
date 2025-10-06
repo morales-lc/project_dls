@@ -1,23 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.management')
+@push('management-head')
+<link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@endpush
+@section('title','ALINET Appointments Management')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ALINET Appointments Management</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
-
-<body class="bg-light">
-    @include('components.admin-topnav')
-    <div id="dashboardWrapper" class="d-flex position-relative">
-        @include('components.admin-sidebar')
-        <div class="flex-grow-1">
-            <div class="container py-4">
-                <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1400px; margin:auto; background: #fff;">
+@section('content')
+    <div class="py-4">
+        <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1400px; margin:auto; background: #fff;">
                     <h2 class="fw-bold mb-4 text-center" style="color: #1976d2;">ALINET Appointments Management</h2>
                     @if(session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
@@ -134,6 +124,7 @@
             </div>
         </div>
     </div>
+
     <!-- Rejection Modal -->
     <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -159,7 +150,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @push('management-scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var rejectModal = document.getElementById('rejectModal');
@@ -175,6 +166,5 @@
             });
         });
     </script>
-</body>
-
-</html>
+    @endpush
+@endsection

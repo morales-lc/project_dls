@@ -75,6 +75,7 @@ Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])-
 
 
 Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
+Route::get('/user-management/create', [UserManagementController::class, 'create'])->name('user.create');
 Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
 Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
 Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
@@ -96,6 +97,8 @@ Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('
 Route::get('/mides/undergrad', [MidesUndergradController::class, 'index'])->name('mides.undergrad');
 Route::get('/mides/undergrad/programs', [MidesUndergradController::class, 'programs'])->name('mides.undergrad.programs');
 Route::get('/mides/undergrad/{program}', [MidesUndergradController::class, 'program'])->name('mides.undergrad.program');
+// Undergraduate Thesis PDF Viewer (No download/print)
+Route::get('/mides/undergrad/viewer/{id}', [MidesUndergradController::class, 'viewer'])->name('mides.undergrad.viewer');
 
 
 // Graduate Theses menu and category listing
@@ -112,6 +115,14 @@ Route::get('/mides/faculty-theses', [MidesDashboardController::class, 'facultyTh
 
 Route::get('/mides/seniorhigh/programs', [MidesSeniorHighController::class, 'programs'])->name('mides.seniorhigh.programs');
 Route::get('/mides/seniorhigh/{program}', [MidesSeniorHighController::class, 'program'])->name('mides.seniorhigh.program');
+Route::get('/mides/seniorhigh/viewer/{id}', [MidesSeniorHighController::class, 'viewer'])->name('mides.seniorhigh.viewer');
+
+// Bookmarks (students/faculty)
+Route::middleware('auth')->group(function () {
+    Route::get('/bookmarks', [\App\Http\Controllers\BookmarkController::class, 'index'])->name('bookmarks.index');
+    Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+});
+
 
 // Admin Category Control Panel
 Route::get('/mides-categories-panel', [MidesController::class, 'categoriesPanel'])->name('mides.categories.panel');
@@ -127,8 +138,14 @@ Route::get('/admin-dashboard', function() {
 })->middleware('auth')->name('admin.dashboard');
 
 // Librarian Dashboard
-Route::get('/librarian-dashboard', function() { return view('librarian-dashboard'); })->name('librarian.dashboard');
+Route::get('/librarian-dashboard', function() {
+    if (Auth::check() && in_array(Auth::user()->role, ['librarian'])) {
+        return view('librarian.dashboard');
+    }
+    abort(403);
+})->middleware('auth')->name('librarian.dashboard');
 // Admin Posts Management
+// Admin-only routes group
 Route::middleware(['auth'])->group(function () {
     Route::group(['middleware' => function ($request, $next) {
         if (Auth::user()->role !== 'admin') abort(403);
@@ -159,6 +176,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/backup', [\App\Http\Controllers\BackupController::class, 'index'])->name('admin.backup');
     Route::post('/admin/backup/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backup.run');
     Route::get('/admin/backup/download/{file}', [\App\Http\Controllers\BackupController::class, 'download'])->name('admin.backup.download');
+    });
+});
+
+// Librarian routes: grant access to management modules (same as admin)
+Route::middleware(['auth'])->group(function () {
+    Route::group(['middleware' => function ($request, $next) {
+        if (!in_array(Auth::user()->role, ['librarian','admin'])) abort(403);
+        return $next($request);
+    }], function () {
+        Route::get('/librarian/information-literacy/manage', [App\Http\Controllers\InformationLiteracyController::class, 'manage'])->name('information_literacy.manage');
+        Route::get('/librarian/post-management', [App\Http\Controllers\PostController::class, 'postManagement'])->name('post.management');
+        Route::get('/librarian/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
+        Route::get('/librarian/alinet/manage', [AlinetAppointmentManageController::class, 'index'])->name('alinet.manage');
+        Route::get('/librarian/alert-services/manage', [AlertServiceController::class, 'manage'])->name('alert-services.manage');
+        Route::get('/librarian/mides-management', [MidesController::class, 'index'])->name('mides.management');
     });
 });
 Route::get('/admin-posts-management', [App\Http\Controllers\PostController::class, 'adminManagement'])->name('admin.posts.management');
@@ -253,3 +285,17 @@ Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::
 Route::get('/elibraries', function () {
     return view('elibraries');
 })->name('elibraries');
+
+
+// Information Literacy routes
+use App\Http\Controllers\InformationLiteracyController;
+Route::get('/information-literacy', [InformationLiteracyController::class, 'index'])->name('information_literacy.index');
+Route::get('/information-literacy/create', [InformationLiteracyController::class, 'create'])->name('information_literacy.create');
+Route::post('/information-literacy/store', [InformationLiteracyController::class, 'store'])->name('information_literacy.store');
+Route::get('/information-literacy/manage', function() {
+    $posts = \App\Models\InformationLiteracyPost::orderBy('date_time', 'desc')->get();
+    return view('information_literacy.manage', compact('posts'));
+})->name('information_literacy.manage');
+Route::get('/information-literacy/{id}/edit', [InformationLiteracyController::class, 'edit'])->name('information_literacy.edit');
+Route::put('/information-literacy/{id}/update', [InformationLiteracyController::class, 'update'])->name('information_literacy.update');
+Route::delete('/information-literacy/{id}/delete', [InformationLiteracyController::class, 'destroy'])->name('information_literacy.delete');

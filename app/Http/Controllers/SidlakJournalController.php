@@ -7,9 +7,37 @@ use App\Models\SidlakArticle;
 
 class SidlakJournalController extends Controller
 {
-    public function manage() {
-        $journals = SidlakJournal::orderBy('year', 'desc')->orderBy('month', 'desc')->get();
-        return view('sidlak.manage', compact('journals'));
+    public function manage(Request $request) {
+        // Provide a list of distinct years for the year filter
+        $years = SidlakJournal::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
+
+        $query = SidlakJournal::query();
+
+        // Apply filters when provided via query string (GET)
+        if ($request->filled('year')) {
+            $query->where('year', $request->year);
+        }
+
+        if ($request->filled('month')) {
+            $query->where('month', $request->month);
+        }
+
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where('title', 'like', "%{$q}%");
+        }
+
+        // Preserve the same ordering used elsewhere (by year desc, then month desc)
+        $journals = $query
+            ->orderByDesc('year')
+            ->orderByRaw("STR_TO_DATE(CONCAT('01 ', month, ' ', year), '%d %M %Y') DESC")
+            ->get();
+
+        $selectedYear = $request->year;
+        $selectedMonth = $request->month;
+        $q = $request->q;
+
+        return view('sidlak.manage', compact('journals', 'years', 'selectedYear', 'selectedMonth', 'q'));
     }
 
     public function edit($id) {

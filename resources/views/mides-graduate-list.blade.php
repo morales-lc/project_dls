@@ -57,6 +57,16 @@
                     <td>{{ $doc->title }}</td>
                     <td>
                         <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#pdfModal{{ $doc->id }}">View</button>
+                        @auth
+                            @if(optional(auth()->user()->studentFaculty)->id)
+                                <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline ms-2">
+                                    @csrf
+                                    <input type="hidden" name="id" value="{{ $doc->id }}">
+                                    <input type="hidden" name="type" value="mides">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm">Bookmark</button>
+                                </form>
+                            @endif
+                        @endauth
                         <!-- PDF Modals -->
                         @foreach($documents as $doc)
                         <div class="modal fade" id="pdfModal{{ $doc->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $doc->id }}" aria-hidden="true">

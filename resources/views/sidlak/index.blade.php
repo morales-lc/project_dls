@@ -9,7 +9,7 @@
 </head>
 <body style="min-height: 100vh; background-color: #f8f9fa;">
 @include('navbar')
-<div class="container py-5">
+<div class="container py-5 mb-4" >
     <div class="text-center mb-4">
         <h2 class="fw-bold mb-1" style="color:#e83e8c;">SIDLAK</h2>
         <div class="fs-5 fw-semibold mb-1" style="color:#e83e8c;">The Lourdes College Multidisciplinary Research Journal</div>
@@ -38,6 +38,8 @@
         @endforeach
     </div>
 </div>
+<div style="margin-bottom: 120px;"></div>
+@include('footer')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

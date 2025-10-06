@@ -1,21 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Admin Dashboard</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-</head>
-<body class="bg-light">
-@include('components.admin-topnav')
-<div id="dashboardWrapper" class="d-flex position-relative">
-    @include('components.admin-sidebar')
-    <div class="flex-grow-1">
-       
-        <div class="container py-5">
+@extends('layouts.management')
+
+@push('management-head')
+<link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
+<link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@endpush
+
+@section('title', 'Admin Dashboard')
+
+@section('content')
+    <div class="container-fluid py-5">
             @php
                 $studentsCount = \App\Models\StudentFaculty::where('role', 'student')->count();
                 $facultiesCount = \App\Models\StudentFaculty::where('role', 'faculty')->count();
@@ -123,37 +117,8 @@
             </div>
         </div>
     </div>
-</div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        function toggleSidebar() {
-            sidebar.classList.toggle('sidebar-collapsed');
-            if (sidebar.classList.contains('sidebar-collapsed')) {
-                sidebar.style.transform = 'translateX(-100%)';
-            } else {
-                sidebar.style.transform = 'translateX(0)';
-            }
-        }
-        sidebarToggle.addEventListener('click', function() {
-            toggleSidebar();
-        });
-        // Responsive: hide sidebar by default on mobile
-        function handleResize() {
-            if (window.innerWidth < 992) {
-                sidebar.classList.add('sidebar-collapsed');
-                sidebar.style.transform = 'translateX(-100%)';
-            } else {
-                sidebar.classList.remove('sidebar-collapsed');
-                sidebar.style.transform = 'translateX(0)';
-            }
-        }
-        window.addEventListener('resize', handleResize);
-        document.addEventListener('DOMContentLoaded', handleResize);
-    </script>
-</body>
-</html>
-            
+@endsection
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+@push('management-scripts')
+@endpush
+
