@@ -40,6 +40,9 @@
         </div>
     </div>
 </div>
+<div style="height: 40px;"></div>
+<div style="height: 40px;"></div>
+<div style="height: 40px;"></div>
 @include('footer')
 
 </body>
