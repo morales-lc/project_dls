@@ -1,116 +1,322 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
-    <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile</title>
+  <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <style>
+    .bg-pink {
+      background-color: #ffd1e3 !important;
+      color: #d81b60 !important;
+    }
+    .text-pink {
+      color: #d81b60 !important;
+    }
+    .btn-outline-pink {
+      border: 1.5px solid #ffd1e3 !important;
+      color: #d81b60 !important;
+      background-color: #fff !important;
+      font-weight: 500;
+      border-radius: 0.7rem;
+      transition: 0.2s;
+    }
+    .btn-outline-pink:hover {
+      background-color: #ffd1e3 !important;
+      color: #b3134b !important;
+    }
+    .card-header.bg-pink {
+      background-color: #ffe3ef !important;
+      color: #d81b60 !important;
+      font-weight: 700;
+      border-bottom: 2px solid #ffd1e3;
+    }
+    .card-body {
+      background: linear-gradient(180deg, #fff 90%, #ffe3ef 100%);
+    }
+    .profile-label {
+      font-weight: 600;
+      color: #d81b60;
+      font-size: 0.97rem;
+    }
+    .profile-value {
+      color: #333;
+      font-size: 1.05rem;
+      font-weight: 500;
+    }
+    .profile-row {
+      border-bottom: 1px solid #ffd1e3;
+      padding: 0.7rem 0;
+    }
+    .profile-row:last-child {
+      border-bottom: none;
+    }
+    .profile-avatar {
+      border: 3px solid #ffd1e3;
+      box-shadow: 0 2px 12px #ffd1e3a0;
+    }
+  </style>
 </head>
+
 <body>
-    
-@include('navbar')
-<div class="d-flex">
+
+  @include('navbar')
+  <div class="d-flex">
     @include('sidebar')
-    <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header bg-pink text-white fw-bold fs-5">Profile</div>
-                    <div class="card-body position-relative">
-                        <!-- Edit Profile Button -->
-                        <button type="button" class="btn btn-outline-pink position-absolute end-0 top-0 mt-3 me-3" data-bs-toggle="modal" data-bs-target="#editProfileModal">
-                            Edit Profile
-                        </button>
-                        <!-- Edit Profile Modal -->
-                        <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
-                          <div class="modal-dialog">
-                            <div class="modal-content">
-                              <div class="modal-header">
-                                <h5 class="modal-title fw-bold" id="editProfileModalLabel">Edit Profile</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                              </div>
-                              <div class="modal-body">
-                                <form>
-                                  <div class="mb-3">
-                                    <label for="editName" class="form-label">Full Name</label>
-                                    <input type="text" class="form-control" id="editName" value="Username">
-                                  </div>
-                                  <div class="mb-3">
-                                    <label for="editIdNumber" class="form-label">ID Number</label>
-                                    <input type="text" class="form-control" id="editIdNumber" value="">
-                                  </div>
-                                  <div class="mb-3">
-                                    <label for="editYearLevel" class="form-label">Year Level</label>
-                                    <select class="form-select" id="editYearLevel">
-                                      <option selected disabled>Select year level</option>
-                                      <option>1st Year</option>
-                                      <option>2nd Year</option>
-                                      <option>3rd Year</option>
-                                      <option>4th Year</option>
-                                    </select>
-                                  </div>
-                                  <div class="mb-3">
-                                    <label for="editCourse" class="form-label">Course</label>
-                                    <input type="text" class="form-control" id="editCourse" value="">
-                                  </div>
-                                  <div class="mb-3">
-                                    <label for="editEmail" class="form-label">LCCDO Email</label>
-                                    <input type="email" class="form-control" id="editEmail" value="user@lccdo.edu.ph">
-                                  </div>
-                                  <div class="mb-3">
-                                    <label for="editGender" class="form-label">Gender</label>
-                                    <select class="form-select" id="editGender">
-                                      <option selected disabled>Select gender</option>
-                                      <option>Male</option>
-                                      <option>Female</option>
-                                      <option>Other</option>
-                                    </select>
-                                  </div>
-                                </form>
-                              </div>
-                              <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-pink">Save</button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="me-4">
-                                <i class="bi bi-person-circle" style="font-size: 4rem;"></i>
-                            </div>
-                            <div>
-                                <h4 class="fw-bold mb-1">Username</h4>
-                                <p class="mb-0 text-muted">user@lccdo.edu.ph</p>
-                            </div>
-                        </div>
-                        <hr>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Full Name</label>
-                            <div>Username</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <div>user@lccdo.edu.ph</div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Member Since</label>
-                            <div>August 7, 2025</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="flex-grow-1 d-flex justify-content-center align-items-start py-5" style="background:#f8f9fa; min-height:80vh;">
+      <div class="card shadow-lg w-100 border-0" style="max-width:980px; border-radius:1.25rem;">
+        <div class="card-header bg-pink d-flex align-items-center" style="border-radius:1.25rem 1.25rem 0 0;">
+          <i class="bi bi-person-circle fs-3 me-2"></i>
+          <span class="fw-bold fs-5">My Profile</span>
         </div>
+        <div class="card-body">
+          @php
+          $sf = auth()->check() ? auth()->user()->studentFaculty : null;
+          @endphp
+
+          @if(!$sf)
+          <div class="alert alert-warning">Profile information not available.</div>
+          @else
+          <div class="row g-4">
+            <div class="col-md-4 d-flex justify-content-center align-items-start">
+              <div class="text-center" style="width:100%;">
+                @php
+                $pp = $sf->profile_picture;
+                $profileSrc = null;
+                if ($pp) {
+                if (filter_var($pp, FILTER_VALIDATE_URL)) {
+                $profileSrc = $pp;
+                } else {
+                $profileSrc = asset('storage/' . $pp);
+                }
+                }
+                @endphp
+                @if(!empty($profileSrc))
+                <img src="{{ $profileSrc }}" alt="{{ $sf->username ?? ($sf->first_name . ' ' . $sf->last_name) }}" class="img-fluid rounded-circle profile-avatar" style="width:160px; height:160px; object-fit:cover;">
+                @else
+                <div class="rounded-circle bg-light d-flex justify-content-center align-items-center profile-avatar" style="width:160px; height:160px;">
+                  <i class="bi bi-person-circle" style="font-size:4.5rem; color:#c1b7bf"></i>
+                </div>
+                @endif
+                <div class="mt-3">
+                  <button id="openEditProfile" class="btn btn-outline-pink" type="button">Edit Profile</button>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-8">
+              <div class="mb-2">
+                <h4 class="fw-bold mb-1 text-pink">{{ ($sf->first_name || $sf->last_name) ? ($sf->first_name . ' ' . $sf->last_name) : ($sf->username ?? 'User') }}</h4>
+                <div class="small text-muted mb-3">{{ $sf->user->email ?? '' }}</div>
+              </div>
+              <div class="rounded-4 shadow-sm" style="background:#fff;">
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Username</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->username ?? '-' }}</div>
+                </div>
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">School ID</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->school_id ?? '-' }}</div>
+                </div>
+                @if($sf->role === 'student')
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Course</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->course ?? '-' }}</div>
+                </div>
+                @endif
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Year Level</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->yrlvl ?? '-' }}</div>
+                </div>
+                @if($sf->role === 'faculty')
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Department</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->department ?? '-' }}</div>
+                </div>
+                @endif
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Birthdate</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->birthdate ? date('F j, Y', strtotime($sf->birthdate)) : '-' }}</div>
+                </div>
+                <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Member Since</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->created_at ? date('F j, Y', strtotime($sf->created_at)) : '-' }}</div>
+                </div>
+              </div>
+            </div>
+            </div>
+          </div>
+          @endif
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editProfileForm" enctype="multipart/form-data">
+          @csrf
+          <div class="modal-body">
+            @if($sf)
+            <div class="container-fluid">
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">School ID</label>
+                    <input name="school_id" id="school_id" class="form-control" value="{{ $sf->school_id ?? '' }}">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input name="username" id="usernameInput" class="form-control" value="{{ $sf->username ?? '' }}">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">First name</label>
+                    <input name="first_name" id="first_name" class="form-control" value="{{ $sf->first_name ?? '' }}">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Last name</label>
+                    <input name="last_name" id="last_name" class="form-control" value="{{ $sf->last_name ?? '' }}">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input name="email" id="emailInput" type="email" class="form-control" value="{{ $sf->user->email ?? '' }}">
+                  </div>
+                </div>
+                @if($sf->role === 'student')
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Course</label>
+                    <input name="course" id="courseInput" class="form-control" value="{{ $sf->course ?? '' }}">
+                  </div>
+                </div>
+                @endif
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Year level</label>
+                    <input name="yrlvl" id="yrlvlInput" class="form-control" value="{{ $sf->yrlvl ?? '' }}">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Birthdate</label>
+                    <input name="birthdate" id="birthdateInput" type="date" class="form-control" value="{{ $sf->birthdate ?? '' }}">
+                  </div>
+                </div>
+                @if($sf->role === 'faculty')
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Department</label>
+                    <input name="department" id="departmentInput" class="form-control" value="{{ $sf->department ?? '' }}">
+                  </div>
+                </div>
+                @endif
+                <input type="hidden" name="role" id="roleInput" value="{{ $sf->role ?? '' }}">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Profile picture</label>
+                    <input type="file" name="profile_picture" id="profilePictureInput" class="form-control">
+                  </div>
+                </div>
+              </div>
+            </div>
+            @endif
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-pink">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 </body>
+
 </html>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var openBtn = document.getElementById('openEditProfile');
+    var editModalEl = document.getElementById('editProfileModal');
+    var editModal = new bootstrap.Modal(editModalEl);
 
+    if (openBtn) {
+      openBtn.addEventListener('click', function() {
+        editModal.show();
+      });
+    }
 
+    var form = document.getElementById('editProfileForm');
+    if (form) {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        var submitBtn = form.querySelector('button[type="submit"]');
+        var original = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving';
 
+        var fd = new FormData(form);
+        fetch("/profile/complete", {
+          method: 'POST',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: fd
+        }).then(function(res) {
+          return res.json();
+        }).then(function(data) {
+          if (data && data.status === 'ok') {
+            // update UI: name, email, profile picture
+            if (data.data) {
+              var sf = data.data;
+              // name
+              var nameEl = document.querySelector('.card-body h4');
+              if (nameEl) nameEl.textContent = (sf.first_name || sf.last_name) ? (sf.first_name + ' ' + sf.last_name) : (sf.username || 'User');
+              // email
+              var emailEl = document.querySelector('.card-body .small.text-muted');
+              if (emailEl && sf.user && sf.user.email) emailEl.textContent = sf.user.email;
+              // profile picture
+              var imgWrap = document.querySelector('.col-md-4 .text-center');
+              if (imgWrap) {
+                var imgEl = imgWrap.querySelector('img');
+                if (sf.profile_picture) {
+                  var url = sf.profile_picture.match(/^https?:\/\//) ? sf.profile_picture : ('/storage/' + sf.profile_picture);
+                  if (imgEl) imgEl.src = url;
+                  else {
+                    imgWrap.innerHTML = '<img src="' + url + '" class="img-fluid rounded-circle" style="width:160px; height:160px; object-fit:cover;">';
+                  }
+                }
+              }
 
+            }
+            editModal.hide();
+          } else {
+            alert((data && data.message) || 'Failed to update profile.');
+          }
+        }).catch(function(err) {
+          console.error(err);
+          alert('Failed to update profile.');
+        }).finally(function() {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = original;
+        });
+      });
+    }
+  });
+</script>

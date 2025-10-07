@@ -1,0 +1,68 @@
+/* Shared MIDES styles moved from templates */
+body {
+    background: #f8f9fa;
+}
+.bg-pink {
+    background-color: #ffd1e3 !important;
+    color: #d81b60 !important;
+}
+.text-pink {
+    color: #d81b60 !important;
+}
+.card {
+    border-radius: 1.25rem;
+    box-shadow: 0 2px 16px #ffd1e3a0;
+    border: none;
+}
+.card-header.bg-pink {
+    background-color: #ffe3ef !important;
+    color: #d81b60 !important;
+    font-weight: 700;
+    border-radius: 1.25rem 1.25rem 0 0;
+    border-bottom: 2px solid #ffd1e3;
+}
+.table {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #fff;
+}
+.table thead {
+    background: #ffd1e3 !important;
+    color: #d81b60 !important;
+}
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #fff6fa;
+}
+.btn-outline-pink {
+    border: 1.5px solid #ffd1e3 !important;
+    color: #d81b60 !important;
+    background-color: #fff !important;
+    font-weight: 500;
+    border-radius: 0.7rem;
+    transition: 0.2s;
+}
+.btn-outline-pink:hover {
+    background-color: #ffd1e3 !important;
+    color: #b3134b !important;
+}
+.btn-outline-warning {
+    border: 1.5px solid #ffd1e3 !important;
+    color: #d81b60 !important;
+    background-color: #fff !important;
+    font-weight: 500;
+    border-radius: 0.7rem;
+    transition: 0.2s;
+}
+.btn-outline-warning:hover {
+    background-color: #ffd1e3 !important;
+    color: #b3134b !important;
+}
+.btn-pink {
+    background-color: #d81b60 !important;
+    color: #fff !important;
+    border: 1.5px solid #d81b60 !important;
+    box-shadow: 0 2px 8px rgba(216,27,96,0.12);
+}
+.btn-pink:hover { background-color: #b3134b !important; border-color: #b3134b !important; }
+.bookmark-btn { transition: transform 0.08s ease, box-shadow 0.12s ease; }
+.bookmark-btn:hover { transform: translateY(-2px); }

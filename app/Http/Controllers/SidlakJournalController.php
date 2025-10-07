@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SidlakJournal;
 use App\Models\SidlakArticle;
+use Illuminate\Support\Facades\Auth;
 
 class SidlakJournalController extends Controller
 {
@@ -243,6 +244,24 @@ class SidlakJournalController extends Controller
 
     public function show($id) {
         $journal = SidlakJournal::with('articles')->findOrFail($id);
-        return view('sidlak.show', compact('journal'));
+
+        $bookmarkedArticleIds = [];
+        $journalBookmarked = false;
+        if (Auth::check()) {
+            $sf = Auth::user()->studentFaculty ?? null;
+            if ($sf) {
+                $bookmarkedArticleIds = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                    ->where('bookmarkable_type', \App\Models\SidlakArticle::class)
+                    ->pluck('bookmarkable_id')
+                    ->toArray();
+
+                $journalBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                    ->where('bookmarkable_type', \App\Models\SidlakJournal::class)
+                    ->where('bookmarkable_id', $journal->id)
+                    ->exists();
+            }
+        }
+
+        return view('sidlak.show', compact('journal', 'bookmarkedArticleIds', 'journalBookmarked'));
     }
 }

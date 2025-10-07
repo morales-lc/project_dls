@@ -20,7 +20,11 @@
                 <span class="d-none d-md-inline nav-logo-text" style="transition:transform 0.35s cubic-bezier(.4,1.6,.6,1);">LC MIDES Digital Library</span>
             </span>
         </a>
-        <div class="collapse navbar-collapse">
+        <!-- Navbar toggler for small screens -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Home</a>
@@ -37,10 +41,10 @@
                     </ul>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle {{ request()->routeIs('wiley.*','gale.*','proquest.*') ? 'active' : '' }}" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs('wiley.*','gale.*','proquest.*') ? 'active' : '' }}" href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Libraries
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                    <ul class="dropdown-menu" aria-labelledby="librariesDropdown">
                         <li><a class="dropdown-item" href="{{ route('libraries.college') }}">College Library</a></li>
                         <li><a class="dropdown-item" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
                         <li><a class="dropdown-item" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
@@ -57,7 +61,7 @@
                         <li><a class="dropdown-item" href="{{ route('alert-services.index') }}">Alert Services</a></li>
                         <li><a class="dropdown-item" href="{{ route('alinet.form') }}">ALINET</a></li>
                         <li><a class="dropdown-item" href="#">Book borrowing</a></li>
-                        <li><a class="dropdown-item" href="#">Information Literacy Alert Schedule</a></li>
+                        <li><a class="dropdown-item" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
                         <li><a class="dropdown-item" href="#">Scanning Services</a></li>
                         <li><a class="dropdown-item {{ request()->routeIs('learning-spaces') ? 'active' : '' }}" href="{{ route('learning-spaces') }}">Learning Spaces</a></li>
                     </ul>
@@ -71,11 +75,6 @@
                         <li><a class="dropdown-item" href="{{ route('sidlak.index') }}">SIDLAk</a></li>
                     </ul>
                 </li>
-                    <ul class="dropdown-menu" aria-labelledby="eresourcesDropdown">
-                        <li><a class="dropdown-item" href="{{ route('mides.dashboard') }}">MIDES repository</a></li>
-                        <li><a class="dropdown-item" href="{{ route('sidlak.index') }}">SIDLAk</a></li>
-                    </ul>
-                </li>
             </ul>
             <div class="d-flex align-items-center text-white">
                 @if(session()->has('login') || Auth::check())
@@ -84,25 +83,46 @@
                         $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
                         $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
                     @endphp
-                    <div class="dropdown">
-                        <a href="#" class="d-flex align-items-center text-white text-decoration-none dropdown-toggle" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}" alt="Profile Picture" class="rounded-circle me-2" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
-                            <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
-                            <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
-                            <li><a class="dropdown-item" href="{{ route('bookmarks.index') }}"><i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items</a></li>
-                            <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
-                            <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
-                                </form>
-                            </li>
-                        </ul>
-                    </div>
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}" alt="Profile Picture" class="rounded-circle" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
+                                <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
+                                <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
+                                @php
+                                    // Sidebar logic for bookmark count
+                                    $sf = Auth::user()->studentFaculty ?? null;
+                                    $bookmarkCount = 0;
+                                    if ($sf) {
+                                        try {
+                                            $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
+                                        } catch (\Throwable $e) {
+                                            $bookmarkCount = 0;
+                                        }
+                                    }
+                                @endphp
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('bookmarks.index') }}">
+                                        <i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items
+                                        @if($bookmarkCount > 0)
+                                            <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $bookmarkCount }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                                <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
+                                <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
                 @else
                     <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>
                 @endif
@@ -167,6 +187,7 @@
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 
 
 

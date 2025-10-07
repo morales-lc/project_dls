@@ -34,7 +34,19 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start">
                                 <h3 class="fw-bold mb-1" style="color:#1976d2;">{{ $post->title }}</h3>
-                                <small class="text-muted ms-2 toggle-indicator">&#x25B6;</small>
+                                <div class="d-flex align-items-center gap-2">
+                                    <small class="text-muted ms-2 toggle-indicator">&#x25B6;</small>
+                                    @auth
+                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="bookmark-toggle" style="display:inline;">
+                                        @csrf
+                                        <input type="hidden" name="id" value="{{ $post->id }}">
+                                        <input type="hidden" name="type" value="information_literacy">
+                                            <button type="submit" class="btn btn-sm bookmark-btn {{ in_array($post->id, $bookmarkedIds ?? []) ? 'bookmarked' : '' }}" title="Toggle bookmark">
+                                                <i class="bi {{ in_array($post->id, $bookmarkedIds ?? []) ? 'bi-bookmark-heart-fill' : 'bi-bookmark' }}"></i>
+                                            </button>
+                                    </form>
+                                    @endauth
+                                </div>
                             </div>
                             <div class="mb-2 text-muted small">{{ date('F j, Y \a\t g:i A', strtotime($post->date_time)) }} &nbsp;|&nbsp; <span class="badge bg-info">{{ ucfirst($post->type) }}</span></div>
                             <div class="mb-2"><strong>Facilitator/s:</strong> {{ $post->facilitators }}</div>
@@ -108,6 +120,22 @@
 @media (max-width: 767px) {
     .il-card .img-fluid { height: 220px; }
 }
+
+/* Bookmark button visual states */
+.bookmark-btn {
+    transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+    /* neutral / no color by default */
+    background-color: transparent !important;
+    color: inherit !important;
+    border: 1px solid transparent !important;
+    padding-left: .55rem; padding-right: .55rem;
+}
+.bookmark-btn.bookmarked {
+    background-color: #ffd1e3 !important; /* soft pink */
+    color: #d81b60 !important;
+    border-color: #ffd1e3 !important;
+}
+.bookmark-btn.bookmarked i { color: #d81b60 !important; }
 </style>
 
 <script>
@@ -144,12 +172,71 @@ document.addEventListener('DOMContentLoaded', function(){
 
     document.querySelectorAll('.il-card').forEach(function(card){
         card.addEventListener('click', function(e){
-            if(e.target.tagName.toLowerCase() === 'a' || e.target.closest('a')) return;
+            // do not open modal when clicking links, buttons, forms or bookmark controls
+            if (e.target.closest('a, button, form, .bookmark-toggle')) return;
             openModalFromCard(card);
         });
         card.addEventListener('keydown', function(e){
             if(e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openModalFromCard(card); }
         });
+    });
+
+    // bookmark toggle for information literacy posts (AJAX)
+    document.querySelectorAll('.bookmark-toggle').forEach(function(form) {
+        // prevent parent card click from opening the modal when user interacts with this form
+        form.addEventListener('click', function(ev){ ev.stopPropagation(); });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var btn = form.querySelector('button');
+            var original = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+            var formData = new FormData(form);
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
+                },
+                body: formData
+            }).then(function(res) { return res.json(); }).then(function(data) {
+                if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
+                    // toggle icon style and button class
+                    var icon = form.querySelector('i');
+                    var btnEl = form.querySelector('.bookmark-btn');
+                    if (icon) {
+                        if (data.status === 'bookmarked') {
+                            icon.className = 'bi bi-bookmark-heart-fill';
+                        } else {
+                            icon.className = 'bi bi-bookmark';
+                        }
+                    }
+                    if (btnEl) {
+                        if (data.status === 'bookmarked') btnEl.classList.add('bookmarked'); else btnEl.classList.remove('bookmarked');
+                    }
+                } else {
+                    alert((data && data.message) || 'Unexpected response');
+                }
+            }).catch(function(err) {
+                console.error(err);
+                alert('Failed to update bookmark.');
+            }).finally(function() {
+                btn.disabled = false;
+                btn.innerHTML = original;
+            });
+        });
+    });
+    
+    // Ensure visual class toggles on initial load for pre-bookmarked items (safety)
+    document.querySelectorAll('.bookmark-toggle').forEach(function(form){
+        var btn = form.querySelector('.bookmark-btn');
+        if (!btn) return;
+        var icon = btn.querySelector('i');
+        if (icon && icon.className.indexOf('bi-bookmark-heart-fill') !== -1) {
+            btn.classList.add('bookmarked');
+        }
     });
 });
 </script>

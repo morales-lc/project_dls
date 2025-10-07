@@ -56,8 +56,11 @@ class BookmarkController extends BaseController
         // Map allowed types to model classes
         $map = [
             'mides' => MidesDocument::class,
-            // 'sidlak' => SidlakDocument::class, // future
-            // 'post' => Post::class,
+            'sidlak' => \App\Models\SidlakArticle::class,
+            'sidlak_journal' => \App\Models\SidlakJournal::class,
+            'post' => \App\Models\Post::class,
+            // Information Literacy posts
+            'information_literacy' => \App\Models\InformationLiteracyPost::class,
         ];
 
         if (! isset($map[$type])) {
@@ -77,6 +80,9 @@ class BookmarkController extends BaseController
 
         if ($existing) {
             $existing->delete();
+            if ($request->expectsJson()) {
+                return response()->json(['status' => 'removed', 'message' => 'Removed bookmark.']);
+            }
             return back()->with('success', 'Removed bookmark.');
         }
 
@@ -85,6 +91,10 @@ class BookmarkController extends BaseController
             'bookmarkable_id' => $item->id,
             'bookmarkable_type' => $modelClass,
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json(['status' => 'bookmarked', 'message' => 'Bookmarked.']);
+        }
 
         return back()->with('success', 'Bookmarked.');
     }

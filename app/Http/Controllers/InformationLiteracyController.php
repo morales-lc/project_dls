@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\InformationLiteracyPost;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class InformationLiteracyController extends Controller
 {
@@ -12,7 +13,21 @@ class InformationLiteracyController extends Controller
     public function index()
     {
         $posts = InformationLiteracyPost::orderBy('date_time', 'desc')->get();
-        return view('information_literacy.index', compact('posts'));
+
+        // compute bookmarked ids for authenticated student's faculty record
+        $bookmarkedIds = [];
+        if (Auth::check()) {
+            $user = Auth::user();
+            $sf = $user->studentFaculty ?? null;
+            if ($sf) {
+                $bookmarkedIds = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                    ->where('bookmarkable_type', \App\Models\InformationLiteracyPost::class)
+                    ->pluck('bookmarkable_id')
+                    ->toArray();
+            }
+        }
+
+        return view('information_literacy.index', compact('posts', 'bookmarkedIds'));
     }
 
     // Show create form

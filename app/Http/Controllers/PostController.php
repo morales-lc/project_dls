@@ -4,13 +4,27 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Post;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
     public function index()
     {
         $posts = Post::latest()->get();
-        return view('dashboard', ['posts' => $posts]);
+
+        // Eager-load bookmarked post IDs for the authenticated student/faculty to avoid per-item DB checks in Blade
+        $bookmarkedPostIds = [];
+        if (Auth::check()) {
+            $sf = Auth::user()->studentFaculty ?? null;
+            if ($sf) {
+                $bookmarkedPostIds = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                    ->where('bookmarkable_type', Post::class)
+                    ->pluck('bookmarkable_id')
+                    ->toArray();
+            }
+        }
+
+        return view('dashboard', ['posts' => $posts, 'bookmarkedPostIds' => $bookmarkedPostIds]);
     }
 
     public function store(Request $request)
@@ -151,5 +165,21 @@ class PostController extends Controller
     {
         $posts = Post::latest()->get();
         return view('post-management', compact('posts'));
+    }
+
+    // Return a JSON representation of a post for client-side modal population
+    public function showJson($id)
+    {
+        $post = Post::findOrFail($id);
+        return response()->json([
+            'id' => $post->id,
+            'title' => $post->title,
+            'type' => $post->type,
+            'description' => $post->description,
+            'photo' => $post->photo ? asset('storage/' . $post->photo) : null,
+            'youtube_link' => $post->youtube_link,
+            'website_link' => $post->website_link,
+            'og_image' => $post->og_image,
+        ]);
     }
 }

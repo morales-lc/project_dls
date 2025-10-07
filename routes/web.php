@@ -203,6 +203,9 @@ Route::delete('/admin-posts-management/{id}', [App\Http\Controllers\PostControll
 // Post routes
 Route::post('/dashboard/post', [App\Http\Controllers\PostController::class, 'store'])->name('dashboard.post.store');
 
+// JSON endpoint for posts (for modal population)
+Route::get('/posts/{id}/json', [App\Http\Controllers\PostController::class, 'showJson'])->name('posts.show.json');
+
 // Post Management routes
 Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
 Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');

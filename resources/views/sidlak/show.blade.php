@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $journal->title }} | Sidlak Journal</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
@@ -32,7 +33,24 @@
                             @endif
                         </div>
                         <div class="col-md-7 p-4">
-                            <h2 class="fw-bold mb-1" style="color:#e83e8c;">{{ $journal->title }}</h2>
+                            <div class="d-flex align-items-start gap-3">
+                                <h2 class="fw-bold mb-1" style="color:#e83e8c;">{{ $journal->title }}</h2>
+                                @if(Auth::check())
+                                    @php
+                                        // Use controller-provided variable if available
+                                        $journalBookmarked = $journalBookmarked ?? false;
+                                    @endphp
+                                    <form action="{{ route('bookmarks.toggle') }}" method="POST" class="d-inline sidlak-journal-bookmark-toggle" style="margin-top:6px;">
+                                        @csrf
+                                        <input type="hidden" name="id" value="{{ $journal->id }}">
+                                        <input type="hidden" name="type" value="sidlak_journal">
+                                        <button type="submit" class="btn btn-sm {{ $journalBookmarked ? 'btn-primary' : 'btn-outline-secondary' }}">
+                                            <i class="bi {{ $journalBookmarked ? 'bi-bookmark-fill' : 'bi-bookmark' }} me-1"></i>
+                                            <span>{{ $journalBookmarked ? 'Bookmarked' : 'Bookmark Journal' }}</span>
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
                             <div class="mb-2">
                                 <span class="badge px-3 py-2 fs-6 shadow" style="background:#e83e8c;">{{ $journal->month }} {{ $journal->year }}</span>
                             </div>
@@ -112,7 +130,24 @@
                                     <div class="card-body">
                                         <h5 class="fw-bold" style="color:#e83e8c;">{{ $article->title }}</h5>
                                         <div class="mb-2 text-muted">Authors: {{ $article->authors }}</div>
-                                        <a href="{{ asset('storage/' . $article->pdf_file) }}" target="_blank" class="btn btn-outline-success">Download PDF</a>
+                                                    <a href="{{ asset('storage/' . $article->pdf_file) }}" target="_blank" class="btn btn-outline-success">Download PDF</a>
+                                                    @if(Auth::check())
+                                                        @php
+                                                            // Use controller-provided list of bookmarked article IDs if available
+                                                            $isBookmarked = isset($bookmarkedArticleIds) && is_array($bookmarkedArticleIds) ? in_array($article->id, $bookmarkedArticleIds) : false;
+                                                        @endphp
+                                                        <form action="{{ route('bookmarks.toggle') }}" method="POST" class="d-inline ms-2 sidlak-bookmark-toggle" data-article-id="{{ $article->id }}">
+                                                            @csrf
+                                                            <input type="hidden" name="id" value="{{ $article->id }}">
+                                                            <input type="hidden" name="type" value="sidlak">
+                                                            <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-secondary' }} sidlak-bookmark-btn">
+                                                                <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill' : 'bi-bookmark' }} me-1"></i>
+                                                                <span class="btn-label">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline-secondary ms-2">Login to bookmark</a>
+                                                    @endif
                                     </div>
                                 </div>
                             </div>
@@ -137,6 +172,102 @@
 
     <div class="mt-5"></div>
     @include('footer')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Journal-level bookmark toggle
+            document.querySelectorAll('.sidlak-journal-bookmark-toggle').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var btn = form.querySelector('button');
+                    var icon = btn.querySelector('i');
+                    var label = btn.querySelector('span');
+                    var original = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>...';
+
+                    var fd = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: fd
+                    }).then(function(res) { return res.json(); }).then(function(data) {
+                        if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
+                            var bookmarked = data.status === 'bookmarked';
+                            if (bookmarked) {
+                                btn.classList.remove('btn-outline-secondary');
+                                btn.classList.add('btn-primary');
+                                icon.classList.remove('bi-bookmark');
+                                icon.classList.add('bi-bookmark-fill');
+                                label.textContent = 'Bookmarked';
+                            } else {
+                                btn.classList.remove('btn-primary');
+                                btn.classList.add('btn-outline-secondary');
+                                icon.classList.remove('bi-bookmark-fill');
+                                icon.classList.add('bi-bookmark');
+                                label.textContent = 'Bookmark Journal';
+                            }
+                        }
+                    }).catch(function(err) { console.error(err); alert('Failed to toggle bookmark.'); })
+                      .finally(function() { btn.disabled = false; btn.innerHTML = original; });
+                });
+            });
+            document.querySelectorAll('.sidlak-bookmark-toggle').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var btn = form.querySelector('.sidlak-bookmark-btn');
+                    var icon = btn.querySelector('i');
+                    var label = btn.querySelector('.btn-label');
+                    var originalHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>...';
+
+                    var formData = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: formData
+                    }).then(function(res) { return res.json(); }).then(function(data) {
+                        if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
+                            var isNowBookmarked = data.status === 'bookmarked';
+                            if (isNowBookmarked) {
+                                btn.classList.remove('btn-outline-secondary');
+                                btn.classList.add('btn-primary');
+                                icon.classList.remove('bi-bookmark');
+                                icon.classList.add('bi-bookmark-fill');
+                                label.textContent = 'Bookmarked';
+                            } else {
+                                btn.classList.remove('btn-primary');
+                                btn.classList.add('btn-outline-secondary');
+                                icon.classList.remove('bi-bookmark-fill');
+                                icon.classList.add('bi-bookmark');
+                                label.textContent = 'Bookmark';
+                            }
+                            var alert = document.createElement('div');
+                            alert.className = 'alert alert-success position-fixed end-0 m-4 shadow-sm';
+                            alert.style.zIndex = 1050;
+                            alert.textContent = data.message || 'Updated';
+                            document.body.appendChild(alert);
+                            setTimeout(function() { alert.remove(); }, 2200);
+                        } else {
+                            alert((data && data.message) || 'Unexpected response');
+                        }
+                    }).catch(function(err) {
+                        console.error(err);
+                        alert('Failed to toggle bookmark.');
+                    }).finally(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = originalHtml;
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

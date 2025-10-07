@@ -121,6 +121,32 @@
                                 @if($post->website_link)
                                     <a href="{{ $post->website_link }}" target="_blank" class="lc-news-card-btn" onclick="event.stopPropagation();">Read More</a>
                                 @endif
+                                @if(Auth::check())
+                                    @php
+                                        // Prefer controller-provided map of bookmarked post IDs to avoid per-item DB queries.
+                                        $postBookmarked = false;
+                                        if (isset($bookmarkedPostIds) && is_array($bookmarkedPostIds)) {
+                                            $postBookmarked = in_array($post->id, $bookmarkedPostIds);
+                                        } else {
+                                            $sf = Auth::user()->studentFaculty ?? null;
+                                            if ($sf) {
+                                                $postBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                                                    ->where('bookmarkable_type', \App\Models\Post::class)
+                                                    ->where('bookmarkable_id', $post->id)
+                                                    ->exists();
+                                            }
+                                        }
+                                    @endphp
+                                    <form action="{{ route('bookmarks.toggle') }}" method="POST" class="d-inline ms-2 post-bookmark-toggle" style="margin-top:8px;" onsubmit="event.stopPropagation();">
+                                        @csrf
+                                        <input type="hidden" name="id" value="{{ $post->id }}">
+                                        <input type="hidden" name="type" value="post">
+                                        <button type="submit" class="btn btn-sm {{ $postBookmarked ? 'btn-primary' : 'btn-outline-secondary' }} post-bookmark-btn">
+                                            <i class="bi {{ $postBookmarked ? 'bi-bookmark-fill' : 'bi-bookmark' }} me-1"></i>
+                                            <span>{{ $postBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -175,29 +201,7 @@
             </div>
         </div>
     </div>
-        <!-- Post Modal -->
-        <div class="modal fade" id="postModal" tabindex="-1" aria-labelledby="postModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-centered">
-                <div class="modal-content post-modal-glass animate-modal">
-                    <div class="modal-header border-0 post-modal-header">
-                        <div class="d-flex align-items-center w-100">
-                            <div class="flex-grow-1">
-                                <h5 class="modal-title fw-bold mb-0" id="postModalLabel"></h5>
-                                <span id="postModalType" class="badge bg-pink text-white ms-1 mt-2"></span>
-                            </div>
-                            <button type="button" class="btn-close ms-2" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                    </div>
-                    <div class="modal-body p-0">
-                        <div id="postModalImageWrap" class="w-100 post-modal-imgwrap"></div>
-                        <div class="p-4 post-modal-body">
-                            <div id="postModalDesc" class="mb-3"></div>
-                            <div id="postModalLinks" class="d-flex flex-wrap gap-2"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('partials.post-modal')
 
         <style>
         .card-clickable { cursor: pointer; transition: box-shadow .2s, transform .2s; }
@@ -507,6 +511,54 @@
                     if(youtube) linksHtml += '<a href="'+youtube+'" target="_blank" class="btn btn-danger">Watch Video</a>';
                     document.getElementById('postModalLinks').innerHTML = linksHtml;
                     postModal.show();
+                });
+            });
+            // Post bookmark toggles
+            document.querySelectorAll('.post-bookmark-toggle').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    var btn = form.querySelector('.post-bookmark-btn');
+                    var original = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>...';
+
+                    var fd = new FormData(form);
+                    fetch(form.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
+                        },
+                        body: fd
+                    }).then(function(res) { return res.json(); }).then(function(data) {
+                        if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
+                            var bookmarked = data.status === 'bookmarked';
+                            var icon = btn.querySelector('i');
+                            var label = btn.querySelector('span');
+                            if (bookmarked) {
+                                btn.classList.remove('btn-outline-secondary');
+                                btn.classList.add('btn-primary');
+                                icon.classList.remove('bi-bookmark');
+                                icon.classList.add('bi-bookmark-fill');
+                                label.textContent = 'Bookmarked';
+                            } else {
+                                btn.classList.remove('btn-primary');
+                                btn.classList.add('btn-outline-secondary');
+                                icon.classList.remove('bi-bookmark-fill');
+                                icon.classList.add('bi-bookmark');
+                                label.textContent = 'Bookmark';
+                            }
+                        } else {
+                            alert((data && data.message) || 'Unexpected response');
+                        }
+                    }).catch(function(err) {
+                        console.error(err);
+                        alert('Failed to toggle bookmark.');
+                    }).finally(function() {
+                        btn.disabled = false;
+                        btn.innerHTML = original;
+                    });
                 });
             });
 

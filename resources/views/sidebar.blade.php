@@ -1,4 +1,4 @@
-<div class="sidebar bg-white border-end vh-100 p-4 d-flex flex-column shadow-sm" style="width: 240px; border-radius: 18px 0 0 18px; min-height: 80vh; background: linear-gradient(180deg, #fff 85%, #f8bbd0 100%);">
+<div class="sidebar bg-white border-end vh-100 p-4 d-flex flex-column shadow-sm" style="width: 240px; border-radius: 18px 0 0 18px; min-height: 80vh;">
     @php
         $sf = auth()->user()->studentFaculty ?? null;
         $fullName = trim(($sf->first_name ?? '') . ' ' . ($sf->last_name ?? '')) ?: auth()->user()->name;
@@ -18,12 +18,12 @@
     @endphp
 
     <div class="d-flex align-items-center mb-4 pb-3 border-bottom" style="border-color: #f8bbd0;">
-        <a href="{{ route('profile') }}">
-            <img src="{{ $profileUrl }}" alt="Profile" class="rounded-circle me-3" width="56" height="56" style="object-fit:cover;">
+        <a href="{{ route('profile') }}" class="flex-shrink-0 me-3">
+            <img src="{{ $profileUrl }}" alt="Profile" class="rounded-circle" width="56" height="56" style="object-fit:cover;">
         </a>
-        <div>
-            <a href="{{ route('profile') }}" class="text-dark fw-bold d-block" style="text-decoration:none;">{{ $fullName }}</a>
-            <div class="small text-muted">{{ auth()->user()->email }}</div>
+        <div class="flex-grow-1" style="min-width:0;">
+            <a href="{{ route('profile') }}" class="text-dark fw-bold d-block text-truncate" style="text-decoration:none; max-width:160px;">{{ $fullName }}</a>
+            <div class="small text-muted" style="max-width:180px; word-break:break-word; overflow-wrap:anywhere;">{{ auth()->user()->email }}</div>
         </div>
     </div>
 

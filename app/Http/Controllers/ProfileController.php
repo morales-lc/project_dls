@@ -66,6 +66,12 @@ class ProfileController extends Controller
             'profile_picture' => $profilePic,
         ]);
 
+        $updated = $user->studentFaculty->fresh();
+
+        if ($request->expectsJson()) {
+            return response()->json(['status' => 'ok', 'message' => 'Profile updated', 'data' => $updated]);
+        }
+
         return redirect('/')->with('success', 'Profile completed successfully!');
     }
 }
