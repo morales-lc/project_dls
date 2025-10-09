@@ -6,13 +6,19 @@
 @section('title','ALINET Appointments Management')
 
 @section('content')
-    <div class="py-4">
-        <div class="card shadow rounded-4 p-4 w-100" style="max-width: 1400px; margin:auto; background: #fff;">
-                    <h2 class="fw-bold mb-4 text-center" style="color: #1976d2;">ALINET Appointments Management</h2>
-                    @if(session('success'))
+    <div class="py-5 d-flex flex-column align-items-center justify-content-center">
+        <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1400px; background: #fff;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+                <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 1.75rem;">ALINET Appointments Management</h2>
+
+            </div>
+
+                @if(session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
-                    <form method="GET" action="{{ route('alinet.manage') }}" class="mb-3">
+                @endif
+
+                <div class="card p-3 mb-3 shadow-sm rounded-3">
+                    <form method="GET" action="{{ route('alinet.manage') }}" class="mb-0">
                         <div class="row g-2 align-items-end">
                             <div class="col-sm-6 col-md-3">
                                 <label class="form-label mb-1">Search</label>
@@ -53,6 +59,9 @@
                             </div>
                         </div>
                     </form>
+                </div>
+
+                <div class="card p-3 shadow-sm rounded-3">
                     <div class="table-responsive">
                         <table class="table table-bordered table-sm align-middle text-center" style="font-size: 0.9rem;">
                             <thead class="table-pink" style="background:#fcb6d0; color:#d81b60;">

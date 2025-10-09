@@ -115,7 +115,15 @@ class MidesController extends Controller
         $documents = $query->paginate(12)->appends(request()->query());
         $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
 
-        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'direction'));
+        // Build lookup arrays for type and category/program names
+        $typeNames = [];
+        $categoryNames = [];
+        foreach (\App\Models\MidesCategory::all() as $cat) {
+            $typeNames[$cat->type] = $cat->type; // type is already readable
+            $categoryNames[$cat->type][$cat->name] = $cat->name;
+        }
+
+        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'direction', 'typeNames', 'categoryNames'));
     }
 
     public function create()

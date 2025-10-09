@@ -1,6 +1,6 @@
 
 
-<footer class="footer-main mt-auto" style="background: linear-gradient(90deg, #e83e8c 0%, #f06292 100%); color: #fff; padding-top: 3.5rem; padding-bottom: 2.5rem; min-height: 340px; border-top-left-radius: 18px; border-top-right-radius: 18px;">
+<footer class="footer-main mt-auto" style="background-color: #e83e8c !important; color: #fff; padding-top: 3.5rem; padding-bottom: 2.5rem; min-height: 340px; border-top-left-radius: 18px; border-top-right-radius: 18px;">
 @php
     $contactInfo = \App\Models\ContactInfo::first();
 @endphp

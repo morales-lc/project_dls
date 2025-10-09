@@ -6,7 +6,8 @@
     <title>{{ $program }} Research Papers</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="{{ asset('resources/css/mides.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/mides.css') }}">
+    
 </head>
 <body>
 @include('navbar')
@@ -54,6 +55,7 @@
                             <th>Author</th>
                             <th>Year</th>
                             <th class="text-center">PDF</th>
+                            <th class="text-center">Bookmark</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -64,26 +66,6 @@
                             <td>{{ $record->year }}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-outline-pink btn-sm view-btn" data-bs-toggle="modal" data-bs-target="#pdfModal{{ $record->id }}"><i class="bi bi-file-earmark-pdf"></i> View</button>
-                                @auth
-                                    @php
-                                        $sf = optional(auth()->user()->studentFaculty);
-                                        $isBookmarked = false;
-                                        if ($sf && $sf->id) {
-                                            $isBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
-                                                ->where('bookmarkable_type', \App\Models\MidesDocument::class)
-                                                ->where('bookmarkable_id', $record->id)
-                                                ->exists();
-                                        }
-                                    @endphp
-                                    @if($sf && $sf->id)
-                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline ms-2 bookmark-form">
-                                            @csrf
-                                            <input type="hidden" name="id" value="{{ $record->id }}">
-                                            <input type="hidden" name="type" value="mides">
-                                            <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} bookmark-btn"><i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i> {{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</button>
-                                        </form>
-                                    @endif
-                                @endauth
 
                                 <div class="modal fade" id="pdfModal{{ $record->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $record->id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-xl modal-dialog-centered">
@@ -96,6 +78,28 @@
                                         </div>
                                     </div>
                                 </div>
+                            </td>
+                            <td class="text-center">
+                                @auth
+                                    @php
+                                        $sf = optional(auth()->user()->studentFaculty);
+                                        $isBookmarked = false;
+                                        if ($sf && $sf->id) {
+                                            $isBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                                                ->where('bookmarkable_type', \App\Models\MidesDocument::class)
+                                                ->where('bookmarkable_id', $record->id)
+                                                ->exists();
+                                        }
+                                    @endphp
+                                    @if($sf && $sf->id)
+                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline bookmark-form">
+                                            @csrf
+                                            <input type="hidden" name="id" value="{{ $record->id }}">
+                                            <input type="hidden" name="type" value="mides">
+                                            <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} bookmark-btn"><i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i> {{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</button>
+                                        </form>
+                                    @endif
+                                @endauth
                             </td>
                         </tr>
                         @endforeach

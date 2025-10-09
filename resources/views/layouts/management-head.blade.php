@@ -6,6 +6,8 @@
     @stack('management-head')
     <style>
         :root { --management-topnav-height: 72px; }
+        /* reasonable spacing between topnav and content */
+        #managementMain > main .container-fluid { padding-top: 0rem; }
           /* don't add padding to body (causes white gap above sticky topnav).
               Reserve the top space for management pages on the main content container instead. */
           /* body { padding-top: var(--management-topnav-height); } */
@@ -31,8 +33,9 @@
           /* avoid overriding nav-link color here; color is defined in the theme css (admin-dashboard.css)
               so we don't accidentally make text invisible on a white background */
 
-        /* main content shifts right to make space for sidebar on large screens */
-        #managementMain { transition: margin-left .2s ease; margin-left: 260px; padding-top: var(--management-topnav-height); }
+    /* main content shifts right to make space for sidebar on large screens */
+    /* keep padding-top on the inner container to control spacing; remove extra padding here */
+    #managementMain { transition: margin-left .2s ease; margin-left: 260px; padding-top: 0; }
         @media (max-width: 991px) {
             /* mobile: main content occupies full width, sidebars hidden by default */
             #managementMain { margin-left: 0; }

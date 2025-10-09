@@ -91,6 +91,17 @@ Route::delete('/mides-management/{id}', [MidesController::class, 'destroy'])->na
 
 Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
 Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
+// AJAX endpoint for program dropdown
+Route::get('/mides/programs', [\App\Http\Controllers\MidesDashboardController::class, 'getPrograms']);
+
+// Catalog routes
+Route::get('/catalogs', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalogs.index');
+Route::get('/catalogs/create', [\App\Http\Controllers\CatalogController::class, 'create'])->name('catalogs.create');
+Route::post('/catalogs', [\App\Http\Controllers\CatalogController::class, 'store'])->name('catalogs.store');
+// Ensure the {id} route only matches numeric ids so 'search' and other named routes are not captured
+Route::get('/catalogs/{id}', [\App\Http\Controllers\CatalogController::class, 'show'])->whereNumber('id')->name('catalogs.show');
+Route::get('/catalogs/search', [\App\Http\Controllers\CatalogController::class, 'search'])->name('catalogs.search');
+
 
 
 // Undergraduate Baby Theses menu and program listing

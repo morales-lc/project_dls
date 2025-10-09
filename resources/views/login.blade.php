@@ -6,11 +6,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #6c63ff 0%, #b8b5ff 100%); min-height: 100vh; }
-        .login-title { font-size: 2rem; font-weight: 700; margin-top: 60px; text-align: center; color: #fff; }
+        body { background-color: #fff; min-height: 100vh; }
+        .login-title { font-size: 2rem; font-weight: 700; margin-top: 60px; text-align: center; color: #000000ff; }
         .login-box { max-width: 420px; margin: 40px auto 0 auto; border: none; border-radius: 16px; padding: 2.5rem 2rem 2rem 2rem; background: #fff; box-shadow: 0 8px 32px rgba(108,99,255,0.15); }
         .login-box label { font-weight: 500; }
-        .login-box .form-control { background: #f8f9fa; border-radius: 8px; }
+        .login-box .form-control { background: #ffffffff; border-radius: 8px; }
         .login-box .form-check-label { font-size: 0.95rem; }
         .login-box .btn-primary { background: #6c63ff; color: #fff; border-radius: 8px; font-weight: 600; border: none; }
         .login-box .btn-primary:hover { background: #554eea; }
@@ -30,10 +30,10 @@
     </style>
 </head>
 <body>
-    <div class="d-flex flex-column min-vh-100" style="background: linear-gradient(135deg, #6c63ff 0%, #b8b5ff 100%);">
+    <div class="d-flex flex-column min-vh-100" style="background-color:#fff;">
         @include('navbar')
         <div class="flex-grow-1 d-flex flex-column justify-content-center align-items-center">
-            <div class="login-title mb-2" style="color:#fff; font-size:2.1rem; font-weight:700; margin-top:60px; text-shadow:0 2px 8px rgba(108,99,255,0.12);">Login with your LCCDO account</div>
+            <div class="login-title mb-2" style="color:#000; font-size:2.1rem; font-weight:700; margin-top:60px; text-shadow:0 2px 8px rgba(108,99,255,0.12);">Login with your LCCDO account</div>
             <div class="login-box shadow-lg" style="max-width:440px; width:100%; margin:40px auto 0 auto; border-radius:18px; padding:2.7rem 2.2rem 2.2rem 2.2rem; background:#fff; box-shadow:0 8px 32px rgba(108,99,255,0.18);">
                 <h3 class="fw-bold text-center mb-4" style="color:#6c63ff;">Sign in</h3>
                 @if ($errors->any())

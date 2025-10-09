@@ -9,9 +9,7 @@
     <div class="py-5">
         <div class="container">
                 <div class="mb-3">
-                    <button class="btn btn-outline-secondary" onclick="window.history.back()">
-                        &larr; Go Back
-                    </button>
+
                 </div>
                 <h2 class="fw-bold mb-4 text-pink">Manage Posts & Announcements</h2>
                 <div class="card mb-5 shadow rounded-4 border-0" style="max-width:1200px;margin:auto;">

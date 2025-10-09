@@ -8,13 +8,23 @@
 @section('title', 'Manage Library Staff')
 
 @section('content')
-    <div class="container py-5">
-        <h2 class="fw-bold mb-4 text-pink">Manage Library Staff</h2>
+<div class="py-5 d-flex flex-column align-items-center justify-content-center">
+    <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h2 class="fw-bold mb-0 text-pink" style="letter-spacing: 1px; font-size: 2rem;">Manage Library Staff</h2>
+
+        </div>
         @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
         @endif
-        <a href="{{ route('libraries.staff.create') }}" class="btn btn-pink mb-3">Add New Staff</a>
-        <div class="card p-4 shadow rounded-4" style="max-width:1100px;margin:auto;">
+        <div class="d-flex">
+
+            <a href="{{ route('libraries.staff.create') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.1rem;"><i class="bi bi-plus-lg"></i> Add Staff</a>
+            
+        </div>
+        
+        <div style="height: 30px;"></div>
+        <div class="card p-4 shadow rounded-4 w-100">
             <div class="table-responsive">
                 <table class="table table-bordered table-hover align-middle bg-white rounded-4">
                     <thead class="table-pink">
@@ -54,4 +64,5 @@
             </div>
         </div>
     </div>
+</div>
 @endsection

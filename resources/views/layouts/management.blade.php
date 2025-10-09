@@ -8,7 +8,7 @@
         @include('librarian.components.librarian-topnav')
         @include('librarian.components.librarian-sidebar')
         <div id="managementMain" class="flex-grow-1">
-            <main class="py-4">
+            <main class="py-0">
                 <div class="container-fluid px-4">
                     @yield('content')
                 </div>

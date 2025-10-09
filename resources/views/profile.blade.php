@@ -9,6 +9,31 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
+      /* Responsive tweaks */
+      @media (max-width: 767.98px) {
+        .card {
+          margin: 0 0.5rem;
+          border-radius: 1rem;
+        }
+        .profile-avatar {
+          width: 120px !important;
+          height: 120px !important;
+        }
+        .card-body h4 {
+          font-size: 1.1rem;
+        }
+        .profile-row {
+          padding: 0.5rem 0;
+        }
+        /* Make modal full-screen on very small devices for readability */
+        .modal-dialog.modal-lg {
+          max-width: 100%;
+          margin: 0.5rem;
+        }
+        .modal-content {
+          height: auto;
+        }
+      }
     .bg-pink {
       background-color: #ffd1e3 !important;
       color: #d81b60 !important;
@@ -66,7 +91,7 @@
   @include('navbar')
   <div class="d-flex">
     @include('sidebar')
-    <div class="flex-grow-1 d-flex justify-content-center align-items-start py-5" style="background:#f8f9fa; min-height:80vh;">
+    <div class="flex-grow-1 d-flex justify-content-center align-items-start py-4" style="background:#f8f9fa; min-height:80vh;">
       <div class="card shadow-lg w-100 border-0" style="max-width:980px; border-radius:1.25rem;">
         <div class="card-header bg-pink d-flex align-items-center" style="border-radius:1.25rem 1.25rem 0 0;">
           <i class="bi bi-person-circle fs-3 me-2"></i>
@@ -81,7 +106,7 @@
           <div class="alert alert-warning">Profile information not available.</div>
           @else
           <div class="row g-4">
-            <div class="col-md-4 d-flex justify-content-center align-items-start">
+            <div class="col-12 col-md-4 d-flex justify-content-center align-items-start">
               <div class="text-center" style="width:100%;">
                 @php
                 $pp = $sf->profile_picture;
@@ -95,7 +120,7 @@
                 }
                 @endphp
                 @if(!empty($profileSrc))
-                <img src="{{ $profileSrc }}" alt="{{ $sf->username ?? ($sf->first_name . ' ' . $sf->last_name) }}" class="img-fluid rounded-circle profile-avatar" style="width:160px; height:160px; object-fit:cover;">
+                <img src="{{ $profileSrc }}" alt="{{ $sf->username ?? ($sf->first_name . ' ' . $sf->last_name) }}" class="img-fluid rounded-circle profile-avatar" style="width:160px; height:160px; object-fit:cover; max-width:100%;">
                 @else
                 <div class="rounded-circle bg-light d-flex justify-content-center align-items-center profile-avatar" style="width:160px; height:160px;">
                   <i class="bi bi-person-circle" style="font-size:4.5rem; color:#c1b7bf"></i>
@@ -106,7 +131,7 @@
                 </div>
               </div>
             </div>
-            <div class="col-md-8">
+            <div class="col-12 col-md-8">
               <div class="mb-2">
                 <h4 class="fw-bold mb-1 text-pink">{{ ($sf->first_name || $sf->last_name) ? ($sf->first_name . ' ' . $sf->last_name) : ($sf->username ?? 'User') }}</h4>
                 <div class="small text-muted mb-3">{{ $sf->user->email ?? '' }}</div>

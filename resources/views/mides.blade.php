@@ -22,18 +22,93 @@
             <strong>Graduate Theses</strong> (contains abstracts, introduction and related literature of the theses completed for the M.A. programs in Lourdes College)<br>
             <strong>Undergraduate Baby Thesis</strong> (contains abstracts, introduction and related literature of the undergraduate theses)
         </div>
-        <form class="d-flex mb-4" method="GET" action="{{ route('mides.search') }}">
-            <input class="form-control me-2" type="search" name="q" placeholder="digital library system" aria-label="Search">
-            <select class="form-select me-2" name="type">
-                <option value="">SELECT TYPE</option>
-                @if(isset($types))
-                @foreach($types as $type)
-                <option value="{{ $type }}">{{ $type }}</option>
-                @endforeach
-                @endif
-            </select>
-            <button class="btn btn-dark" type="submit">Search</button>
+        <form class="row g-2 g-md-3 align-items-center mb-4" method="GET" action="{{ route('mides.search') }}">
+            <div class="col-12 col-md">
+                <input
+                    type="search"
+                    name="q"
+                    class="form-control"
+                    placeholder="digital library system"
+                    aria-label="Search"
+                    value="{{ $search ?? '' }}">
+            </div>
+            <div class="col-12 col-md-auto">
+                <select class="form-select" name="type" id="mides-type-select">
+                    <option value="">SELECT TYPE</option>
+                    @if(isset($types))
+                        @foreach($types as $t)
+                            <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+            <div class="col-12 col-md-auto" id="mides-program-col" style="display: none; min-width: 180px;">
+                <select class="form-select" name="program" id="mides-program-select">
+                    <option value="">SELECT PROGRAM</option>
+                    @if(isset($programs))
+                        @foreach($programs as $p)
+                            <option value="{{ $p }}" {{ (isset($program) && $program == $p) ? 'selected' : '' }}>{{ $p }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+            <div class="col-12 col-md-auto" id="mides-year-col">
+                <select class="form-select" name="year">
+                    <option value="">SELECT YEAR</option>
+                    @if(isset($years))
+                        @foreach($years as $y)
+                            <option value="{{ $y }}" {{ (request('year') == $y) ? 'selected' : '' }}>{{ $y }}</option>
+                        @endforeach
+                    @endif
+                </select>
+            </div>
+            <div class="col-12 col-md-auto">
+                <button class="btn btn-dark w-100 w-md-auto" type="submit">Search</button>
+            </div>
         </form>
+
+        <script>
+            (function(){
+                function updateProgramDropdown(type) {
+                    var col = document.getElementById('mides-program-col');
+                    var progSel = document.getElementById('mides-program-select');
+                    var typeLower = (type || '').toString().toLowerCase();
+                    // Hide for Faculty/Theses/Dissertations
+                    if (typeLower.indexOf('faculty') !== -1 || typeLower.indexOf('dissertation') !== -1) {
+                        col.style.display = 'none';
+                        if (progSel) progSel.value = '';
+                        return;
+                    }
+                    // Show for other types and fetch programs
+                    col.style.display = 'block';
+                    fetch('/mides/programs?type=' + encodeURIComponent(type))
+                        .then(function(resp){ return resp.json(); })
+                        .then(function(data){
+                            if (progSel) {
+                                progSel.innerHTML = '<option value="">SELECT PROGRAM</option>';
+                                if (Array.isArray(data.programs)) {
+                                    data.programs.forEach(function(p){
+                                        var opt = document.createElement('option');
+                                        opt.value = p;
+                                        opt.textContent = p;
+                                        progSel.appendChild(opt);
+                                    });
+                                }
+                            }
+                        });
+                }
+                var typeSelect = document.getElementById('mides-type-select');
+                if (typeSelect) {
+                    typeSelect.addEventListener('change', function(){
+                        updateProgramDropdown(typeSelect.value);
+                    });
+                    document.addEventListener('DOMContentLoaded', function(){
+                        updateProgramDropdown(typeSelect.value);
+                    });
+                }
+            })();
+        </script>
+
         <div style="margin-bottom: 50px; display: inline-block;"></div>
         <div class="row g-4 justify-content-center">
             <div class="col-md-3 col-sm-6">

@@ -9,135 +9,192 @@
 @section('title','MIDES Repository Management')
 
 @section('content')
-    <div class="py-5">
-        <div class="container">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fw-bold mb-0 text-pink">MIDES Repository Management</h2>
+    <div class="py-5 d-flex flex-column align-items-center justify-content-center">
+        <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
+            <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+                <h2 class="fw-bold mb-0 text-pink" style="letter-spacing: 1px; font-size: 2rem;">MIDES Repository Management</h2>
+                
+            </div>
 
-                </div>
-                <a href="{{ route('mides.upload') }}" class="btn btn-pink mb-3"><i class="bi bi-plus-lg"></i> Add New Document</a>
-                @if(session('success'))
+            @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
-                @endif
+            @endif
+            <a href="{{ route('mides.upload') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.05rem;"><i class="bi bi-plus-lg"></i> Add New Document</a>
+            <div style="height: 30px;"></div>
+            <form method="GET" action="{{ route('mides.management') }}" class="row g-2 mb-3 align-items-end">
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ $search ?? '' }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select">
+                        <option value="">All Types</option>
+                        @foreach($types as $t)
+                        <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="sort" class="form-select">
+                        <option value="year" {{ $sort == 'year' ? 'selected' : '' }}>Year</option>
+                        <option value="author" {{ $sort == 'author' ? 'selected' : '' }}>Author</option>
+                        <option value="title" {{ $sort == 'title' ? 'selected' : '' }}>Title</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-dark w-100">Filter</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                </div>
+            </form>
 
-                <form method="GET" action="{{ route('mides.management') }}" class="row g-2 mb-3 align-items-end">
-                    <div class="col-md-3">
-                        <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ $search ?? '' }}">
-                    </div>
-                    <div class="col-md-3">
-                        <select name="type" class="form-select">
-                            <option value="">All Types</option>
-                            @foreach($types as $t)
-                            <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <select name="sort" class="form-select">
-                            <option value="year" {{ $sort == 'year' ? 'selected' : '' }}>Year</option>
-                            <option value="author" {{ $sort == 'author' ? 'selected' : '' }}>Author</option>
-                            <option value="title" {{ $sort == 'title' ? 'selected' : '' }}>Title</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <select name="direction" class="form-select">
-                            <option value="desc" {{ $direction == 'desc' ? 'selected' : '' }}>Descending</option>
-                            <option value="asc" {{ $direction == 'asc' ? 'selected' : '' }}>Ascending</option>
-                        </select>
-                    </div>
-                    <div class="col-md-1">
-                        <button type="submit" class="btn btn-dark w-100">Filter</button>
-                    </div>
-                    <div class="col-md-1">
-                        <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary w-100">Clear</a>
-                    </div>
-                </form>
-
-                <div class="card p-3 shadow rounded-4" style="max-width:1200px;margin:auto;">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle bg-white rounded-4">
-                            <thead class="table-pink">
-                                <tr>
-                                    <th>Type</th>
-                                    <th>Category/Program</th>
-                                    <th>Author</th>
-                                    <th>Year</th>
-                                    <th>Title</th>
-                                    <th>PDF</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($documents as $doc)
-                                <tr>
-                                    <td>{{ $doc->type }}</td>
-                                    <td>{{ $doc->category ?: $doc->program }}</td>
-                                    <td>{{ $doc->author }}</td>
-                                    <td>{{ $doc->year }}</td>
-                                    <td>{{ $doc->title }}</td>
-                                    <td><a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank">View PDF</a></td>
-                                    <td>
-                                        <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal{{ $doc->id }}">Update</button>
-                                        <form method="POST" action="{{ route('mides.delete', $doc->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+            <div class="card p-3 shadow rounded-4 w-100" style="max-width:1100px;">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle bg-white rounded-4">
+                        <thead class="table-pink">
+                            <tr>
+                                <th>Type</th>
+                                <th>Category/Program</th>
+                                <th>Author</th>
+                                <th>Year</th>
+                                <th>Title</th>
+                                <th>PDF</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($documents as $doc)
+                            <tr>
+                                <td>{{ $typeNames[$doc->type] ?? $doc->type }}</td>
+                                <td>
+                                    @if($doc->category)
+                                        {{ $categoryNames[$doc->type][$doc->category] ?? $doc->category }}
+                                    @elseif($doc->program)
+                                        {{ $categoryNames[$doc->type][$doc->program] ?? $doc->program }}
+                                    @else
+                                        —
+                                    @endif
+                                </td>
+                                <td>{{ $doc->author }}</td>
+                                <td>{{ $doc->year }}</td>
+                                <td>{{ $doc->title }}</td>
+                                <td><a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank">View PDF</a></td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#updateModal{{ $doc->id }}">Update</button>
+                                    <form method="POST" action="{{ route('mides.delete', $doc->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            <!-- Update Modal -->
+                            <div class="modal fade" id="updateModal{{ $doc->id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ $doc->id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <form method="POST" action="{{ route('mides.update', $doc->id) }}" enctype="multipart/form-data">
                                             @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            @method('PUT')
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="updateModalLabel{{ $doc->id }}">Update Document</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-2">
+                                                    <label class="form-label">Type</label>
+                                                    <input type="text" name="type" class="form-control" value="{{ $doc->type }}" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Category/Program</label>
+                                                    <select name="category_program" class="form-select" id="categoryProgramSelect{{ $doc->id }}">
+                                                        <option value="">Select...</option>
+                                                        @if($doc->type === 'Graduate Theses')
+                                                            @foreach(\App\Models\MidesCategory::where('type', 'Graduate Theses')->pluck('name') as $cat)
+                                                                <option value="{{ $cat }}" {{ ($doc->category == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
+                                                            @endforeach
+                                                        @elseif($doc->type === 'Undergraduate Baby Theses')
+                                                            @foreach(\App\Models\MidesCategory::where('type', 'Undergraduate Baby Theses')->pluck('name') as $cat)
+                                                                <option value="{{ $cat }}" {{ ($doc->category == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
+                                                            @endforeach
+                                                        @elseif($doc->type === 'Senior High School Research Paper')
+                                                            @foreach([
+                                                                'Accountancy, Business and Management (ABM)',
+                                                                'Humanities and Social Sciences Strand (HUMSS)',
+                                                                'Science, Technology, Engineering and Mathematics (STEM)',
+                                                                'Technical-Vocational-Livelihood (TVL)',
+                                                                'Information Computer Technology',
+                                                                'Culinary Arts',
+                                                            ] as $prog)
+                                                                <option value="{{ $prog }}" {{ ($doc->program == $prog) ? 'selected' : '' }}>{{ $prog }}</option>
+                                                            @endforeach
+                                                        @endif
+                                                    </select>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Author</label>
+                                                    <input type="text" name="author" class="form-control" value="{{ $doc->author }}" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Year</label>
+                                                    <input type="number" name="year" class="form-control" value="{{ $doc->year }}" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">Title</label>
+                                                    <input type="text" name="title" class="form-control" value="{{ $doc->title }}" required>
+                                                </div>
+                                                <div class="mb-2">
+                                                    <label class="form-label">PDF (leave blank to keep current)</label>
+                                                    <input type="file" name="pdf" class="form-control" accept="application/pdf">
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
                                         </form>
-                                    </td>
-                                </tr>
-                                <!-- Update Modal -->
-                                <div class="modal fade" id="updateModal{{ $doc->id }}" tabindex="-1" aria-labelledby="updateModalLabel{{ $doc->id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg">
-                                        <div class="modal-content">
-                                            <form method="POST" action="{{ route('mides.update', $doc->id) }}" enctype="multipart/form-data">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="updateModalLabel{{ $doc->id }}">Update Document</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="mb-2">
-                                                        <label class="form-label">Type</label>
-                                                        <input type="text" name="type" class="form-control" value="{{ $doc->type }}" required>
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label">Category/Program</label>
-                                                        <input type="text" name="category_program" class="form-control" value="{{ $doc->category ?: $doc->program }}">
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label">Author</label>
-                                                        <input type="text" name="author" class="form-control" value="{{ $doc->author }}" required>
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label">Year</label>
-                                                        <input type="number" name="year" class="form-control" value="{{ $doc->year }}" required>
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label">Title</label>
-                                                        <input type="text" name="title" class="form-control" value="{{ $doc->title }}" required>
-                                                    </div>
-                                                    <div class="mb-2">
-                                                        <label class="form-label">PDF (leave blank to keep current)</label>
-                                                        <input type="file" name="pdf" class="form-control" accept="application/pdf">
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                                                </div>
-                                            </form>
-                                        </div>
                                     </div>
                                 </div>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    var modal = document.getElementById('updateModal{{ $doc->id }}');
+                                    if (!modal) return;
+                                    var typeInput = modal.querySelector('input[name="type"]');
+                                    var select = modal.querySelector('select[name="category_program"]');
+                                    var seniorHighOptions = [
+                                        'Accountancy, Business and Management (ABM)',
+                                        'Humanities and Social Sciences Strand (HUMSS)',
+                                        'Science, Technology, Engineering and Mathematics (STEM)',
+                                        'Technical-Vocational-Livelihood (TVL)',
+                                        'Information Computer Technology',
+                                        'Culinary Arts',
+                                    ];
+                                    function updateDropdown() {
+                                        var type = typeInput.value;
+                                        var options = [];
+                                        if (type === 'Graduate Theses') options = graduateOptions;
+                                        else if (type === 'Undergraduate Baby Theses') options = undergradOptions;
+                                        else if (type === 'Senior High School Research Paper') options = seniorHighOptions;
+                                        select.innerHTML = '<option value="">Select...</option>' + options.map(function(opt) {
+                                            return '<option value="' + opt + '">' + opt + '</option>';
+                                        }).join('');
+                                    }
+                                    typeInput.addEventListener('input', updateDropdown);
+                                    // If modal is shown, update dropdown to match type
+                                    modal.addEventListener('show.bs.modal', updateDropdown);
+                                });
+                            </script>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
-                <div class="mt-4">
-                    {{ $documents->links() }}
-                </div>
+            </div>
+            <div class="d-flex justify-content-center mt-4">
+                {{ $documents->links() }}
             </div>
         </div>
     </div>

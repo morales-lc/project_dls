@@ -64,6 +64,27 @@
     .text-dark, .text-pink, .badge.bg-pink, .card-header.bg-pink {
       color: #d81b60 !important;
     }
+    /* Mobile specific adjustments */
+    @media (max-width: 767.98px) {
+      .card {
+        margin: 0.4rem;
+        border-radius: 1rem;
+      }
+      .table-responsive-mobile {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      thead { display: none; }
+      tr { display: block; border-bottom: 1px solid #ffe3ef; margin-bottom: .6rem; }
+      tr td { display: block; width: 100%; padding: .35rem .5rem; }
+      .bookmark-badge { float: right; }
+      .card-body { padding: 1rem; }
+      /* Make information modal more friendly on small screens */
+      .modal-dialog.modal-xl {
+        max-width: 100%;
+        margin: 0.5rem;
+      }
+    }
   </style>
 </head>
 
@@ -73,7 +94,7 @@
   <div class="d-flex" style="min-height: 80vh; background: #f8f9fa;">
     @include('sidebar')
 
-    <div class="flex-grow-1 d-flex justify-content-center align-items-start py-5">
+  <div class="flex-grow-1 d-flex justify-content-center align-items-start py-4">
       <div class="card shadow-lg w-100 border-0" style="max-width: 1100px; border-radius: 1.5rem;">
         <div class="card-header bg-pink d-flex align-items-center" style="border-radius: 1.5rem 1.5rem 0 0;">
           <i class="bi bi-bookmark-heart-fill fs-3 me-2"></i>
@@ -86,7 +107,7 @@
               <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no bookmarks yet.
             </div>
           @else
-            <div class="table-responsive">
+            <div class="table-responsive table-responsive-mobile">
               <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
                 <thead class="table-light">
                   <tr>

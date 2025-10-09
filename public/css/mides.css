@@ -26,3 +26,195 @@
     background-color: #e3f2fd;
     transition: background 0.2s;
 }
+
+/* Shared MIDES styles */
+body {
+    background: #f8f9fa;
+}
+
+.bg-pink {
+    background-color: #ffd1e3 !important;
+    color: #d81b60 !important;
+}
+
+.text-pink {
+    color: #d81b60 !important;
+}
+
+.card {
+    border-radius: 1.25rem;
+    box-shadow: 0 2px 16px #ffd1e3a0;
+    border: none;
+}
+
+/* Card header */
+.card-header.bg-pink {
+    background-color: #ffe3ef !important;
+    color: #d81b60 !important;
+    font-weight: 700;
+    border-radius: 1.25rem 1.25rem 0 0;
+    border-bottom: 2px solid #ffd1e3;
+}
+
+/* Table styling */
+.table {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #fff;
+    width: 100%;
+}
+
+.table thead {
+    background: #ffd1e3 !important;
+    color: #d81b60 !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #fff6fa;
+}
+
+/* Buttons */
+.btn-outline-pink,
+.btn-outline-warning {
+    border: 1.5px solid #ffd1e3 !important;
+    color: #d81b60 !important;
+    background-color: #fff !important;
+    font-weight: 500;
+    border-radius: 0.7rem;
+    transition: 0.2s;
+}
+
+.btn-outline-pink:hover,
+.btn-outline-warning:hover {
+    background-color: #ffd1e3 !important;
+    color: #b3134b !important;
+}
+
+.btn-pink {
+    background-color: #d81b60 !important;
+    color: #ef06a5 !important;
+    border: 1.5px solid #d81b60 !important;
+    box-shadow: 0 2px 8px rgba(216,27,96,0.12);
+}
+
+.btn-pink:hover {
+    background-color: #b3134b !important;
+    border-color: #b3134b !important;
+}
+
+.bookmark-btn {
+    transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+.bookmark-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* ======================================
+   📱 RESPONSIVE OPTIMIZATIONS
+   ====================================== */
+@media (max-width: 768px) {
+    /* Card padding & spacing */
+    .card {
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-header.bg-pink {
+        font-size: 1rem;
+        text-align: center;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    /* Table responsive wrapper */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 1rem;
+    }
+
+    /* Smaller table text */
+    .table th,
+    .table td {
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    /* Buttons stack neatly on mobile for form/header controls, but keep table action buttons inline */
+    .card > .card-body .btn,
+    .card-header .btn,
+    .btn-outline-pink,
+    .btn-outline-warning,
+    .btn-pink {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Keep table action buttons (View / Bookmark) inline and auto-sized so they remain visible */
+    .table td .btn,
+    .table td .bookmark-form,
+    .table td .bookmark-btn {
+        display: inline-flex;
+        width: auto;
+        margin-bottom: 0.25rem;
+        vertical-align: middle;
+    }
+
+    /* Center align text-heavy elements */
+    .text-pink,
+    .card-header {
+        text-align: center;
+    }
+
+    /* Slightly smaller shadows */
+    .card {
+        box-shadow: 0 1px 10px #ffd1e380;
+    }
+}
+
+/* Even smaller phones (≤480px) */
+@media (max-width: 480px) {
+    .table th,
+    .table td {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+
+    .card-header.bg-pink {
+        font-size: 0.95rem;
+    }
+
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Consolidated responsive rules moved from templates for MIDES lists */
+@media (max-width: 768px) {
+    /* Ensure card header wraps and stacks nicely on small screens */
+    .card-header { flex-wrap: wrap; gap: 8px; }
+    .card-header .btn { white-space: nowrap; }
+    .card-header { flex-direction: column; align-items: flex-start; text-align: left; }
+    .card-header .ms-auto { width: 100%; display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-start; }
+
+    /* Forms: stack fields */
+    form.row { flex-direction: column; }
+    form .col-md-6, form .col-md-2 { width: 100%; }
+
+    /* Table responsive helpers */
+    .table-responsive { overflow-x:auto; -webkit-overflow-scrolling: touch; }
+    table th, table td { font-size:14px; white-space:nowrap; }
+
+    /* Modal sizing on mobile */
+    .modal-xl { max-width:95% !important; margin:auto; }
+
+    /* Bookmark button visibility: ensure it shows and has spacing */
+    .bookmark-btn { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .bookmark-form { display: inline-block !important; }
+}
+
+@media (max-width:480px) {
+    .card-header span { font-size:1rem; }
+    .btn { font-size:13px; padding:6px 10px; }
+}
