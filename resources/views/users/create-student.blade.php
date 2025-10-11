@@ -100,6 +100,10 @@
                     <label class="form-label">Birthdate</label>
                     <input type="date" name="birthdate" class="form-control" value="{{ old('birthdate') }}">
                 </div>
+                <div class="col-md-6">
+                    <label class="form-label">Password (optional)</label>
+                    <input type="password" name="password" class="form-control" autocomplete="new-password">
+                </div>
             </div>
 
             <div class="mt-4 d-flex justify-content-between">

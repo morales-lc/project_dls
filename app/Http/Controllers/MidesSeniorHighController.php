@@ -28,9 +28,13 @@ class MidesSeniorHighController extends Controller
     $sort = request()->input('sort', 'year');
     $direction = request()->input('direction', 'desc');
 
-        $query = DB::table('mides_documents')
-            ->where('type', 'Senior High School Research Paper')
-            ->where('program', $program);
+        // Support program as id (mides_category_id) or as name
+        $query = DB::table('mides_documents')->where('type', 'Senior High School Research Paper');
+        if (is_numeric($program)) {
+            $query->where('mides_category_id', $program);
+        } else {
+            $query->where('program', $program);
+        }
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
@@ -44,7 +48,7 @@ class MidesSeniorHighController extends Controller
 
     public function viewer($id)
 {
-    $doc = \App\Models\MidesDocument::findOrFail($id);
+    $doc = \App\Models\MidesDocument::with('midesCategory')->findOrFail($id);
     return view('mides-pdf-viewer', compact('doc'));
 }
 

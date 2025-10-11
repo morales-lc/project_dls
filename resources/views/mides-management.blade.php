@@ -66,15 +66,7 @@
                             @foreach ($documents as $doc)
                             <tr>
                                 <td>{{ $typeNames[$doc->type] ?? $doc->type }}</td>
-                                <td>
-                                    @if($doc->category)
-                                        {{ $categoryNames[$doc->type][$doc->category] ?? $doc->category }}
-                                    @elseif($doc->program)
-                                        {{ $categoryNames[$doc->type][$doc->program] ?? $doc->program }}
-                                    @else
-                                        —
-                                    @endif
-                                </td>
+                                <td>{{ optional($doc->midesCategory)->name ?? $doc->category ?? $doc->program ?? '—' }}</td>
                                 <td>{{ $doc->author }}</td>
                                 <td>{{ $doc->year }}</td>
                                 <td>{{ $doc->title }}</td>
@@ -102,33 +94,23 @@
                                             <div class="modal-body">
                                                 <div class="mb-2">
                                                     <label class="form-label">Type</label>
-                                                    <input type="text" name="type" class="form-control" value="{{ $doc->type }}" required>
+                                                    <select name="type" class="form-select" required>
+                                                        @foreach($types as $t)
+                                                            <option value="{{ $t }}" {{ ($doc->type == $t) ? 'selected' : '' }}>{{ $t }}</option>
+                                                        @endforeach
+                                                    </select>
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="form-label">Category/Program</label>
-                                                    <select name="category_program" class="form-select" id="categoryProgramSelect{{ $doc->id }}">
+                                                    <select name="mides_category_id" class="form-select" id="midesCategorySelect{{ $doc->id }}" data-selected="{{ $doc->mides_category_id ?? '' }}">
                                                         <option value="">Select...</option>
-                                                        @if($doc->type === 'Graduate Theses')
-                                                            @foreach(\App\Models\MidesCategory::where('type', 'Graduate Theses')->pluck('name') as $cat)
-                                                                <option value="{{ $cat }}" {{ ($doc->category == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
-                                                            @endforeach
-                                                        @elseif($doc->type === 'Undergraduate Baby Theses')
-                                                            @foreach(\App\Models\MidesCategory::where('type', 'Undergraduate Baby Theses')->pluck('name') as $cat)
-                                                                <option value="{{ $cat }}" {{ ($doc->category == $cat) ? 'selected' : '' }}>{{ $cat }}</option>
-                                                            @endforeach
-                                                        @elseif($doc->type === 'Senior High School Research Paper')
-                                                            @foreach([
-                                                                'Accountancy, Business and Management (ABM)',
-                                                                'Humanities and Social Sciences Strand (HUMSS)',
-                                                                'Science, Technology, Engineering and Mathematics (STEM)',
-                                                                'Technical-Vocational-Livelihood (TVL)',
-                                                                'Information Computer Technology',
-                                                                'Culinary Arts',
-                                                            ] as $prog)
-                                                                <option value="{{ $prog }}" {{ ($doc->program == $prog) ? 'selected' : '' }}>{{ $prog }}</option>
-                                                            @endforeach
-                                                        @endif
+                                                        @foreach(\App\Models\MidesCategory::where('type', $doc->type)->get() as $cat)
+                                                            <option value="{{ $cat->id }}" {{ ($doc->mides_category_id == $cat->id) ? 'selected' : '' }}>{{ $cat->name }}</option>
+                                                        @endforeach
                                                     </select>
+                                                    {{-- Hidden legacy fields for compatibility (server still expects category/program in some places) --}}
+                                                    <input type="hidden" name="category" value="{{ $doc->category }}">
+                                                    <input type="hidden" name="program" value="{{ $doc->program }}">
                                                 </div>
                                                 <div class="mb-2">
                                                     <label class="form-label">Author</label>
@@ -159,30 +141,28 @@
                                 document.addEventListener('DOMContentLoaded', function() {
                                     var modal = document.getElementById('updateModal{{ $doc->id }}');
                                     if (!modal) return;
-                                    var typeInput = modal.querySelector('input[name="type"]');
-                                    var select = modal.querySelector('select[name="category_program"]');
-                                    var seniorHighOptions = [
-                                        'Accountancy, Business and Management (ABM)',
-                                        'Humanities and Social Sciences Strand (HUMSS)',
-                                        'Science, Technology, Engineering and Mathematics (STEM)',
-                                        'Technical-Vocational-Livelihood (TVL)',
-                                        'Information Computer Technology',
-                                        'Culinary Arts',
-                                    ];
+                                    var typeSelect = modal.querySelector('select[name="type"]');
+                                    var select = modal.querySelector('select[name="mides_category_id"]');
+
                                     function updateDropdown() {
-                                        var type = typeInput.value;
-                                        var options = [];
-                                        if (type === 'Graduate Theses') options = graduateOptions;
-                                        else if (type === 'Undergraduate Baby Theses') options = undergradOptions;
-                                        else if (type === 'Senior High School Research Paper') options = seniorHighOptions;
-                                        select.innerHTML = '<option value="">Select...</option>' + options.map(function(opt) {
-                                            return '<option value="' + opt + '">' + opt + '</option>';
+                                        var type = (typeSelect) ? typeSelect.value : '';
+                                        var options = (window.midesCategoriesByType && window.midesCategoriesByType[type]) ? window.midesCategoriesByType[type] : [];
+                                        var selectedId = select ? select.getAttribute('data-selected') : '';
+                                        var html = '<option value="">Select...</option>' + options.map(function(opt) {
+                                            var sel = (selectedId && parseInt(selectedId) === opt.id) ? ' selected' : '';
+                                            return '<option value="' + opt.id + '"' + sel + '>' + opt.name + '</option>';
                                         }).join('');
+                                        if (select) select.innerHTML = html;
                                     }
-                                    typeInput.addEventListener('input', updateDropdown);
+
+                                    if (typeSelect) typeSelect.addEventListener('change', updateDropdown);
                                     // If modal is shown, update dropdown to match type
-                                    modal.addEventListener('show.bs.modal', updateDropdown);
+                                    modal.addEventListener('show.bs.modal', function() { updateDropdown(); });
                                 });
+                            </script>
+                            <script>
+                                // global map of type => [{id, name}, ...] encoded as JSON to avoid blade loops
+                                window.midesCategoriesByType = {!! \App\Models\MidesCategory::all()->groupBy('type')->map(function($cats){ return $cats->map(function($c){ return ['id' => $c->id, 'name' => $c->name]; }); })->toJson() !!};
                             </script>
                                         </form>
                                     </div>

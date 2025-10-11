@@ -25,18 +25,8 @@
             <form class="d-flex gap-2 flex-wrap search-box" method="GET" action="{{ route('catalogs.search') }}">
                 <div class="input-group flex-grow-1" style="min-width:200px;">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="Search books, journals, authors...">
+                    <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
                 </div>
-                <select name="type" class="form-select" style="min-width:160px; max-width:220px;">
-                    <option value="">SELECT TYPE</option>
-                    <option value="Book" {{ request('type')=='Book' ? 'selected' : '' }}>Book</option>
-                    <option value="eBook" {{ request('type')=='eBook' ? 'selected' : '' }}>eBook</option>
-                    <option value="Journal" {{ request('type')=='Journal' ? 'selected' : '' }}>Journal</option>
-                    <option value="Thesis" {{ request('type')=='Thesis' ? 'selected' : '' }}>Thesis</option>
-                    <option value="Dissertation" {{ request('type')=='Dissertation' ? 'selected' : '' }}>Dissertation</option>
-                    <option value="Map" {{ request('type')=='Map' ? 'selected' : '' }}>Map</option>
-                    <option value="Multimedia" {{ request('type')=='Multimedia' ? 'selected' : '' }}>Multimedia</option>
-                </select>
                 <button type="submit" class="btn">Search</button>
             </form>
 
@@ -89,14 +79,12 @@
                 @php
                 $cardCount = isset($posts) ? $posts->where('type', $type)->count() : 0;
                 @endphp
-                @if($cardCount > 3)
                 <button class="carousel-btn modern-btn left" type="button" aria-label="Scroll left" tabindex="0">
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="14" cy="14" r="13" stroke="#d81b60" stroke-width="2.5" fill="#fff" />
                         <path d="M16.5 9L12 14L16.5 19" stroke="#d81b60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
-                @endif
                 <div class="news-carousel" id="news-carousel-{{ $i }}">
                     @if(isset($posts) && $posts->where('type', $type)->count())
                     @foreach($posts->where('type', $type)->values() as $j => $post)
@@ -173,14 +161,12 @@
                     <div class="carousel-card w-100 text-center text-muted" style="min-width:220px;">No {{ $type == 'Post' ? 'posts' : strtolower($type) . 's' }} yet.</div>
                     @endif
                 </div>
-                @if($cardCount > 3)
                 <button class="carousel-btn modern-btn right" type="button" aria-label="Scroll right" tabindex="0">
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="14" cy="14" r="13" stroke="#d81b60" stroke-width="2.5" fill="#fff" />
                         <path d="M11.5 9L16 14L11.5 19" stroke="#d81b60" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
                 </button>
-                @endif
             </div>
             <div class="carousel-dots mt-3 text-center" id="carousel-dots-{{ $i }}"></div>
         </section>
@@ -466,6 +452,32 @@
 
             .carousel-btn.right {
                 right: -1.6rem;
+            }
+
+            @media (max-width: 991px) {
+                .carousel-btn {
+                    width: 2.4rem;
+                    height: 2.4rem;
+                }
+                .carousel-btn.left {
+                    left: -1.2rem;
+                }
+                .carousel-btn.right {
+                    right: -1.2rem;
+                }
+            }
+
+            @media (max-width: 575.98px) {
+                .carousel-btn {
+                    width: 2rem;
+                    height: 2rem;
+                }
+                .carousel-btn.left {
+                    left: 0.1rem;
+                }
+                .carousel-btn.right {
+                    right: 0.1rem;
+                }
             }
 
             .carousel-btn:active svg circle,

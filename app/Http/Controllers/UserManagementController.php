@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use App\Models\StudentFaculty;
+use App\Models\User;
+use Illuminate\Validation\Rule;
 
 class UserManagementController extends Controller
 {
@@ -23,12 +25,16 @@ class UserManagementController extends Controller
                 'yrlvl' => 'nullable|string|max:255',
                 'department' => 'nullable|string|max:255',
                 'birthdate' => 'nullable|date',
+                'password' => 'nullable|string|min:6',
             ]);
 
             // Create user in users table
             $user = new \App\Models\User();
             $user->email = $request->email;
             $user->name = $request->first_name . ' ' . $request->last_name;
+            if ($request->filled('password')) {
+                $user->password = bcrypt($request->password);
+            }
             $user->save();
 
             // Create in student_faculty table
@@ -80,38 +86,83 @@ class UserManagementController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'school_id' => 'required|regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/|unique:student_faculty,school_id,' . $id,
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'username' => 'required|string|max:255',
-            'role' => 'required|string|max:255',
-            'course' => 'nullable|string|max:255',
-            'yrlvl' => 'nullable|string|max:255',
-            'department' => 'nullable|string|max:255',
-            'birthdate' => 'nullable|date',
-        ]);
+        // Determine whether the id belongs to a student_faculty or a user (admin/librarian)
+        $sf = StudentFaculty::find($id);
 
-        $sf = \App\Models\StudentFaculty::findOrFail($id);
-        $sf->school_id = $request->school_id;
-        $sf->first_name = $request->first_name;
-        $sf->last_name = $request->last_name;
-        $sf->username = $request->username;
-        $sf->role = $request->role;
-        $sf->course = $request->course;
-        $sf->yrlvl = $request->yrlvl;
-        $sf->department = $request->department;
-        $sf->birthdate = $request->birthdate;
-        $sf->save();
+        if ($sf) {
+            // Updating a student/faculty record
+            $userId = $sf->user ? $sf->user->id : null;
 
-        // Update email in users table
-        if ($sf->user) {
-            $sf->user->email = $request->email;
-            $sf->user->save();
+            $request->validate([
+                'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
+                'username' => ['required', 'string', 'max:255', Rule::unique('student_faculty', 'username')->ignore($sf->id)],
+                'role' => 'required|string|max:255',
+                'course' => 'nullable|string|max:255',
+                'yrlvl' => 'nullable|string|max:255',
+                'department' => 'nullable|string|max:255',
+                'birthdate' => 'nullable|date',
+                'password' => 'nullable|string|min:6',
+            ]);
+
+            $sf->school_id = $request->school_id;
+            $sf->first_name = $request->first_name;
+            $sf->last_name = $request->last_name;
+            $sf->username = $request->username;
+            $sf->role = $request->role;
+            $sf->course = $request->course;
+            $sf->yrlvl = $request->yrlvl;
+            $sf->department = $request->department;
+            $sf->birthdate = $request->birthdate;
+
+            // If a password is provided, update both student_faculty.password (if used) and the related users.password
+            if ($request->filled('password')) {
+                $sf->password = bcrypt($request->password);
+            }
+
+            $sf->save();
+
+            // Update or create linked users table record's email/password if applicable
+            if ($sf->user) {
+                $sf->user->email = $request->email;
+                if ($request->filled('password')) {
+                    $sf->user->password = bcrypt($request->password);
+                }
+                $sf->user->save();
+            }
+
+            return redirect()->route('user.management', ['type' => 'student_faculty'])->with('success', 'Student/Faculty updated successfully!');
         }
 
-        return redirect()->route('user.management')->with('success', 'User updated successfully!');
+        // Otherwise, try to update a User (admin or librarian)
+        $user = User::findOrFail($id);
+
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user->id)],
+            'contact_number' => 'nullable|digits:11',
+            'address' => 'nullable|string|max:255',
+            'role' => 'required|in:admin,librarian',
+            'password' => 'nullable|string|min:6',
+        ]);
+
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->username = $request->username;
+        $user->contact_number = $request->contact_number;
+        $user->address = $request->address;
+        $user->role = $request->role;
+
+        if ($request->filled('password')) {
+            $user->password = bcrypt($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->route('user.management', ['type' => $user->role])->with('success', ucfirst($user->role) . ' updated successfully!');
     }
 
     public function delete($id)

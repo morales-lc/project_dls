@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>LiRA Request Form</title>
 
     <style>
         .btn-pink {
@@ -28,19 +28,93 @@
         .card-body {
             border-radius: 1.5rem !important;
         }
+
+        .jotform-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .jotform-container iframe {
+            width: 100%;
+            height: 100%;
+            min-height: 700px;
+            border: 0;
+        }
+
+        /* Tablet view tweaks */
+        @media (max-width: 768px) {
+            .jotform-container iframe {
+                min-height: 90vh;
+            }
+
+            .card-body {
+                padding: 1.5rem !important;
+            }
+
+            h2 {
+                font-size: 1.5rem !important;
+            }
+        }
+
+        /* Mobile view: remove container padding & make card full width */
+        /* On small screens, remove Bootstrap padding and expand the form */
+        @media (max-width: 576px) {
+
+            /* Remove container padding and margins */
+            .container {
+                width: 100% !important;
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            .row {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* Expand column to 100% of screen */
+            .col-lg-10,
+            .col-lg-11,
+            .col-xl-10 {
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+            }
+
+            /* Remove card side rounding so it blends to edges */
+            .card {
+                border-radius: 0 !important;
+            }
+
+            /* Reduce internal padding slightly for comfort */
+            .card-body {
+                padding: 1rem !important;
+            }
+
+            /* Make iframe fully fill the card */
+            .jotform-container iframe {
+                width: 100% !important;
+                min-height: 90vh !important;
+                border: none !important;
+            }
+        }
     </style>
 </head>
 
 <body>
+    @include('navbar')
 
-    @include( 'navbar')
     <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-lg-8">
+            <div class="col-lg-10">
                 <div class="card shadow-lg border-0 rounded-4" style="background: linear-gradient(135deg, #fff 80%, #ffe3f1 100%);">
                     <div class="card-body p-5">
                         <div class="d-flex align-items-center mb-4 gap-3">
-                            <div class="bg-pink d-flex align-items-center justify-content-center rounded-circle" style="width:56px;height:56px;">
+                            <div class="bg-pink d-flex align-items-center justify-content-center rounded-circle"
+                                style="width:56px;height:56px;">
                                 <i class="bi bi-journal-bookmark-fill" style="font-size:2rem;color:#fff;"></i>
                             </div>
                             <div>
@@ -48,13 +122,14 @@
                                 <div class="text-muted" style="font-size:1.08rem;">Lourdes College Library</div>
                             </div>
                         </div>
-                        <div class="mb-4">
-                            <button id="fillFormBtn" class="btn btn-lg btn-pink shadow-sm px-4" style="background:#e83e8c;color:#fff;font-weight:600;border-radius:8px;border:none;">
-                                <i class="bi bi-magic"></i> Fill Form with My Info
-                            </button>
-                        </div>
-                        <div class="rounded-4 overflow-hidden border" style="box-shadow:0 2px 16px rgba(232,62,140,0.08);">
-                            <iframe id="jotformFrame" src="https://form.jotform.com/221923899504465" width="100%" height="700" frameborder="0" style="border:0;min-height:700px;background:#fff;"></iframe>
+
+
+
+                        <div class="jotform-container rounded-4 overflow-hidden border"
+                            style="box-shadow:0 2px 16px rgba(232,62,140,0.08);">
+                            <iframe id="jotformFrame"
+                                src="{{ $jotformUrl }}"
+                                allowfullscreen></iframe>
                         </div>
                     </div>
                 </div>
@@ -64,14 +139,6 @@
 
     @include('footer')
 
-    
-
-    <script>
-        document.getElementById('fillFormBtn').addEventListener('click', function() {
-            var jotformUrl = "{{ $jotformUrl }}";
-            document.getElementById('jotformFrame').src = jotformUrl;
-        });
-    </script>
 
 </body>
 

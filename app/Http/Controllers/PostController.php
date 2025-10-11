@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -83,13 +84,18 @@ class PostController extends Controller
             'og_image' => $ogImage,
         ]);
 
-    return redirect()->route('post.management')->with('success', 'Post created successfully!');
+        return redirect()->route('post.management')->with('success', 'Post created successfully!');
     }
 
     public function adminManagement()
     {
         $posts = Post::latest()->get();
         return view('admin-posts-management', compact('posts'));
+    }
+
+    public function create()
+    {
+        return view('posts-create');
     }
 
     public function edit($id)
@@ -161,10 +167,22 @@ class PostController extends Controller
         return redirect()->route('admin.posts.management')->with('success', 'Post deleted successfully!');
     }
 
-    public function postManagement()
+    public function postManagement(Request $request)
     {
-        $posts = Post::latest()->get();
-        return view('post-management', compact('posts'));
+        $types = ['Announcement', 'Event', 'Update', 'Post'];
+        $paginatedPosts = [];
+
+        foreach ($types as $type) {
+            $paginatedPosts[$type] = Post::where('type', $type)
+                ->latest()
+                ->paginate(5, ['*'], strtolower($type) . '_page') // separate page query key
+                ->appends($request->except(strtolower($type) . '_page')); // preserve filters per tab
+        }
+
+        return view('post-management', [
+            'types' => $types,
+            'paginatedPosts' => $paginatedPosts,
+        ]);
     }
 
     // Return a JSON representation of a post for client-side modal population

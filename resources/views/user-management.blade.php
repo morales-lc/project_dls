@@ -51,13 +51,13 @@
             </div>
 
             <div id="addAdmin" class="add-btn-wrapper {{ $type === 'admin' ? 'show' : '' }}">
-                <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'admin']) }}">
+                <a class="btn btn-pink px-4" href="{{ $type === 'admin' ? route('staff.create', ['type' => 'admin']) : route('user.create', ['type' => 'admin']) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Admin
                 </a>
             </div>
 
             <div id="addLibrarian" class="add-btn-wrapper {{ $type === 'librarian' ? 'show' : '' }}">
-                <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'librarian']) }}">
+                <a class="btn btn-pink px-4" href="{{ $type === 'librarian' ? route('staff.create', ['type' => 'librarian']) : route('user.create', ['type' => 'librarian']) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Librarian
                 </a>
             </div>
@@ -149,11 +149,114 @@
                             @endif
                             <td>
                                 <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal{{ $user->id }}">Update</button>
-                                <form method="POST" action="{{ route('user.delete', $user->id) }}" style="display:inline-block;">
+                                <form method="POST" action="{{ $type === 'student_faculty' ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}" style="display:inline-block;">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user?')">Delete</button>
                                 </form>
+                                <!-- Edit Modal -->
+                                <div class="modal fade" id="editUserModal{{ $user->id }}" tabindex="-1" aria-labelledby="editUserLabel{{ $user->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editUserLabel{{ $user->id }}">Update User - {{ $type === 'student_faculty' ? ($user->first_name . ' ' . $user->last_name) : ($user->name ?? $user->username) }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST" action="{{ $type === 'student_faculty' ? route('user.update', $user->id) : route('staff.update', $user->id) }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <div class="modal-body">
+                                                    @if ($type === 'student_faculty')
+                                                    <div class="row g-2">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">First Name</label>
+                                                            <input type="text" name="first_name" class="form-control" value="{{ $user->first_name }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Last Name</label>
+                                                            <input type="text" name="last_name" class="form-control" value="{{ $user->last_name }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Email</label>
+                                                            <input type="email" name="email" class="form-control" value="{{ $user->user->email ?? '' }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">School ID</label>
+                                                            <input type="text" name="school_id" class="form-control" value="{{ $user->school_id }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Course</label>
+                                                            <input type="text" name="course" class="form-control" value="{{ $user->course }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Year Level</label>
+                                                            <input type="text" name="yrlvl" class="form-control" value="{{ $user->yrlvl }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Department</label>
+                                                            <input type="text" name="department" class="form-control" value="{{ $user->department }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Birthdate</label>
+                                                            <input type="date" name="birthdate" class="form-control" value="{{ $user->birthdate }}">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label">Role</label>
+                                                            <select name="role" class="form-select">
+                                                                <option value="student" {{ $user->role === 'student' ? 'selected' : '' }}>Student</option>
+                                                                <option value="faculty" {{ $user->role === 'faculty' ? 'selected' : '' }}>Faculty</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Password (leave blank to keep current)</label>
+                                                            <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                                        </div>
+                                                    </div>
+                                                    @else
+                                                    <div class="row g-2">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Name</label>
+                                                            <input type="text" name="name" class="form-control" value="{{ $user->name }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Username</label>
+                                                            <input type="text" name="username" class="form-control" value="{{ $user->username }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Email</label>
+                                                            <input type="email" name="email" class="form-control" value="{{ $user->email }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Contact Number</label>
+                                                            <input type="text" name="contact_number" class="form-control" value="{{ $user->contact_number }}">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label">Address</label>
+                                                            <input type="text" name="address" class="form-control" value="{{ $user->address }}">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label">Role</label>
+                                                            <select name="role" class="form-select">
+                                                                <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin</option>
+                                                                <option value="librarian" {{ $user->role === 'librarian' ? 'selected' : '' }}>Librarian</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Password (leave blank to keep current)</label>
+                                                            <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                                        </div>
+                                                    </div>
+                                                    @endif
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-pink">Save changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Edit Modal -->
                             </td>
                         </tr>
                         @endforeach

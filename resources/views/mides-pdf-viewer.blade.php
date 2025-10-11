@@ -135,10 +135,18 @@
             fitMode = false,
             canvas = document.getElementById("pdf-render"),
             ctx = canvas.getContext("2d");
+        let renderTask = null;
 
         const container = document.getElementById("pdf-container");
 
         function renderPage(num) {
+            if (!pdfDoc) return;
+            // cancel any ongoing render to avoid flicker
+            if (renderTask && typeof renderTask.cancel === 'function') {
+                try { renderTask.cancel(); } catch (e) { /* ignore */ }
+                renderTask = null;
+            }
+
             pdfDoc.getPage(num).then(page => {
                 let viewport;
                 if (fitMode) {
@@ -150,15 +158,33 @@
                     viewport = page.getViewport({ scale });
                 }
 
-                canvas.height = viewport.height;
-                canvas.width = viewport.width;
+                // Use devicePixelRatio for crisp rendering on HiDPI displays
+                const outputScale = window.devicePixelRatio || 1;
+                canvas.style.width = Math.floor(viewport.width) + 'px';
+                canvas.style.height = Math.floor(viewport.height) + 'px';
+                canvas.width = Math.floor(viewport.width * outputScale);
+                canvas.height = Math.floor(viewport.height * outputScale);
+                // reset transform and scale drawing to device pixels
+                ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
 
-                page.render({
+                // hide canvas until rendering completes to avoid flicker
+                try { canvas.style.visibility = 'hidden'; } catch (e) {}
+                renderTask = page.render({
                     canvasContext: ctx,
                     viewport
                 });
 
-                document.getElementById("page_num").textContent = num;
+                // update page number when rendering finished
+                renderTask.promise.then(function() {
+                    document.getElementById("page_num").textContent = num;
+                    try { canvas.style.visibility = 'visible'; } catch (e) {}
+                    renderTask = null;
+                }).catch(function(err) {
+                    // ignore render cancellation errors
+                    renderTask = null;
+                });
+            }).catch(function(err){
+                console.error('Failed to get page', err);
             });
         }
 
@@ -195,9 +221,11 @@
 
         document.getElementById("fullscreen").onclick = () => {
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+                else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
             } else {
-                document.exitFullscreen?.();
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
             }
         };
 
@@ -210,6 +238,73 @@
         window.addEventListener("resize", () => {
             if (fitMode) renderPage(pageNum);
         });
+
+        // Debounce helper
+        function debounce(fn, wait) {
+            let t = null;
+            return function () {
+                const args = arguments;
+                clearTimeout(t);
+                t = setTimeout(function () { fn.apply(null, args); }, wait);
+            };
+        }
+
+        // Re-render when container size changes (use ResizeObserver if available)
+        if (window.ResizeObserver) {
+            const debouncedRender = debounce(() => renderPage(pageNum), 150);
+            try {
+                const ro = new ResizeObserver(debouncedRender);
+                ro.observe(container);
+            } catch (err) {
+                // fallback already covered by window resize
+            }
+        }
+
+        // If this viewer is inside an iframe modal, observe the parent modal for class changes
+        try {
+            if (window.frameElement && window.frameElement.closest) {
+                const modalEl = window.frameElement.closest('.modal');
+                if (modalEl) {
+                    const debouncedRender = debounce(() => renderPage(pageNum), 120);
+                    const mo = new MutationObserver(function (mutations) {
+                        for (const m of mutations) {
+                            if (m.attributeName === 'class') {
+                                const cls = modalEl.className || '';
+                                if (cls.indexOf('show') !== -1) {
+                                    // modal shown — wait a tick then render
+                                    debouncedRender();
+                                }
+                            }
+                        }
+                    });
+                    mo.observe(modalEl, { attributes: true, attributeFilter: ['class'] });
+                }
+            }
+        } catch (e) {
+            // cross-origin or other access issues — ignore
+        }
+
+        // Also listen for Bootstrap modal events on the parent modal (preferred over mutation in some cases)
+        try {
+            if (window.frameElement && window.frameElement.closest) {
+                const parentModal = window.frameElement.closest('.modal');
+                if (parentModal && parentModal.addEventListener) {
+                    const onShown = function() {
+                        // render after a short delay; run twice to ensure stability after animation
+                        setTimeout(() => renderPage(pageNum), 80);
+                        setTimeout(() => renderPage(pageNum), 260);
+                    };
+                    parentModal.addEventListener('shown.bs.modal', onShown);
+                    parentModal.addEventListener('show.bs.modal', function() { setTimeout(() => renderPage(pageNum), 120); });
+                    // if modal already open, force a render
+                    if ((parentModal.className || '').indexOf('show') !== -1) {
+                        setTimeout(() => renderPage(pageNum), 80);
+                    }
+                }
+            }
+        } catch (e) {
+            // ignore
+        }
     </script>
 </body>
 </html>

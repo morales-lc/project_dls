@@ -8,6 +8,7 @@
 </head>
 <body style="min-height: 100vh; background-color: #f8f9fa;">
 @include('navbar')
+<div style="height: 40px;"></div>
 <div class="container mt-5 mb-5">
     <div class="row justify-content-center">
         <div class="col-12 col-md-10">
@@ -15,10 +16,7 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
-            <div class="mb-4 text-center">
-                <a href="{{ route('information_literacy.create') }}" class="btn btn-primary">Post New Seminar</a>
-                <a href="{{ route('information_literacy.manage') }}" class="btn btn-outline-secondary ms-2">Manage Posts</a>
-            </div>
+
 
             @forelse($posts as $post)
             <article class="il-card card mb-5 border-0 rounded-4 shadow-sm" tabindex="0" role="button" data-id="post-{{ $post->id }}">
@@ -69,6 +67,9 @@
         </div>
     </div>
 </div>
+
+<div style="height: 120px;"></div>
+
 @include('footer')
 <!-- Information modal -->
 <div class="modal fade" id="informationModal" tabindex="-1" aria-labelledby="informationModalLabel" aria-hidden="true">

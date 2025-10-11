@@ -239,7 +239,7 @@ class SidlakJournalController extends Controller
             }
         }
 
-        return redirect()->route('sidlak.index')->with('success', 'Journal, editors, peer reviewers, and articles added!');
+        return redirect()->route('sidlak.manage')->with('success', 'Journal, editors, peer reviewers, and articles added!');
     }
 
     public function show($id) {

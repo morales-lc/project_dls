@@ -14,103 +14,126 @@
     @include('navbar')
 
     <div class="container py-5">
-        <h2 class="mb-2 fw-bold">Welcome to MIDES repository!</h2>
-        <div class="mb-3 text-secondary">
-            <em>The Mides Repository is a digital repository of scholarly and creative works of the faculty, students and personnel of Lourdes College.</em>
+        <!-- Centered top section -->
+        <div class="text-center mb-4">
+            <h2 class="fw-bold mb-2">Welcome to MIDES Repository!</h2>
+            <div class="text-secondary mb-2">
+                <em>The Mides Repository is a digital repository of scholarly and creative works of the faculty, students, and personnel of Lourdes College.</em>
+            </div>
+            <div class="text-muted small">
+                <strong>Graduate Theses</strong> (contains abstracts, introduction, and related literature of the theses completed for the M.A. programs in Lourdes College)<br>
+                <strong>Undergraduate Baby Thesis</strong> (contains abstracts, introduction, and related literature of the undergraduate theses)
+            </div>
         </div>
-        <div class="mb-2 text-muted">
-            <strong>Graduate Theses</strong> (contains abstracts, introduction and related literature of the theses completed for the M.A. programs in Lourdes College)<br>
-            <strong>Undergraduate Baby Thesis</strong> (contains abstracts, introduction and related literature of the undergraduate theses)
-        </div>
-        <form class="row g-2 g-md-3 align-items-center mb-4" method="GET" action="{{ route('mides.search') }}">
-            <div class="col-12 col-md">
-                <input
-                    type="search"
-                    name="q"
-                    class="form-control"
-                    placeholder="digital library system"
-                    aria-label="Search"
-                    value="{{ $search ?? '' }}">
+
+        <!-- Search form -->
+        <form class="mb-4" method="GET" action="{{ route('mides.search') }}">
+            <!-- Search bar -->
+            <div class="row justify-content-center mb-3">
+                <div class="col-12 col-md-8">
+                    <input
+                        type="search"
+                        name="q"
+                        class="form-control"
+                        placeholder="digital library system"
+                        aria-label="Search"
+                        value="{{ $search ?? '' }}">
+                </div>
+                <div class="col-12 col-md-auto mt-2 mt-md-0 text-center">
+                    <button class="btn btn-dark w-100 w-md-auto" type="submit">Search</button>
+                </div>
             </div>
-            <div class="col-12 col-md-auto">
-                <select class="form-select" name="type" id="mides-type-select">
-                    <option value="">SELECT TYPE</option>
-                    @if(isset($types))
-                        @foreach($types as $t)
-                            <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
-                        @endforeach
-                    @endif
-                </select>
-            </div>
-            <div class="col-12 col-md-auto" id="mides-program-col" style="display: none; min-width: 180px;">
-                <select class="form-select" name="program" id="mides-program-select">
-                    <option value="">SELECT PROGRAM</option>
-                    @if(isset($programs))
-                        @foreach($programs as $p)
-                            <option value="{{ $p }}" {{ (isset($program) && $program == $p) ? 'selected' : '' }}>{{ $p }}</option>
-                        @endforeach
-                    @endif
-                </select>
-            </div>
-            <div class="col-12 col-md-auto" id="mides-year-col">
-                <select class="form-select" name="year">
-                    <option value="">SELECT YEAR</option>
-                    @if(isset($years))
-                        @foreach($years as $y)
-                            <option value="{{ $y }}" {{ (request('year') == $y) ? 'selected' : '' }}>{{ $y }}</option>
-                        @endforeach
-                    @endif
-                </select>
-            </div>
-            <div class="col-12 col-md-auto">
-                <button class="btn btn-dark w-100 w-md-auto" type="submit">Search</button>
+
+            <!-- Dropdowns below search bar -->
+            <div class="row justify-content-center g-2 g-md-3">
+                <div class="col-12 col-md-3">
+                    <select class="form-select" name="type" id="mides-type-select">
+                        <option value="">SELECT TYPE</option>
+                        @if(isset($types))
+                            @foreach($types as $t)
+                                <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div class="col-12 col-md-3" id="mides-program-col" style="display: none;">
+                    <select class="form-select" name="program" id="mides-program-select">
+                        <option value="">SELECT PROGRAM</option>
+                        @if(isset($programs))
+                            @foreach($programs as $p)
+                                <option value="{{ $p }}" {{ (isset($program) && $program == $p) ? 'selected' : '' }}>{{ $p }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
+                <div class="col-12 col-md-3" id="mides-year-col">
+                    <select class="form-select" name="year">
+                        <option value="">SELECT YEAR</option>
+                        @if(isset($years))
+                            @foreach($years as $y)
+                                <option value="{{ $y }}" {{ (request('year') == $y) ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        @endif
+                    </select>
+                </div>
             </div>
         </form>
 
+        <!-- JS for dynamic program dropdown -->
         <script>
-            (function(){
+            (function() {
                 function updateProgramDropdown(type) {
                     var col = document.getElementById('mides-program-col');
                     var progSel = document.getElementById('mides-program-select');
                     var typeLower = (type || '').toString().toLowerCase();
+
                     // Hide for Faculty/Theses/Dissertations
                     if (typeLower.indexOf('faculty') !== -1 || typeLower.indexOf('dissertation') !== -1) {
                         col.style.display = 'none';
                         if (progSel) progSel.value = '';
                         return;
                     }
+
                     // Show for other types and fetch programs
                     col.style.display = 'block';
                     fetch('/mides/programs?type=' + encodeURIComponent(type))
-                        .then(function(resp){ return resp.json(); })
-                        .then(function(data){
+                        .then(function(resp) {
+                            return resp.json();
+                        })
+                        .then(function(data) {
                             if (progSel) {
                                 progSel.innerHTML = '<option value="">SELECT PROGRAM</option>';
                                 if (Array.isArray(data.programs)) {
-                                    data.programs.forEach(function(p){
+                                    data.programs.forEach(function(p) {
                                         var opt = document.createElement('option');
-                                        opt.value = p;
-                                        opt.textContent = p;
+                                        if (typeof p === 'object' && p !== null) {
+                                            opt.value = p.id;
+                                            opt.textContent = p.name;
+                                        } else {
+                                            opt.value = p;
+                                            opt.textContent = p;
+                                        }
                                         progSel.appendChild(opt);
                                     });
                                 }
                             }
                         });
                 }
+
                 var typeSelect = document.getElementById('mides-type-select');
                 if (typeSelect) {
-                    typeSelect.addEventListener('change', function(){
+                    typeSelect.addEventListener('change', function() {
                         updateProgramDropdown(typeSelect.value);
                     });
-                    document.addEventListener('DOMContentLoaded', function(){
+                    document.addEventListener('DOMContentLoaded', function() {
                         updateProgramDropdown(typeSelect.value);
                     });
                 }
             })();
         </script>
 
-        <div style="margin-bottom: 50px; display: inline-block;"></div>
-        <div class="row g-4 justify-content-center">
+        <!-- Categories Section -->
+        <div class="mt-5 row g-4 justify-content-center">
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
@@ -122,6 +145,7 @@
                     </div>
                 </a>
             </div>
+
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
@@ -133,6 +157,7 @@
                     </div>
                 </a>
             </div>
+
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
@@ -144,6 +169,7 @@
                     </div>
                 </a>
             </div>
+
             <div class="col-md-3 col-sm-6">
                 <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none mides-card-link">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
@@ -157,28 +183,32 @@
             </div>
         </div>
     </div>
+
     <div style="margin-bottom: 200px; display: inline-block;"></div>
 
-
+    <!-- PDF Modal Handler -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var previewModal = document.getElementById('previewModal');
-            previewModal.addEventListener('show.bs.modal', function(event) {
-                var button = event.relatedTarget;
-                var pdfUrl = button.getAttribute('data-pdf');
-                var title = button.getAttribute('data-title');
-                var author = button.getAttribute('data-author');
-                var year = button.getAttribute('data-year');
-                document.getElementById('pdfFrame').src = pdfUrl;
-                document.getElementById('pdfInfo').innerHTML = `<strong>Title:</strong> ${title}<br><strong>Author:</strong> ${author}<br><strong>Year:</strong> ${year}`;
-            });
-            previewModal.addEventListener('hidden.bs.modal', function() {
-                document.getElementById('pdfFrame').src = '';
-                document.getElementById('pdfInfo').innerHTML = '';
-            });
+            if (previewModal) {
+                previewModal.addEventListener('show.bs.modal', function(event) {
+                    var button = event.relatedTarget;
+                    var pdfUrl = button.getAttribute('data-pdf');
+                    var title = button.getAttribute('data-title');
+                    var author = button.getAttribute('data-author');
+                    var year = button.getAttribute('data-year');
+                    document.getElementById('pdfFrame').src = pdfUrl;
+                    document.getElementById('pdfInfo').innerHTML = `<strong>Title:</strong> ${title}<br><strong>Author:</strong> ${author}<br><strong>Year:</strong> ${year}`;
+                });
+                previewModal.addEventListener('hidden.bs.modal', function() {
+                    document.getElementById('pdfFrame').src = '';
+                    document.getElementById('pdfInfo').innerHTML = '';
+                });
+            }
         });
     </script>
-    <!-- Bootstrap Icons CDN -->
+
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 
     @include('footer')

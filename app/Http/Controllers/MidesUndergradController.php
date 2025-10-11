@@ -20,7 +20,17 @@ class MidesUndergradController extends Controller
         $sort = request('sort', 'year');
         $direction = request('direction', 'desc');
 
-    $query = MidesDocument::where('type', 'Undergraduate Baby Theses')->where('category', $program);
+    // allow $program to be id or name
+    if (is_numeric($program)) {
+        $query = MidesDocument::where('mides_category_id', $program);
+    } else {
+        $query = MidesDocument::where(function($q) use ($program) {
+            $q->where('type', 'Undergraduate Baby Theses')->where('category', $program)
+              ->orWhereHas('midesCategory', function($q2) use ($program) {
+                  $q2->where('name', $program)->where('type', 'Undergraduate Baby Theses');
+              });
+        });
+    }
         if ($search) {
             $query->where(function($q) use ($search) {
                 $q->where('title', 'like', "%$search%")

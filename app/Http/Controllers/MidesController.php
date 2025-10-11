@@ -49,21 +49,37 @@ class MidesController extends Controller
     public function update(Request $request, $id)
     {
         $doc = MidesDocument::findOrFail($id);
-        $doc->type = $request->type;
-        // Handle category/program logic
-        if ($doc->type === 'Graduate Theses') {
-            $doc->category = $request->category_program;
-            $doc->program = null;
-        } elseif ($doc->type === 'Undergraduate Baby Theses') {
-            // Save selected program in category column
-            $doc->category = $request->category_program;
-            $doc->program = null;
-        } elseif ($doc->type === 'Senior High School Research Paper') {
-            $doc->program = $request->category_program;
-            $doc->category = null;
+        // Support setting by mides_category_id (preferred) or legacy category_program
+        $midesCategoryId = $request->input('mides_category_id');
+        if ($midesCategoryId) {
+            $cat = \App\Models\MidesCategory::find($midesCategoryId);
+            if ($cat) {
+                $doc->mides_category_id = $cat->id;
+                $doc->type = $cat->type;
+                if ($cat->type === 'Senior High School Research Paper') {
+                    $doc->program = $cat->name;
+                    $doc->category = null;
+                } else {
+                    $doc->category = $cat->name;
+                    $doc->program = null;
+                }
+            }
         } else {
-            $doc->category = null;
-            $doc->program = null;
+            $doc->type = $request->input('type');
+            $category_program = $request->input('category_program');
+            if ($doc->type === 'Graduate Theses') {
+                $doc->category = $category_program;
+                $doc->program = null;
+            } elseif ($doc->type === 'Undergraduate Baby Theses') {
+                $doc->category = $category_program;
+                $doc->program = null;
+            } elseif ($doc->type === 'Senior High School Research Paper') {
+                $doc->program = $category_program;
+                $doc->category = null;
+            } else {
+                $doc->category = null;
+                $doc->program = null;
+            }
         }
         $doc->author = $request->author;
         $doc->year = $request->year;
@@ -86,7 +102,7 @@ class MidesController extends Controller
     }
     public function index()
     {
-        $query = MidesDocument::query();
+        $query = MidesDocument::with('midesCategory');
 
         // Search
         $search = request('search');
@@ -95,16 +111,25 @@ class MidesController extends Controller
                 $q->where('title', 'like', "%$search%")
                   ->orWhere('author', 'like', "%$search%")
                   ->orWhere('year', 'like', "%$search%")
-                  ->orWhere('category', 'like', "%$search%")
-                  ->orWhere('program', 'like', "%$search%")
-                  ->orWhere('type', 'like', "%$search%") ;
+                  ->orWhere('type', 'like', "%$search%");
+            })->orWhereHas('midesCategory', function($q) use ($search) {
+                $q->where('name', 'like', "%$search%");
             });
         }
 
-        // Filter by type
+        // Filter by type or by selected mides_category_id
         $type = request('type');
-        if ($type) {
-            $query->where('type', $type);
+        $midesCategoryId = request('mides_category_id');
+        if ($midesCategoryId) {
+            $query->where('mides_category_id', $midesCategoryId);
+        } elseif ($type) {
+            // Keep backward compatibility: filter by raw type column or related category.type
+            $query->where(function($q) use ($type) {
+                $q->where('type', $type)
+                  ->orWhereHas('midesCategory', function($q2) use ($type) {
+                      $q2->where('type', $type);
+                  });
+            });
         }
 
         // Sorting
@@ -112,15 +137,15 @@ class MidesController extends Controller
         $direction = request('direction', 'desc');
         $query->orderBy($sort, $direction);
 
-        $documents = $query->paginate(12)->appends(request()->query());
-        $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
+    $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(request()->query());
+    $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
 
         // Build lookup arrays for type and category/program names
         $typeNames = [];
         $categoryNames = [];
         foreach (\App\Models\MidesCategory::all() as $cat) {
             $typeNames[$cat->type] = $cat->type; // type is already readable
-            $categoryNames[$cat->type][$cat->name] = $cat->name;
+            $categoryNames[$cat->type][$cat->id] = $cat->name;
         }
 
         return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'direction', 'typeNames', 'categoryNames'));
@@ -128,17 +153,10 @@ class MidesController extends Controller
 
     public function create()
     {
-    $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
-    $graduateCategories = \App\Models\MidesCategory::where('type', 'Graduate Theses')->pluck('name');
-    $undergradPrograms = \App\Models\MidesCategory::where('type', 'Undergraduate Baby Theses')->pluck('name');
-        $seniorHighPrograms = [
-            'Accountancy, Business and Management (ABM)',
-            'Humanities and Social Sciences Strand (HUMSS)',
-            'Science, Technology, Engineering and Mathematics (STEM)',
-            'Technical-Vocational-Livelihood (TVL)',
-            'Information Computer Technology',
-            'Culinary Arts',
-        ];
+        $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
+        $graduateCategories = \App\Models\MidesCategory::where('type', 'Graduate Theses')->get();
+        $undergradPrograms = \App\Models\MidesCategory::where('type', 'Undergraduate Baby Theses')->get();
+        $seniorHighPrograms = \App\Models\MidesCategory::where('type', 'Senior High School Research Paper')->get();
 
         return view('mides-upload', compact('types', 'graduateCategories', 'undergradPrograms', 'seniorHighPrograms'));
     }
@@ -146,9 +164,8 @@ class MidesController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'type' => 'required',
-            'category' => 'nullable|string',
-            'program' => 'nullable|string',
+            'type' => 'nullable|string',
+            'mides_category_id' => 'nullable|exists:mides_categories,id',
             'author' => 'required|string',
             'year' => 'required|digits:4',
             'title' => 'required|string',
@@ -159,18 +176,33 @@ class MidesController extends Controller
         $originalName = $pdf->getClientOriginalName();
         $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
 
-        // Always save undergraduate program in category column for Undergraduate Baby Theses
-        $category = $request->category;
-        $program = null;
-        if ($request->type === 'Undergraduate Baby Theses') {
-            $category = $request->undergrad_program;
-        } elseif ($request->type === 'Senior High School Research Paper') {
-            $program = $request->senior_high_program;
+        $midesCategoryId = $request->input('mides_category_id');
+
+        // Prepare fallback values for older columns for backward compatibility
+        $type = $request->input('type');
+        $category = $request->input('category');
+        $program = $request->input('program');
+
+        if ($midesCategoryId) {
+            $cat = \App\Models\MidesCategory::find($midesCategoryId);
+            if ($cat) {
+                $type = $cat->type;
+                // Set the appropriate legacy fields depending on type
+                if ($cat->type === 'Senior High School Research Paper') {
+                    $program = $cat->name;
+                    $category = null;
+                } else {
+                    $category = $cat->name;
+                    $program = null;
+                }
+            }
         }
+
         MidesDocument::create([
-            'type' => $request->type,
+            'type' => $type,
             'category' => $category,
             'program' => $program,
+            'mides_category_id' => $midesCategoryId,
             'author' => $request->author,
             'year' => $request->year,
             'title' => $request->title,

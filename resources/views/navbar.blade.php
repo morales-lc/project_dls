@@ -21,9 +21,10 @@
         }
 
         .navbar-nav .nav-link:hover {
-            transform: scale(1.1);
-            background: #f8bbd0;
-            color: #e83e8c !important;
+            transform: scale(1.05);
+            background: #c2185b;
+            /* dark pink */
+            color: #fff !important;
         }
 
         .navbar-nav .nav-link.active {
@@ -32,6 +33,12 @@
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(232, 62, 140, 0.08);
         }
+
+        .dropdown-menu .dropdown-item:hover {
+            background-color: #c2185b !important;
+            color: #fff !important;
+        }
+
 
         /* Desktop: dropdown on hover (keeps your original behavior) */
         @media (min-width: 992px) {
@@ -110,6 +117,179 @@
         .dropdown-menu {
             z-index: 2050;
         }
+
+        /* --- Mobile Navbar Text & Spacing Improvements --- */
+        @media (max-width: 991.98px) {
+
+            /* Brand text smaller but still clear */
+            .navbar-brand span {
+                font-size: 0.95rem;
+                line-height: 1.2;
+                white-space: normal;
+                text-align: left;
+            }
+
+            /* Increase readability for nav links */
+            .navbar-nav .nav-link {
+                font-size: 1rem;
+                font-weight: 500;
+                color: #fff !important;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                border-radius: 6px;
+                transition: background 0.25s ease;
+            }
+
+            /* Hover and Active — unified dark pink + white style */
+            .navbar-nav .nav-link:hover,
+            .navbar-nav .nav-link.active {
+                transform: scale(1.05);
+                background: #c2185b;
+                /* dark pink */
+                color: #fff !important;
+                font-weight: 600;
+                box-shadow: 0 3px 10px rgba(194, 24, 91, 0.25);
+            }
+
+            /* Active dropdown items inside menus */
+            .dropdown-menu .dropdown-item.active,
+            .dropdown-menu .dropdown-item:active {
+                background-color: #c2185b !important;
+                color: #fff !important;
+            }
+
+            /* Highlight parent dropdown when submenu is active */
+            .nav-item.dropdown.show>.nav-link,
+            .nav-item.dropdown.active>.nav-link {
+                background: #c2185b;
+                color: #fff !important;
+                font-weight: 600;
+                box-shadow: 0 3px 10px rgba(194, 24, 91, 0.25);
+            }
+
+            /* Better spacing for dropdown items */
+            .navbar .dropdown .dropdown-item {
+                font-size: 0.95rem;
+                padding: 0.55rem 1.25rem;
+                border-radius: 5px;
+            }
+
+            .navbar .dropdown .dropdown-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+            /* Adjust dropdown toggle caret and layout */
+            .navbar .dropdown-toggle::after {
+                margin-left: auto;
+                margin-right: 0;
+                float: none;
+                position: relative;
+                top: 2px;
+            }
+
+            /* Close button spacing */
+            #navbarCloseBtn {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.9rem;
+                border: 1px solid rgba(255, 255, 255, 0.7);
+                color: #fff;
+            }
+
+            #navbarCloseBtn i {
+                font-size: 1rem;
+                margin-right: 0.3rem;
+            }
+
+            /* Center items nicely */
+            .navbar-collapse {
+                text-align: left;
+                padding: 1rem 0.5rem;
+            }
+
+            /* Dropdown list visual separation */
+            .dropdown-menu {
+                background: rgba(255, 255, 255, 0.08) !important;
+                border-radius: 6px;
+                margin-top: 0.4rem;
+            }
+
+            /* Profile section: increase visibility */
+            .navbar .profile-pic {
+                width: 38px !important;
+                height: 38px !important;
+                border: 2px solid #fff;
+            }
+
+            .navbar .fw-semibold {
+                font-size: 0.9rem;
+                color: #fff !important;
+            }
+        }
+
+        /* Optional: make the navbar text more legible overall */
+        .navbar-nav .nav-link {
+            letter-spacing: 0.3px;
+        }
+
+        /* Desktop behavior fix: ignore Laravel's 'show' for active dropdowns */
+        @media (min-width: 992px) {
+
+            /* Disable auto-open caused by Laravel 'show' classes */
+            .navbar .dropdown.show>.dropdown-menu {
+                display: none !important;
+                opacity: 0 !important;
+                visibility: hidden !important;
+            }
+
+            /* Enable hover-open for all dropdowns */
+            .navbar .dropdown:hover>.dropdown-menu {
+                display: block !important;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            /* Optional: smooth fade */
+            .navbar .dropdown-menu {
+                transition: opacity 0.25s ease, visibility 0.25s ease;
+            }
+
+            /* Rotate caret when hovered */
+            .navbar .dropdown:hover>.dropdown-toggle::after {
+                transform: rotate(180deg);
+                transition: transform 0.2s ease;
+            }
+        }
+
+
+        /* Hover to open dropdowns on desktop */
+        @media (min-width: 992px) {
+            .navbar .dropdown:hover>.dropdown-menu {
+                display: block;
+                margin-top: 0;
+                /* remove jump */
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Smooth open transition */
+            .navbar .dropdown-menu {
+                display: block;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.25s ease, visibility 0.25s ease;
+            }
+
+            .navbar .dropdown:hover>.dropdown-menu {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            /* Optional: rotate caret when hovering */
+            .navbar .dropdown:hover>.dropdown-toggle::after {
+                transform: rotate(180deg);
+                transition: transform 0.2s ease;
+            }
+        }
     </style>
 </head>
 
@@ -140,11 +320,11 @@
                     </li>
 
                     <!-- About Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('about') ? 'active' : '' }}" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li class="nav-item dropdown {{ request()->routeIs('about*','feedback.form') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('about*','feedback.form') ? 'active' : '' }}" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('about*','feedback.form') ? 'true' : 'false' }}">
                             About
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="aboutDropdown">
+                        <ul class="dropdown-menu {{ request()->routeIs('about*','feedback.form') ? 'show' : '' }}" aria-labelledby="aboutDropdown">
                             <li><a class="dropdown-item {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">Mission & Vision</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('about.contact') ? 'active' : '' }}" href="{{ route('about.contact') }}">Contact Us</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('feedback.form') ? 'active' : '' }}" href="{{ route('feedback.form') }}">Feedback</a></li>
@@ -152,43 +332,43 @@
                     </li>
 
                     <!-- Libraries Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('wiley.*','gale.*','proquest.*') ? 'active' : '' }}" href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li class="nav-item dropdown {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'active' : '' }}" href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'true' : 'false' }}">
                             Libraries
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="librariesDropdown">
-                            <li><a class="dropdown-item" href="{{ route('libraries.college') }}">College Library</a></li>
-                            <li><a class="dropdown-item" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
-                            <li><a class="dropdown-item" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
-                            <li><a class="dropdown-item" href="{{ route('libraries.ibed') }}">IBED Library</a></li>
-                            <li><a class="dropdown-item" href="{{ route('elibraries') }}">Online E-Libraries</a></li>
+                        <ul class="dropdown-menu {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show' : '' }}" aria-labelledby="librariesDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}" href="{{ route('libraries.college') }}">College Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}" href="{{ route('libraries.ibed') }}">IBED Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online E-Libraries</a></li>
                         </ul>
                     </li>
 
                     <!-- Services Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces') ? 'active' : '' }}" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li class="nav-item dropdown {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'active' : '' }}" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'true' : 'false' }}">
                             Services
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-                            <li><a class="dropdown-item" href="{{ route('lira.form') }}">LiRA</a></li>
-                            <li><a class="dropdown-item" href="{{ route('alert-services.index') }}">Alert Services</a></li>
-                            <li><a class="dropdown-item" href="{{ route('alinet.form') }}">ALINET</a></li>
-                            <li><a class="dropdown-item" href="#">Book borrowing</a></li>
-                            <li><a class="dropdown-item" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
+                        <ul class="dropdown-menu {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show' : '' }}" aria-labelledby="servicesDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('lira.form') ? 'active' : '' }}" href="{{ route('lira.form') }}">LiRA</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('alert-services.*') ? 'active' : '' }}" href="{{ route('alert-services.index') }}">Alert Services</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a></li>
+                            <li><a class="dropdown-item" href="#">Book Borrowing</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
                             <li><a class="dropdown-item" href="#">Scanning Services</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('learning-spaces') ? 'active' : '' }}" href="{{ route('learning-spaces') }}">Learning Spaces</a></li>
                         </ul>
                     </li>
 
                     <!-- E-Resources Dropdown -->
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.dashboard','sidlak.index') ? 'active' : '' }}" href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <li class="nav-item dropdown {{ request()->routeIs('mides.*','sidlak.*') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.*','sidlak.*') ? 'active' : '' }}" href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('mides.*','sidlak.*') ? 'true' : 'false' }}">
                             Electronic Resources
                         </a>
-                        <ul class="dropdown-menu" aria-labelledby="eresourcesDropdown">
-                            <li><a class="dropdown-item" href="{{ route('mides.dashboard') }}">MIDES repository</a></li>
-                            <li><a class="dropdown-item" href="{{ route('sidlak.index') }}">SIDLAk</a></li>
+                        <ul class="dropdown-menu {{ request()->routeIs('mides.*','sidlak.*') ? 'show' : '' }}" aria-labelledby="eresourcesDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('mides.*') ? 'active' : '' }}" href="{{ route('mides.dashboard') }}">MIDES Repository</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('sidlak.*') ? 'active' : '' }}" href="{{ route('sidlak.index') }}">SIDLAk</a></li>
                         </ul>
                     </li>
                 </ul>

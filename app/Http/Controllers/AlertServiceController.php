@@ -127,6 +127,6 @@ class AlertServiceController extends Controller
             'month' => $request->input('month'),
             'year' => $request->input('year'),
         ]);
-        return redirect()->route('alert-services.index')->with('success', 'Book posted successfully!');
+        return redirect()->route('alert-services.manage')->with('success', 'Book posted successfully!');
     }
 }

@@ -20,7 +20,16 @@ class MidesGraduateController extends Controller
         $sort = request('sort', 'year');
         $direction = request('direction', 'desc');
 
-        $query = MidesDocument::where('type', 'Graduate Theses')->where('category', $category);
+        // support category as id or name
+        if (is_numeric($category)) {
+            $query = MidesDocument::where('mides_category_id', $category)->where('type', 'Graduate Theses');
+        } else {
+            $query = MidesDocument::where('type', 'Graduate Theses')->where(function($q) use ($category) {
+                $q->where('category', $category)->orWhereHas('midesCategory', function($q2) use ($category) {
+                    $q2->where('name', $category)->where('type', 'Graduate Theses');
+                });
+            });
+        }
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")

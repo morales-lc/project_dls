@@ -1,215 +1,400 @@
 @include('navbar')
 
 <style>
-/* Search bar layout */
-.search-box {
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1rem;
-}
-.search-box .form-control,
-.search-box .form-select {
-    border-color: #ccc;
-}
-.search-box .btn {
-    background-color: #ff4081;
-    border: none;
-    color: white;
-}
-.search-box .btn:hover {
-    background-color: #e73573;
-}
+    /* ---------- Base ---------- */
+    body {
+        background: #f8f9fb;
+        color: #333;
+        font-family: "Inter", system-ui, sans-serif;
+    }
 
-/* Results view modes */
-.catalog-result-list,
-.catalog-result-grid {
-    border-top: 1px solid #e0e0e0;
-}
-.catalog-item {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid #e0e0e0;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.15s ease-in-out;
-}
-.catalog-item:hover {
-    background: #fff6f9;
-}
-.catalog-item:last-child { border-bottom: none; }
+    .container {
+        max-width: 1200px;
+    }
 
-.catalog-thumb {
-    flex: 0 0 110px;
-    height: 140px;
-    background: #f8f9fa;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.catalog-thumb img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-.catalog-info { flex: 1; min-width: 220px; }
-.catalog-info h6 { font-weight: 700; font-size: 1.05rem; }
-.catalog-info p { font-size: 0.9rem; color: #555; }
-.catalog-meta { font-size: 0.9rem; color: #555; }
-.catalog-actions a { color: #333; font-weight: 600; text-decoration: none; z-index: 2; position: relative; }
-.catalog-actions a:hover { color: #ff4081; }
+    /* ---------- View Toggle ---------- */
+    .view-toggle button {
+        border: none;
+        background: #fff;
+        font-size: 1.25rem;
+        color: #666;
+        padding: .4rem .6rem;
+        border-radius: .5rem;
+        transition: all .25s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+    }
 
-/* Grid layout */
-.catalog-result-grid .catalog-item {
-    flex-direction: column;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 1rem;
-    text-align: center;
-}
-.catalog-result-grid .catalog-thumb {
-    height: 180px;
-    width: 100%;
-}
-.catalog-result-grid .catalog-info {
-    flex: none;
-}
-.catalog-result-grid .catalog-meta {
-    font-size: 0.85rem;
-}
+    .view-toggle button.active,
+    .view-toggle button:hover {
+        background: #0d6efd;
+        color: #fff;
+        transform: translateY(-2px);
+    }
 
-/* Toggle buttons */
-.view-toggle {
-    display: flex;
-    gap: 0.4rem;
-}
-.view-toggle button {
-    border: 1px solid #ccc;
-    background: #fff;
-    color: #333;
-    border-radius: 4px;
-    padding: 6px 10px;
-}
-.view-toggle button.active {
-    background-color: #ff4081;
-    border-color: #ff4081;
-    color: #fff;
-}
-.view-toggle button i {
-    font-size: 1rem;
-}
+    /* ---------- Catalog Styles ---------- */
+    .catalog-list .catalog-item,
+    .catalog-grid .catalog-item {
+        position: relative;
+        border: 1px solid #e5e7eb;
+        background: #fff;
+        border-radius: .75rem;
+        overflow: hidden;
+        transition: all .25s ease;
+        cursor: pointer;
+    }
 
-/* Responsive */
-@media (max-width: 767px) {
-    .catalog-item { flex-direction: column; }
-    .catalog-thumb { width: 100%; height: 180px; }
-    .catalog-actions { margin-top: 0.5rem; }
-}
+    .catalog-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    /* ---------- Animation ---------- */
+    @keyframes fadeInUp {
+        0% {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ---------- Grid View ---------- */
+    .catalog-grid {
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: repeat(1, 1fr);
+        animation: fadeInUp .3s ease;
+    }
+
+    @media (min-width: 576px) {
+        .catalog-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 992px) {
+        .catalog-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (min-width: 1200px) {
+        .catalog-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .catalog-grid .catalog-item {
+        display: flex;
+        flex-direction: column;
+        padding: 1rem;
+    }
+
+    .catalog-grid .catalog-thumb img {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        border-radius: .5rem;
+        transition: transform .3s ease;
+    }
+
+    .catalog-grid .catalog-item:hover .catalog-thumb img {
+        transform: scale(1.05);
+    }
+
+    /* ---------- List View ---------- */
+    .catalog-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        animation: fadeInUp .3s ease;
+    }
+
+    .catalog-list .catalog-item {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-start;
+        padding: 1rem;
+    }
+
+    .catalog-list .catalog-thumb img {
+        width: 120px;
+        height: 160px;
+        object-fit: cover;
+        border-radius: .5rem;
+    }
+
+    /* ---------- Catalog Info ---------- */
+    .catalog-info h6 {
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: .25rem;
+    }
+
+    .catalog-info p {
+        font-size: 0.9rem;
+        color: #555;
+        margin-bottom: 0.3rem;
+    }
+
+    .catalog-info .subjects {
+        font-size: 0.85rem;
+        color: #666;
+    }
+
+    .catalog-info .clamp {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    /* ---------- Actions ---------- */
+    .catalog-actions {
+        position: absolute;
+        top: .5rem;
+        right: .5rem;
+    }
+
+    .catalog-actions a {
+        font-size: 0.9rem;
+        color: #0d6efd;
+        text-decoration: none;
+        transition: all .2s ease;
+    }
+
+    .catalog-actions a:hover {
+        color: #084298;
+        text-decoration: underline;
+    }
+
+    /* ---------- MOBILE STRIP VIEW (Updated for real list strip look) ---------- */
+    @media (max-width: 768px) {
+        .catalog-list .catalog-item {
+            display: grid;
+            grid-template-columns: 70px 1fr auto;
+            align-items: center;
+            gap: .75rem;
+            padding: .75rem 1rem;
+            border-radius: .6rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .1);
+        }
+
+        .catalog-list .catalog-thumb img {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: .4rem;
+        }
+
+        .catalog-list .catalog-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .catalog-list .catalog-info h6 {
+            font-size: .9rem;
+            margin-bottom: .1rem;
+            font-weight: 600;
+            color: #111;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .catalog-list .catalog-info p {
+            font-size: .78rem;
+            color: #555;
+            margin-bottom: .1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .catalog-list .catalog-actions {
+            position: static;
+            text-align: right;
+        }
+
+        .catalog-list .catalog-actions a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: .5rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, .1);
+            color: #444;
+            font-size: 1rem;
+        }
+
+        .catalog-list .catalog-actions a:hover {
+            background: #f3f3f3;
+            color: #0d6efd;
+            border-color: #ccc;
+        }
+    }
+
+    /* ---------- Pagination Visibility Fix ---------- */
+    .pagination {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .page-item {
+        margin: 2px;
+    }
+
+    .pagination .page-link {
+        padding: 0.4rem 0.7rem;
+        font-size: 0.85rem;
+        border-radius: 6px;
+    }
+
+    @media (max-width: 768px) {
+        .text-muted.small {
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .pagination {
+            justify-content: center !important;
+            margin-top: 0.5rem;
+        }
+    }
+
+    /* ---------- Search Button Hover (Dark Pink) ---------- */
+    .btn-primary {
+        background-color: #e83e8c;
+        /* dark pink base */
+        border-color: #e83e8c;
+        font-weight: 700;
+        /* bold white text */
+        color: #fff;
+        transition: all 0.25s ease;
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus {
+        background-color: #c71f6e;
+        /* darker pink on hover */
+        border-color: #c71f6e;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+
+    /* ---------- Search Button Active/Pressed ---------- */
+    .btn-primary:active {
+        background-color: #a51a5c !important;
+        border-color: #a51a5c !important;
+    }
+
+    /* ---------- Library Catalog Title ---------- */
+    h4.text-primary {
+        font-weight: 800;
+        /* thicker title text */
+        color: #0d6efd !important;
+        letter-spacing: 0.3px;
+    }
 </style>
 
 <div class="container py-4">
-    <!-- Search Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h4 class="mb-2 mb-md-0">Library Catalog</h4>
+        <h4 class="mb-2 mb-md-0 text-primary">📚 Library Catalog</h4>
         <div class="view-toggle">
-            <button type="button" id="listViewBtn" class="active" title="List View"><i class="bi bi-list"></i></button>
-            <button type="button" id="gridViewBtn" title="Grid View"><i class="bi bi-grid-3x3-gap-fill"></i></button>
+            <button id="listViewBtn" class="active" title="List View"><i class="bi bi-list"></i></button>
+            <button id="gridViewBtn" title="Grid View"><i class="bi bi-grid-3x3-gap-fill"></i></button>
         </div>
     </div>
 
-    <!-- Search Bar -->
-    <form class="d-flex gap-2 flex-wrap search-box" method="GET" action="{{ route('catalogs.search') }}">
-        <div class="input-group flex-grow-1" style="min-width:200px;">
-            <span class="input-group-text"><i class="bi bi-search"></i></span>
-            <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="Search books, journals, authors...">
+    <!-- Search -->
+    <form class="d-flex gap-2 flex-wrap mb-3" method="GET" action="{{ route('catalogs.search') }}">
+        <div class="input-group flex-grow-1" style="min-width:220px;">
+            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" name="q" class="form-control border-start-0" value="{{ request('q') }}" placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
         </div>
-        <select name="type" class="form-select" style="min-width:160px; max-width:220px;">
-            <option value="">SELECT TYPE</option>
-            <option value="Book" {{ request('type')=='Book' ? 'selected' : '' }}>Book</option>
-            <option value="eBook" {{ request('type')=='eBook' ? 'selected' : '' }}>eBook</option>
-            <option value="Journal" {{ request('type')=='Journal' ? 'selected' : '' }}>Journal</option>
-            <option value="Thesis" {{ request('type')=='Thesis' ? 'selected' : '' }}>Thesis</option>
-            <option value="Dissertation" {{ request('type')=='Dissertation' ? 'selected' : '' }}>Dissertation</option>
-            <option value="Map" {{ request('type')=='Map' ? 'selected' : '' }}>Map</option>
-            <option value="Multimedia" {{ request('type')=='Multimedia' ? 'selected' : '' }}>Multimedia</option>
-        </select>
-        <button type="submit" class="btn">Search</button>
+        <button type="submit" class="btn btn-primary px-4 shadow-sm">Search</button>
     </form>
 
-    <!-- Results Info -->
     @if($catalogs->total() > 0)
-        <div class="mb-3 text-muted small">
-            Showing <strong>{{ $catalogs->firstItem() }}</strong>–<strong>{{ $catalogs->lastItem() }}</strong> of <strong>{{ $catalogs->total() }}</strong> results
-        </div>
+    <div class="mb-3 text-muted small">
+        Showing <strong>{{ $catalogs->firstItem() }}</strong>–<strong>{{ $catalogs->lastItem() }}</strong> of <strong>{{ $catalogs->total() }}</strong> results
+    </div>
     @else
-        <div class="mb-3 text-muted small">No results found.</div>
+    <div class="mb-3 text-muted small">No results found.</div>
     @endif
 
-    <!-- Search Results -->
-    <div id="resultList" class="catalog-result-list">
-        @forelse($catalogs as $catalog)
-            <div class="catalog-item">
-                <div class="catalog-thumb">
-                    <img src="{{ asset('images/book-placeholder.png') }}" alt="Cover">
-                </div>
-                <div class="catalog-info">
-                    <h6>{{ $catalog->title }}</h6>
-                    @if(!empty($catalog->additional_info))
-                        <p>{{ Str::limit($catalog->additional_info, 140) }}</p>
-                    @endif
-                    <div class="catalog-meta">
-                        @if($catalog->author)
-                            <div>Author: {{ $catalog->author }}</div>
-                        @endif
-                        @if($catalog->year)
-                            <div>Year: {{ $catalog->year }}</div>
-                        @endif
-                        @if($catalog->sublocation)
-                            <div>Location: {{ $catalog->sublocation }}</div>
-                        @endif
-                    </div>
-                </div>
-                <div class="catalog-actions align-self-start">
-                    <a href="#"><i class="bi bi-plus-circle me-1"></i>Add to list</a>
-                </div>
-                <a href="{{ route('catalogs.show', $catalog->id) }}" class="stretched-link"></a>
+    <!-- Catalog Container -->
+    <div id="catalogContainer" class="catalog-list">
+        @foreach($catalogs as $catalog)
+        <div class="catalog-item">
+            <div class="catalog-thumb">
+                <img src="{{ asset('images/book-placeholder.png') }}" alt="Cover">
             </div>
-        @empty
-            <p class="text-muted">No results found for your search.</p>
-        @endforelse
+
+            <div class="catalog-info">
+                <h6>{{ $catalog->title }}</h6>
+                @if($catalog->author)
+                <p>{{ $catalog->author }}</p>
+                @endif
+                @if($catalog->publisher)
+                <p>{{ $catalog->publisher }}</p>
+                @endif
+            </div>
+
+            <div class="catalog-actions">
+                <a href="#"><i class="bi bi-bookmark-plus me-1"></i></a>
+            </div>
+
+            <a href="{{ route('catalogs.show', $catalog->id) }}" class="stretched-link"></a>
+        </div>
+        @endforeach
     </div>
 
     @if($catalogs->hasPages())
-        <div class="mt-4 d-flex justify-content-center">
-            {{ $catalogs->links('pagination::bootstrap-5') }}
-        </div>
+    <div class="mt-4">{{ $catalogs->links('pagination::bootstrap-5') }}</div>
     @endif
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const listBtn = document.getElementById('listViewBtn');
-    const gridBtn = document.getElementById('gridViewBtn');
-    const resultList = document.getElementById('resultList');
+    document.addEventListener('DOMContentLoaded', () => {
+        const listBtn = document.getElementById('listViewBtn');
+        const gridBtn = document.getElementById('gridViewBtn');
+        const container = document.getElementById('catalogContainer');
 
-    listBtn.addEventListener('click', () => {
-        listBtn.classList.add('active');
-        gridBtn.classList.remove('active');
-        resultList.classList.remove('catalog-result-grid');
-        resultList.classList.add('catalog-result-list');
-    });
+        // Restore last view mode from localStorage (default to list)
+        const savedView = localStorage.getItem('catalogView') || 'list';
+        if (savedView === 'grid') {
+            container.classList.replace('catalog-list', 'catalog-grid');
+            gridBtn.classList.add('active');
+            listBtn.classList.remove('active');
+        }
 
-    gridBtn.addEventListener('click', () => {
-        gridBtn.classList.add('active');
-        listBtn.classList.remove('active');
-        resultList.classList.remove('catalog-result-list');
-        resultList.classList.add('catalog-result-grid');
+        // When clicking List View
+        listBtn.addEventListener('click', () => {
+            container.classList.replace('catalog-grid', 'catalog-list');
+            listBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+            localStorage.setItem('catalogView', 'list');
+        });
+
+        // When clicking Grid View
+        gridBtn.addEventListener('click', () => {
+            container.classList.replace('catalog-list', 'catalog-grid');
+            gridBtn.classList.add('active');
+            listBtn.classList.remove('active');
+            localStorage.setItem('catalogView', 'grid');
+        });
     });
-});
 </script>
+
 
 @include('footer')

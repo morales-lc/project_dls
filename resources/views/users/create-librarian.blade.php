@@ -47,7 +47,7 @@
 <div class="container py-5">
     <h2 class="fw-bold mb-4">Add Librarian</h2>
     <div class="card p-4 shadow rounded-4" style="max-width: 700px; margin:auto;">
-        <form method="POST" action="{{ route('user.add') }}">
+    <form method="POST" action="{{ route('staff.add') }}">
             @csrf
             <input type="hidden" name="role" value="librarian">
 
