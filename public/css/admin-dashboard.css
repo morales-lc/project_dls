@@ -122,4 +122,29 @@ body {
     }
 }
 
+/* ===== Fixed Topnav ===== */
+#adminTopnav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1030; /* above sidebar */
+    background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%);
+    border-bottom: 2px solid #d81b60;
+    box-shadow: 0 4px 16px rgba(232,62,140,0.10);
+    height: var(--management-topnav-height, 64px);
+}
+
+
+#managementMain {
+    margin-left: 260px;
+    padding-top: var(--management-topnav-height, 64px);
+    transition: margin-left 0.25s ease;
+}
+
+/* When sidebar is collapsed */
+.sidebar.sidebar-collapsed + #managementMain {
+    margin-left: 64px;
+}
+
 

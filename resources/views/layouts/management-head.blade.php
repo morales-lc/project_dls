@@ -7,7 +7,7 @@
     <style>
         :root { --management-topnav-height: 72px; }
         /* reasonable spacing between topnav and content */
-        #managementMain > main .container-fluid { padding-top: 0rem; }
+        #managementMain > main .container-fluid { padding-top: 2.0rem; }
           /* don't add padding to body (causes white gap above sticky topnav).
               Reserve the top space for management pages on the main content container instead. */
           /* body { padding-top: var(--management-topnav-height); } */
