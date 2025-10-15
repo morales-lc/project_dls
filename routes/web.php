@@ -343,6 +343,15 @@ Route::get('/learning-spaces', function () {
     return view('learning-spaces');
 })->name('learning-spaces');
 
+// API-like endpoints to fetch programs and courses (used by profile complete form)
+Route::get('/api/programs', function () {
+    return \App\Models\Program::orderBy('name')->get();
+})->name('api.programs');
+
+Route::get('/api/programs/{id}/courses', function ($id) {
+    return \App\Models\Course::where('program_id', $id)->orderBy('name')->get();
+})->name('api.programs.courses');
+
 
 // LiRA Jotform
 use App\Http\Controllers\LiRAController;

@@ -5,6 +5,7 @@
     <title>Graduate Theses Categories</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         .category-card {
             background: #f3f4f6;

@@ -8,39 +8,48 @@
   <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
   <style>
-      /* Responsive tweaks */
-      @media (max-width: 767.98px) {
-        .card {
-          margin: 0 0.5rem;
-          border-radius: 1rem;
-        }
-        .profile-avatar {
-          width: 120px !important;
-          height: 120px !important;
-        }
-        .card-body h4 {
-          font-size: 1.1rem;
-        }
-        .profile-row {
-          padding: 0.5rem 0;
-        }
-        /* Make modal full-screen on very small devices for readability */
-        .modal-dialog.modal-lg {
-          max-width: 100%;
-          margin: 0.5rem;
-        }
-        .modal-content {
-          height: auto;
-        }
+    /* Responsive tweaks */
+    @media (max-width: 767.98px) {
+      .card {
+        margin: 0 0.5rem;
+        border-radius: 1rem;
       }
+
+      .profile-avatar {
+        width: 120px !important;
+        height: 120px !important;
+      }
+
+      .card-body h4 {
+        font-size: 1.1rem;
+      }
+
+      .profile-row {
+        padding: 0.5rem 0;
+      }
+
+      /* Make modal full-screen on very small devices for readability */
+      .modal-dialog.modal-lg {
+        max-width: 100%;
+        margin: 0.5rem;
+      }
+
+      .modal-content {
+        height: auto;
+      }
+    }
+
     .bg-pink {
       background-color: #ffd1e3 !important;
       color: #d81b60 !important;
     }
+
     .text-pink {
       color: #d81b60 !important;
     }
+
     .btn-outline-pink {
       border: 1.5px solid #ffd1e3 !important;
       color: #d81b60 !important;
@@ -49,36 +58,44 @@
       border-radius: 0.7rem;
       transition: 0.2s;
     }
+
     .btn-outline-pink:hover {
       background-color: #ffd1e3 !important;
       color: #b3134b !important;
     }
+
     .card-header.bg-pink {
       background-color: #ffe3ef !important;
       color: #d81b60 !important;
       font-weight: 700;
       border-bottom: 2px solid #ffd1e3;
     }
+
     .card-body {
       background: linear-gradient(180deg, #fff 90%, #ffe3ef 100%);
     }
+
     .profile-label {
       font-weight: 600;
       color: #d81b60;
       font-size: 0.97rem;
     }
+
     .profile-value {
       color: #333;
       font-size: 1.05rem;
       font-weight: 500;
     }
+
     .profile-row {
       border-bottom: 1px solid #ffd1e3;
       padding: 0.7rem 0;
     }
+
     .profile-row:last-child {
       border-bottom: none;
     }
+
     .profile-avatar {
       border: 3px solid #ffd1e3;
       box-shadow: 0 2px 12px #ffd1e3a0;
@@ -152,13 +169,13 @@
                 </div>
                 @endif
                 <div class="profile-row row">
+                  <div class="col-sm-6 profile-label">Program</div>
+                  <div class="col-sm-6 profile-value">{{ $sf->program ? $sf->program->name : ($sf->department ?? '-') }}</div>
+                </div>
+                @if($sf->role === 'student')
+                <div class="profile-row row">
                   <div class="col-sm-6 profile-label">Year Level</div>
                   <div class="col-sm-6 profile-value">{{ $sf->yrlvl ?? '-' }}</div>
-                </div>
-                @if($sf->role === 'faculty')
-                <div class="profile-row row">
-                  <div class="col-sm-6 profile-label">Department</div>
-                  <div class="col-sm-6 profile-value">{{ $sf->department ?? '-' }}</div>
                 </div>
                 @endif
                 <div class="profile-row row">
@@ -171,12 +188,12 @@
                 </div>
               </div>
             </div>
-            </div>
           </div>
-          @endif
         </div>
+        @endif
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Edit Profile Modal -->
@@ -189,6 +206,8 @@
         </div>
         <form id="editProfileForm" enctype="multipart/form-data">
           @csrf
+          {{-- ensure email is submitted since it's required server-side; email is not editable here --}}
+          <input type="hidden" name="email" value="{{ $sf->user->email ?? '' }}">
           <div class="modal-body">
             @if($sf)
             <div class="container-fluid">
@@ -196,7 +215,7 @@
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">School ID</label>
-                    <input name="school_id" id="school_id" class="form-control" value="{{ $sf->school_id ?? '' }}">
+                    <input name="school_id" id="school_id" class="form-control" value="{{ $sf->school_id ?? '' }}" title="Format: C22-0171">
                   </div>
                 </div>
                 <div class="col-md-6">
@@ -217,26 +236,36 @@
                     <input name="last_name" id="last_name" class="form-control" value="{{ $sf->last_name ?? '' }}">
                   </div>
                 </div>
-                <div class="col-md-6">
-                  <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input name="email" id="emailInput" type="email" class="form-control" value="{{ $sf->user->email ?? '' }}">
-                  </div>
+                {{-- Email is not editable here by requirement; show readonly info instead --}}
+                <div class="col-md-12 mb-3">
+                  <div class="small text-muted">Email: {{ $sf->user->email ?? '' }}</div>
                 </div>
                 @if($sf->role === 'student')
                 <div class="col-md-6">
                   <div class="mb-3">
+                    <label class="form-label">Program</label>
+                    <select name="program_id" id="programModalSelect" class="form-select" data-current-program="{{ $sf->program_id ?? '' }}">
+                      <option value="">-- Select Program --</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
                     <label class="form-label">Course</label>
-                    <input name="course" id="courseInput" class="form-control" value="{{ $sf->course ?? '' }}">
+                    <select name="course" id="courseInput" class="form-select" data-current-course="{{ $sf->course ?? '' }}">
+                      <option value="">-- Select Course --</option>
+                    </select>
                   </div>
                 </div>
                 @endif
+                @if($sf->role === 'student')
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">Year level</label>
                     <input name="yrlvl" id="yrlvlInput" class="form-control" value="{{ $sf->yrlvl ?? '' }}">
                   </div>
                 </div>
+                @endif
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">Birthdate</label>
@@ -246,8 +275,10 @@
                 @if($sf->role === 'faculty')
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Department</label>
-                    <input name="department" id="departmentInput" class="form-control" value="{{ $sf->department ?? '' }}">
+                    <label class="form-label">Program</label>
+                    <select name="program_id" id="programModalSelectFaculty" class="form-select" data-current-program="{{ $sf->program_id ?? '' }}">
+                      <option value="">-- Select Program --</option>
+                    </select>
                   </div>
                 </div>
                 @endif
@@ -257,6 +288,21 @@
                     <label class="form-label">Profile picture</label>
                     <input type="file" name="profile_picture" id="profilePictureInput" class="form-control">
                   </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">New password (leave blank to keep current)</label>
+                    <input name="password" id="passwordInput" type="password" class="form-control" placeholder="New password">
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label class="form-label">Confirm password</label>
+                    <input name="password_confirmation" id="passwordConfirmInput" type="password" class="form-control" placeholder="Confirm new password">
+                  </div>
+                </div>
+                <div class="col-12">
+                  <div id="editErrors" class="alert alert-danger d-none"></div>
                 </div>
               </div>
             </div>
@@ -289,6 +335,60 @@
 
     var form = document.getElementById('editProfileForm');
     if (form) {
+      // populate program/course selects in modal
+      const programsEndpoint = "{{ route('api.programs') }}";
+
+      function populateModalPrograms() {
+        fetch(programsEndpoint).then(r => r.json()).then(programs => {
+          const sel = document.getElementById('programModalSelect');
+          const selF = document.getElementById('programModalSelectFaculty');
+          const current = sel ? sel.dataset.currentProgram : (selF ? selF.dataset.currentProgram : '');
+          programs.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.textContent = p.name;
+            if (sel) {
+              const o = opt.cloneNode(true);
+              if (sel.dataset.currentProgram && String(p.id) === String(sel.dataset.currentProgram)) o.selected = true;
+              sel.appendChild(o);
+            }
+            if (selF) {
+              const of = opt.cloneNode(true);
+              if (selF.dataset.currentProgram && String(p.id) === String(selF.dataset.currentProgram)) of.selected = true;
+              selF.appendChild(of);
+            }
+          });
+          // if current program present, load courses
+          if (current && document.getElementById('courseInput')) loadModalCourses(current);
+        }).catch(err => console.error('Failed to load programs', err));
+      }
+
+      function loadModalCourses(programId) {
+        if (!programId) return;
+        fetch('/api/programs/' + programId + '/courses').then(r => r.json()).then(courses => {
+          const courseSel = document.getElementById('courseInput');
+          if (!courseSel) return;
+          courseSel.innerHTML = '<option value="">-- Select Course --</option>';
+          const currentCourse = courseSel.dataset.currentCourse || '';
+          courses.forEach(c => {
+            const o = document.createElement('option');
+            o.value = c.name;
+            o.textContent = c.name;
+            if (String(c.name) === String(currentCourse)) o.selected = true;
+            courseSel.appendChild(o);
+          });
+        }).catch(err => console.error('Failed to load modal courses', err));
+      }
+
+      // wire program change in modal
+      document.getElementById('programModalSelect')?.addEventListener('change', function() {
+        loadModalCourses(this.value);
+      });
+      document.getElementById('programModalSelectFaculty')?.addEventListener('change', function() {
+        /* mirror if needed */ });
+
+      populateModalPrograms();
+
       form.addEventListener('submit', function(e) {
         e.preventDefault();
         var submitBtn = form.querySelector('button[type="submit"]');
@@ -304,6 +404,14 @@
           },
           body: fd
         }).then(function(res) {
+          if (res.status === 422) {
+            return res.json().then(j => {
+              throw {
+                status: 422,
+                body: j
+              };
+            });
+          }
           return res.json();
         }).then(function(data) {
           if (data && data.status === 'ok') {
@@ -335,8 +443,27 @@
             alert((data && data.message) || 'Failed to update profile.');
           }
         }).catch(function(err) {
-          console.error(err);
-          alert('Failed to update profile.');
+          // If validation errors, display them
+          if (err && err.status === 422 && err.body && err.body.errors) {
+            const container = document.getElementById('editErrors');
+            container.classList.remove('d-none');
+            container.innerHTML = '';
+            Object.keys(err.body.errors).forEach(function(k) {
+              err.body.errors[k].forEach(function(msg) {
+                const p = document.createElement('div');
+                p.textContent = msg;
+                container.appendChild(p);
+              });
+            });
+            // scroll modal to top to show errors
+            document.querySelector('#editProfileModal .modal-body')?.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          } else {
+            console.error(err);
+            alert('Failed to update profile.');
+          }
         }).finally(function() {
           submitBtn.disabled = false;
           submitBtn.innerHTML = original;

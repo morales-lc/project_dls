@@ -71,16 +71,17 @@
                 <label class="form-label">Author <span class="text-danger">*</span></label>
                 <input type="text" name="author" id="author" class="form-control form-control-lg" required>
             </div>
-
-            <div class="col-md-6">
-                <label class="form-label">Year <span class="text-danger">*</span></label>
-                <input type="number" name="year" id="year" class="form-control form-control-lg" min="1900" max="{{ date('Y') }}" required>
-            </div>
-
-            <div class="col-md-6">
+            <div class="col-md-9">
                 <label class="form-label">Title of Thesis/Paper <span class="text-danger">*</span></label>
                 <input type="text" name="title" id="title" class="form-control form-control-lg" required>
             </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Year <span class="text-danger">*</span></label>
+                <input type="number" name="year" id="year" class="form-control form-control-lg" min="1980" max="{{ date('Y') }}" required>
+            </div>
+
+
 
             <div class="col-md-12">
                 <label class="form-label">PDF Document <span class="text-danger">*</span></label>

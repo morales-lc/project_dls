@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Online Borrowing & Returning</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         body {
             font-family: 'Segoe UI', Roboto, Arial, sans-serif;

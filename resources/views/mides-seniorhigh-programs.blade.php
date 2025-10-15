@@ -1,5 +1,6 @@
 @include('navbar')
 <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 <div class="container py-4">
     <h2 class="mb-4 fw-bold">Senior High School Research Paper Programs</h2>
 

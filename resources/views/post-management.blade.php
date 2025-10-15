@@ -7,6 +7,13 @@
 @section('title','Post Management')
 
 @section('content')
+
+@if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+@endif
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">

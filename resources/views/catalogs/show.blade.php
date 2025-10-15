@@ -33,7 +33,6 @@
         animation: fadeIn 0.6s ease-in-out;
         align-items: flex-start;
         min-height: 450px;
-        /* ensures a consistent height no matter the content */
     }
 
     @keyframes fadeIn {
@@ -69,7 +68,6 @@
     .catalog-cover {
         flex: 0 0 300px;
         aspect-ratio: 1 / 1;
-        /* ensures square shape */
         display: flex;
         align-items: center;
         justify-content: center;
@@ -90,7 +88,6 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        /* fill the square, cropping if needed */
         border-radius: 8px;
     }
 
@@ -111,9 +108,9 @@
         gap: 0.5rem;
         align-items: center;
         margin-left: auto;
+        flex-wrap: wrap;
     }
 
-    /* Text details */
     .catalog-details p {
         margin-bottom: 0.35rem;
         line-height: 1.5;
@@ -164,7 +161,6 @@
         transform: translateX(4px);
     }
 
-    /* Bookmark toggle pop animation (small UX polish) */
     .bookmark-pop {
         animation: bookmarkPop 360ms cubic-bezier(.2, .9, .3, 1);
     }
@@ -231,7 +227,6 @@
         scrollbar-width: thin;
         padding: 0.5rem;
         scroll-snap-type: x mandatory;
-
         -webkit-overflow-scrolling: touch;
     }
 
@@ -348,98 +343,69 @@
         }
     }
 
-    @media (max-width: 576px) {
+    @media (max-width: 768px) {
+        .catalog-container {
+            flex-direction: column;
+            align-items: center;
+            min-height: auto;
+            padding: 1.5rem;
+        }
+
+        .catalog-cover {
+            width: 100%;
+            max-width: 360px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .top-line {
+            flex-direction: column;
+            align-items: center;
+            gap: .75rem;
+        }
+
+        .title-text {
+            max-width: 100%;
+            text-align: center;
+            font-size: 1.15rem;
+        }
+
+        .button-group {
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .request-buttons {
+            flex-direction: column;
+            max-width: 100%;
+        }
+
+        .request-buttons .btn {
+            width: 100%;
+        }
+
+        .back-btn {
+            position: static;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .table-responsive {
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        table th,
+        table td {
+            font-size: 0.85rem;
+            word-break: break-word;
+        }
+
         .recommend-card {
             flex: 0 0 80%;
         }
 
         .carousel-arrow {
             display: none;
-        }
-
-        /* Hide arrows on touch devices */
-    }
-
-
-    @media (max-width: 720px) {
-        .catalog-container {
-            flex-direction: column;
-            align-items: center;
-            min-height: auto;
-            /* let it adapt on smaller screens */
-        }
-
-        .catalog-cover {
-            width: 100%;
-            max-width: 360px;
-            aspect-ratio: 1 / 1;
-        }
-    }
-
-
-    /* --- Arrows --- */
-    .carousel-arrow {
-        background: #fff;
-        border: 1px solid #ddd;
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        color: #555;
-        cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-        margin: 0 .5rem;
-    }
-
-    .carousel-arrow:hover {
-        background: #e5e7eb;
-        color: #111;
-        transform: scale(1.1);
-    }
-
-    /* --- Responsive --- */
-    @media (max-width: 720px) {
-        .catalog-container {
-            flex-direction: column;
-            padding: 1rem;
-        }
-
-        .catalog-cover {
-            width: 100%;
-            max-width: 360px;
-            margin: 0 auto;
-        }
-
-        .top-line {
-            align-items: center;
-            gap: .5rem;
-            flex-direction: column;
-        }
-
-        .title-text {
-            max-width: 100%;
-            text-align: center;
-        }
-
-        .button-group {
-            margin-left: 0;
-            justify-content: center;
-        }
-    }
-
-    @keyframes fadeUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
         }
     }
 
@@ -455,7 +421,7 @@
         }
     }
 
-    /* --- Request Scanning Button (Outline Pink) --- */
+    /* --- Request Scanning Button --- */
     .btn-outline-pink {
         border: 1px solid #e83e8c;
         color: #e83e8c;
@@ -471,21 +437,88 @@
         box-shadow: 0 4px 10px rgba(232, 62, 140, 0.35);
     }
 
-    /* --- Matched Pair Styling for Request Buttons --- */
     .request-buttons {
         display: flex;
         gap: 0.5rem;
         width: 100%;
         max-width: 320px;
-        /* keeps them neat */
     }
 
     .request-buttons .btn {
         flex: 1;
-        /* equal width */
         text-align: center;
     }
+
+    /* --- Improve Table Head on Mobile --- */
+    @media (max-width: 768px) {
+        table.table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+            width: 40%;
+            white-space: normal;
+            text-align: left;
+            vertical-align: top;
+            border-right: 1px solid #e5e7eb;
+        }
+
+        table.table td {
+            width: 60%;
+            word-break: break-word;
+            white-space: normal;
+            text-align: left;
+        }
+
+        /* Make table rows look more like cards for readability */
+        table.table tr {
+            display: block;
+            margin-bottom: 0.75rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+            overflow: hidden;
+        }
+
+        table.table th,
+        table.table td {
+            display: block;
+            border: none;
+            padding: 0.5rem 0.75rem;
+        }
+
+        /* Light divider line between th and td */
+        table.table th {
+            border-bottom: 1px solid #f1f1f1;
+            background: #f8f9fa;
+        }
+
+        /* Add a little breathing space around the table */
+        .table-responsive {
+            border: none;
+            box-shadow: none;
+        }
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        /* makes all buttons same width */
+        gap: 0.5rem;
+        width: 100%;
+        max-width: 320px;
+    }
+
+    .request-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+
+    
 </style>
+
 
 <div class="container catalog-page">
     <div class="catalog-container">
@@ -504,45 +537,49 @@
             <div class="top-line d-flex align-items-start justify-content-between flex-wrap">
                 <h4 class="title-text">{{ $catalog->title }}</h4>
                 <div class="button-group">
+                    <div class="button-group request-buttons">
+                        <a href="{{ route('lira.jotform', [
+                                            'title' => $catalog->title,
+                                            'author' => $catalog->author,
+                                            'call_number' => $catalog->call_number,
+                                            'isbn' => $catalog->isbn,
+                                            'lccn' => $catalog->lccn,
+                                            'issn' => $catalog->issn,
+                                            'action' => 'borrow'
+                                        ]) }}" class="btn btn-pink btn-sm btn-animated">
+                            <i class="bi bi-send"></i> Request Borrow
+                        </a>
+
+                        <a href="{{ route('lira.jotform', [
+                                            'title' => $catalog->title,
+                                            'author' => $catalog->author,
+                                            'call_number' => $catalog->call_number,
+                                            'isbn' => $catalog->isbn,
+                                            'lccn' => $catalog->lccn,
+                                            'issn' => $catalog->issn,
+                                            'action' => 'scanning'
+                                        ]) }}" class="btn btn-outline-pink btn-sm btn-animated">
+                            <i class="bi bi-printer"></i> Request Scanning
+                        </a>
+                    </div>
+
                     @auth
                     @php $isBookmarked = $catalogBookmarked ?? false; @endphp
-                    <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline bookmark-form" style="margin-top:6px;">
+                    <form method="POST" action="{{ route('bookmarks.toggle') }}"
+                        class="d-inline bookmark-form mt-2 w-100 text-center">
                         @csrf
                         <input type="hidden" name="id" value="{{ $catalog->id }}">
                         <input type="hidden" name="type" value="catalog">
-                        <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-dark' }} btn-animated">
+                        <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-dark' }} btn-animated w-100">
                             <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill' : 'bi-plus-circle' }} me-1"></i>
                             <span>{{ $isBookmarked ? 'Bookmarked' : 'Add to list' }}</span>
                         </button>
                     </form>
                     @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-dark btn-sm btn-animated" style="margin-top:6px;"><i class="bi bi-plus-circle"></i> Add to list</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-dark btn-sm btn-animated mt-2 w-100 text-center">
+                        <i class="bi bi-plus-circle"></i> Add to list
+                    </a>
                     @endauth
-                    <div class="button-group request-buttons">
-                        <a href="{{ route('lira.jotform', [
-        'title' => $catalog->title,
-        'author' => $catalog->author,
-        'call_number' => $catalog->call_number,
-        'isbn' => $catalog->isbn,
-        'lccn' => $catalog->lccn,
-        'issn' => $catalog->issn,
-        'action' => 'borrow'
-    ]) }}" class="btn btn-pink btn-sm btn-animated">
-                            <i class="bi bi-send"></i> Request Borrow
-                        </a>
-
-                        <a href="{{ route('lira.jotform', [
-        'title' => $catalog->title,
-        'author' => $catalog->author,
-        'call_number' => $catalog->call_number,
-        'isbn' => $catalog->isbn,
-        'lccn' => $catalog->lccn,
-        'issn' => $catalog->issn,
-        'action' => 'scanning'
-    ]) }}" class="btn btn-outline-pink btn-sm btn-animated">
-                            <i class="bi bi-printer"></i> Request Scanning
-                        </a>
-                    </div>
                 </div>
             </div>
 

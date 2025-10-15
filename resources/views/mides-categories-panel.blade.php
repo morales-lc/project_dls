@@ -16,6 +16,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="fw-bold mb-0 text-pink">Category Control Panel</h2>
                 <div>
+                    <a href="{{ route('mides.management') }}" class="btn btn-secondary">
+                        <i class="bi bi-back-lg"></i> Go Back
+                    </a>
                     <a href="#" class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
                         <i class="bi bi-plus-lg"></i> Add Category
                     </a>

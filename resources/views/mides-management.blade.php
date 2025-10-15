@@ -20,6 +20,7 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
             <a href="{{ route('mides.upload') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.05rem;"><i class="bi bi-plus-lg"></i> Add New Document</a>
+            <a href="{{ route('mides.categories.panel') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.05rem;"><i class="bi bi-plus-lg"></i> Manage MIDES Categories</a>
             <div style="height: 30px;"></div>
             <form method="GET" action="{{ route('mides.management') }}" class="row g-2 mb-3 align-items-end">
                 <div class="col-md-4">
@@ -174,7 +175,9 @@
                 </div>
             </div>
             <div class="d-flex justify-content-center mt-4">
-                {{ $documents->links() }}
+                {{ $documents->onEachSide(1)->links('pagination::bootstrap-5') }}
+
+               
             </div>
         </div>
     </div>

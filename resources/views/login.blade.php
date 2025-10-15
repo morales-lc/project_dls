@@ -5,6 +5,7 @@
     <title>Login</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         body { background-color: #fff; min-height: 100vh; }
         .login-title { font-size: 2rem; font-weight: 700; margin-top: 60px; text-align: center; color: #000000ff; }

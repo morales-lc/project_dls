@@ -380,6 +380,8 @@
         } catch (e) {
             // ignore
         }
+
+        document.addEventListener('contextmenu', event => event.preventDefault());
     </script>
 </body>
 </html>

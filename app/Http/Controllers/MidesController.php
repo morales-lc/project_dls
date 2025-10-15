@@ -107,12 +107,12 @@ class MidesController extends Controller
         // Search
         $search = request('search');
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
-                  ->orWhere('author', 'like', "%$search%")
-                  ->orWhere('year', 'like', "%$search%")
-                  ->orWhere('type', 'like', "%$search%");
-            })->orWhereHas('midesCategory', function($q) use ($search) {
+                    ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('year', 'like', "%$search%")
+                    ->orWhere('type', 'like', "%$search%");
+            })->orWhereHas('midesCategory', function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%");
             });
         }
@@ -124,11 +124,11 @@ class MidesController extends Controller
             $query->where('mides_category_id', $midesCategoryId);
         } elseif ($type) {
             // Keep backward compatibility: filter by raw type column or related category.type
-            $query->where(function($q) use ($type) {
+            $query->where(function ($q) use ($type) {
                 $q->where('type', $type)
-                  ->orWhereHas('midesCategory', function($q2) use ($type) {
-                      $q2->where('type', $type);
-                  });
+                    ->orWhereHas('midesCategory', function ($q2) use ($type) {
+                        $q2->where('type', $type);
+                    });
             });
         }
 
@@ -137,8 +137,8 @@ class MidesController extends Controller
         $direction = request('direction', 'desc');
         $query->orderBy($sort, $direction);
 
-    $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(request()->query());
-    $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
+        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(request()->query());
+        $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
 
         // Build lookup arrays for type and category/program names
         $typeNames = [];

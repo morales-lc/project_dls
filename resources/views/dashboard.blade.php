@@ -540,6 +540,54 @@
             </style>
         </div>
 
+        <!-- Featured Resources -->
+        <div class="mb-5">
+            <h4 class="fw-bold text-pink">Featured Resources</h4>
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card featured-card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">SIDLAK Journal</h5>
+                            <p class="card-text">Browse the Lourdes College multidisciplinary research journal — latest issues, articles, and journal details.</p>
+                            <div class="mt-auto">
+                                <a href="{{ route('sidlak.index') }}" class="btn btn-outline-pink btn-sm">
+                                    <i class="bi bi-journal-richtext me-2"></i>View SIDLAK
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card featured-card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">MIDES Repository</h5>
+                            <p class="card-text">Access graduate and undergraduate theses, faculty publications, and other repository materials in the MIDES collection.</p>
+                            <div class="mt-auto">
+                                <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-pink btn-sm">
+                                    <i class="bi bi-journal-text me-2"></i>Open MIDES
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card featured-card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Alert Services</h5>
+                            <p class="card-text">Important alerts and timely notices grouped by month and department — stay informed about library services and updates.</p>
+                            <div class="mt-auto">
+                                <a href="{{ route('alert-services.index') }}" class="btn btn-outline-pink btn-sm">
+                                    <i class="bi bi-bell me-2"></i>View Alerts
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <!-- Announcements & Library Hours Side by Side -->
         <div class="row g-4 mb-5">
@@ -667,53 +715,7 @@
         </section>
         @endforeach
 
-        <!-- Featured Resources -->
-        <div class="mb-5">
-            <h4 class="fw-bold text-pink">Featured Resources</h4>
-            <div class="row g-4">
-                <div class="col-md-4">
-                    <div class="card featured-card h-100 shadow-sm">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">SIDLAK Journal</h5>
-                            <p class="card-text">Browse the Lourdes College multidisciplinary research journal — latest issues, articles, and journal details.</p>
-                            <div class="mt-auto">
-                                <a href="{{ route('sidlak.index') }}" class="btn btn-outline-pink btn-sm">
-                                    <i class="bi bi-journal-richtext me-2"></i>View SIDLAK
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="col-md-4">
-                    <div class="card featured-card h-100 shadow-sm">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">MIDES Repository</h5>
-                            <p class="card-text">Access graduate and undergraduate theses, faculty publications, and other repository materials in the MIDES collection.</p>
-                            <div class="mt-auto">
-                                <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-pink btn-sm">
-                                    <i class="bi bi-journal-text me-2"></i>Open MIDES
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card featured-card h-100 shadow-sm">
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">Alert Services</h5>
-                            <p class="card-text">Important alerts and timely notices grouped by month and department — stay informed about library services and updates.</p>
-                            <div class="mt-auto">
-                                <a href="{{ route('alert-services.index') }}" class="btn btn-outline-pink btn-sm">
-                                    <i class="bi bi-bell me-2"></i>View Alerts
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         @include('partials.post-modal')
 

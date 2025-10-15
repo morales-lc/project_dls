@@ -142,16 +142,8 @@ with open(input_file, "rb") as fh:
             isbn, issn, lccn, subjects, additional_details
         ))
 
-# === STEP 2: Delete Missing Records ===
-cursor.execute("SELECT unique_key FROM catalogs")
-existing_keys = {row[0] for row in cursor.fetchall()}
-
-to_delete = existing_keys - new_keys
-if to_delete:
-    placeholders = ",".join(["%s"] * len(to_delete))
-    cursor.execute(f"DELETE FROM catalogs WHERE unique_key IN ({placeholders})", tuple(to_delete))
-    conn.commit()
-    print(f"🧹 Deleted {cursor.rowcount} old record(s) not present in the new file.")
+# === STEP 2: Keep All Existing Records (No Delete) ===
+print("ℹ️ Skipping deletion step. Existing records will be preserved.")
 
 # === STEP 3: Insert or Update Records ===
 for data in records_data:
@@ -180,11 +172,8 @@ for data in records_data:
             additional_details=VALUES(additional_details)
     """, data)
 
-
-
 conn.commit()
 cursor.close()
 conn.close()
 
-print("✅ Catalog successfully synchronized (insert/update/delete complete)!")
-
+print("✅ Catalog successfully synchronized (insert/update only, no deletions)!")

@@ -67,50 +67,41 @@
             </div>
             <div id="studentFields" style="display: none;">
                 <div class="mb-3">
+                    <label for="program" class="form-label">Program</label>
+                    <select id="program" class="form-select">
+                        <option value="">-- Select Program --</option>
+                        {{-- populated via JS --}}
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="course" class="form-label">Course</label>
-                    <select name="course" id="course" class="form-select">
+                    <select name="course" id="course" data-current-course="{{ old('course', Auth::user()->studentFaculty->course ?? '') }}" class="form-select">
                         <option value="">-- Select Course --</option>
-                        <option value="BSIT" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSIT' ? 'selected' : '' }}>BSIT</option>
-                        <option value="BSBA" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSBA' ? 'selected' : '' }}>BSBA</option>
-                        <option value="BSED" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSED' ? 'selected' : '' }}>BSED</option>
-                        <option value="BEED" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BEED' ? 'selected' : '' }}>BEED</option>
-                        <option value="BSN" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSN' ? 'selected' : '' }}>BSN</option>
-                        <option value="AB" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'AB' ? 'selected' : '' }}>AB</option>
-                        <option value="BSA" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSA' ? 'selected' : '' }}>BSA</option>
-                        <option value="BSP" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSP' ? 'selected' : '' }}>BSP</option>
-                        <option value="BSHRM" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'BSHRM' ? 'selected' : '' }}>BSHRM</option>
-                        <option value="Other" {{ old('course', Auth::user()->studentFaculty->course ?? '') == 'Other' ? 'selected' : '' }}>Other</option>
                     </select>
                 </div>
                 <div class="mb-3">
                     <label for="yrlvl" class="form-label">Year Level</label>
                     <select name="yrlvl" id="yrlvl" class="form-select">
                         <option value="">-- Select Year Level --</option>
-                        <option value="1" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '1' ? 'selected' : '' }}>1st Year</option>
-                        <option value="2" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '2' ? 'selected' : '' }}>2nd Year</option>
-                        <option value="3" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '3' ? 'selected' : '' }}>3rd Year</option>
-                        <option value="4" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '4' ? 'selected' : '' }}>4th Year</option>
+                        <option value="1" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '1st Year' ? 'selected' : '' }}>1st Year</option>
+                        <option value="2" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
+                        <option value="3" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
+                        <option value="4" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '4th Year' ? 'selected' : '' }}>4th Year</option>
                         <option value="Other" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == 'Other' ? 'selected' : '' }}>Other</option>
                     </select>
                 </div>
             </div>
             <div id="facultyFields" style="display: none;">
                 <div class="mb-3">
-                    <label for="department" class="form-label">Department</label>
-                    <select name="department" id="department" class="form-select">
-                        <option value="">-- Select Department --</option>
-                        <option value="IT" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'IT' ? 'selected' : '' }}>IT</option>
-                        <option value="Business" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Business' ? 'selected' : '' }}>Business</option>
-                        <option value="Education" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Education' ? 'selected' : '' }}>Education</option>
-                        <option value="Nursing" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Nursing' ? 'selected' : '' }}>Nursing</option>
-                        <option value="Arts" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Arts' ? 'selected' : '' }}>Arts</option>
-                        <option value="Accountancy" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Accountancy' ? 'selected' : '' }}>Accountancy</option>
-                        <option value="Psychology" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Psychology' ? 'selected' : '' }}>Psychology</option>
-                        <option value="HRM" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'HRM' ? 'selected' : '' }}>HRM</option>
-                        <option value="Other" {{ old('department', Auth::user()->studentFaculty->department ?? '') == 'Other' ? 'selected' : '' }}>Other</option>
+                    <label for="program_faculty" class="form-label">Program</label>
+                    <select id="program_faculty" class="form-select">
+                        <option value="">-- Select Program --</option>
+                        {{-- populated via JS --}}
                     </select>
                 </div>
             </div>
+            {{-- hidden input to hold selected program id for form submit --}}
+            <input type="hidden" name="program_id" id="program_id_hidden" value="{{ old('program_id', Auth::user()->studentFaculty->program_id ?? '') }}">
             <div class="mb-3">
                 <label for="birthdate" class="form-label">Birthdate</label>
                 <input type="date" name="birthdate" id="birthdate" class="form-control" value="{{ old('birthdate', Auth::user()->studentFaculty->birthdate ?? '') }}" required>
@@ -133,9 +124,73 @@
                 var role = document.getElementById('role').value;
                 document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
                 document.getElementById('facultyFields').style.display = role === 'faculty' ? 'block' : 'none';
+                // disable course input when faculty
+                var course = document.getElementById('course');
+                if (course) {
+                    if (role === 'faculty') course.setAttribute('disabled', 'disabled'); else course.removeAttribute('disabled');
+                }
             }
+
             document.addEventListener('DOMContentLoaded', function() {
                 toggleRoleFields();
+
+                const programsEndpoint = "{{ route('api.programs') }}";
+                const programSelect = document.getElementById('program');
+                const programFacultySelect = document.getElementById('program_faculty');
+                const hiddenProgram = document.getElementById('program_id_hidden');
+                const currentProgram = hiddenProgram ? hiddenProgram.value : '';
+
+                function populatePrograms() {
+                    fetch(programsEndpoint).then(r => r.json()).then(programs => {
+                        programs.forEach(p => {
+                            const o = document.createElement('option');
+                            o.value = p.id;
+                            o.textContent = p.name;
+                            if (String(p.id) === String(currentProgram)) o.selected = true;
+                            if (programSelect) programSelect.appendChild(o.cloneNode(true));
+                            if (programFacultySelect) programFacultySelect.appendChild(o.cloneNode(true));
+                        });
+                        if (currentProgram) loadCourses(currentProgram);
+                    }).catch(err => console.error('Failed to load programs', err));
+                }
+
+                function loadCourses(programId) {
+                    if (!programId) return;
+                    const url = '/api/programs/' + programId + '/courses';
+                    fetch(url).then(r => r.json()).then(courses => {
+                        const courseSel = document.getElementById('course');
+                        if (!courseSel) return;
+                        courseSel.innerHTML = '<option value="">-- Select Course --</option>';
+                        const currentCourse = document.getElementById('course') ? document.getElementById('course').dataset.currentCourse : '';
+                        courses.forEach(c => {
+                            const o = document.createElement('option');
+                            o.value = c.name;
+                            o.textContent = c.name;
+                            if (String(c.name) === String(currentCourse)) o.selected = true;
+                            courseSel.appendChild(o);
+                        });
+                    }).catch(err => console.error('Failed to load courses', err));
+                }
+
+                // When student program is changed
+                if (programSelect) {
+                    programSelect.addEventListener('change', function() {
+                        const id = this.value;
+                        // set hidden input for form submission
+                        if (hiddenProgram) hiddenProgram.value = id;
+                        // load courses
+                        loadCourses(id);
+                    });
+                }
+
+                // When faculty program select changed, mirror to hidden input
+                if (programFacultySelect) {
+                    programFacultySelect.addEventListener('change', function() {
+                        if (hiddenProgram) hiddenProgram.value = this.value;
+                    });
+                }
+
+                populatePrograms();
             });
         </script>
     </div>

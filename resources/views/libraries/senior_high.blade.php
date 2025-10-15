@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Senior High School Library Staff</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         /* Header Banner */
         .header-banner {

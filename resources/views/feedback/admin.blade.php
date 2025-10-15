@@ -83,6 +83,7 @@
                                 <th>Course</th>
                                 <th>Role</th>
                                 <th>Submitted</th>
+                                <th>Date Submitted</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -118,7 +119,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ $feedback->created_at->format('Y-m-d H:i') }}</td>
+                                <td>{{ \Carbon\Carbon::parse($feedback->created_at)->format('F j, Y g:i A') }}</td>
+
                                 <td class="d-flex gap-1">
                                     <form method="POST" action="{{ route('feedback.delete', $feedback->id) }}" onsubmit="return confirm('Delete this feedback?');">
                                         @csrf

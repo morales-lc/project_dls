@@ -16,7 +16,7 @@ class StudentFaculty extends Model
         'password',
         'course',
         'yrlvl',
-        'department',
+        'program_id',
         'birthdate',
         'role',
         'profile_picture',
@@ -25,5 +25,10 @@ class StudentFaculty extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function program()
+    {
+        return $this->belongsTo(Program::class, 'program_id');
     }
 }

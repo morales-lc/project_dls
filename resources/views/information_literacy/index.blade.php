@@ -5,6 +5,7 @@
     <title>Information Literacy Seminars</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+        <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 </head>
 <body style="min-height: 100vh; background-color: #f8f9fa;">
 @include('navbar')

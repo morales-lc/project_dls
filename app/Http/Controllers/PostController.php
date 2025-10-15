@@ -164,7 +164,7 @@ class PostController extends Controller
             Storage::disk('public')->delete($post->photo);
         }
         $post->delete();
-        return redirect()->route('admin.posts.management')->with('success', 'Post deleted successfully!');
+        return redirect()->route('post.management')->with('success', 'Post deleted successfully!');
     }
 
     public function postManagement(Request $request)

@@ -87,7 +87,7 @@
                             <td>{{ $a->email }}</td>
                             <td>{{ $a->strand_course }}</td>
                             <td>{{ $a->institution_college }}</td>
-                            <td>{{ $a->appointment_date->format('Y-m-d') }}</td>
+                            <td>{{ \Carbon\Carbon::parse($a->appointment_date)->format('F j, Y') }}</td>
                             <td>
                                 @foreach($a->services as $s)
                                 <span class="badge bg-pink text-dark mb-1" style="background:#fcb6d0; color:#d81b60;">{{ $s }}</span>
