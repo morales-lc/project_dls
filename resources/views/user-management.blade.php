@@ -9,23 +9,41 @@
 
 @section('content')
 <style>
-/* Smooth fade animation for Add buttons */
-.add-btn-wrapper {
-    opacity: 0;
-    transform: translateY(-5px);
-    transition: opacity 0.4s ease, transform 0.4s ease;
-    display: none;
-}
-.add-btn-wrapper.show {
-    display: block;
-    opacity: 1;
-    transform: translateY(0);
-}
+    /* Smooth fade animation for Add buttons */
+    .add-btn-wrapper {
+        opacity: 0;
+        transform: translateY(-5px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        display: none;
+    }
+
+    .add-btn-wrapper.show {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Shared animation style */
+    .btn-animated {
+        transition: all 0.2s ease-in-out;
+    }
+
+    /* Hover animation (slight lift + glow) */
+    .btn-animated:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Click/active animation (press down effect) */
+    .btn-animated:active {
+        transform: scale(0.95);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
 </style>
 
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
-        
+
         <!-- Header -->
         <h2 class="fw-bold mb-3 text-pink" style="letter-spacing: 1px; font-size: 2rem;">User Management</h2>
 
@@ -89,7 +107,6 @@
                 <table class="table table-bordered table-hover align-middle bg-white rounded-4">
                     <thead class="table-pink">
                         <tr>
-                            <th>ID</th>
                             <th>Name</th>
                             <th>Email</th>
                             @if ($type === 'student_faculty')
@@ -112,7 +129,6 @@
                     <tbody>
                         @foreach ($users as $user)
                         <tr>
-                            <td>{{ $user->id }}</td>
                             <td>
                                 @if ($type === 'student_faculty')
                                 {{ $user->first_name }} {{ $user->last_name }}
@@ -148,12 +164,27 @@
                             <td>{{ $user->role }}</td>
                             @endif
                             <td>
-                                <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editUserModal{{ $user->id }}">Update</button>
-                                <form method="POST" action="{{ $type === 'student_faculty' ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}" style="display:inline-block;">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this user?')">Delete</button>
-                                </form>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <!-- Update button -->
+                                    <button class="btn btn-warning btn-sm px-3 btn-animated"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editUserModal{{ $user->id }}">
+                                        <i class="bi bi-pencil-square me-1"></i> Update
+                                    </button>
+
+                                    <!-- Delete button -->
+                                    @if (!($type === 'admin' && auth()->check() && auth()->user()->id == $user->id))
+                                    <form method="POST"
+                                        action="{{ $type === 'student_faculty' ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}"
+                                        onsubmit="return confirm('Delete this user?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm px-3 btn-animated">
+                                            <i class="bi bi-trash me-1"></i> Delete
+                                        </button>
+                                    </form>
+                                    @endif
+                                </div>
                                 <!-- Edit Modal -->
                                 <div class="modal fade" id="editUserModal{{ $user->id }}" tabindex="-1" aria-labelledby="editUserLabel{{ $user->id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -268,18 +299,18 @@
 </div>
 
 <script>
-// Smooth fade effect when switching tabs
-document.addEventListener('DOMContentLoaded', () => {
-    const wrappers = document.querySelectorAll('.add-btn-wrapper');
-    const activeTab = '{{ $type }}';
+    // Smooth fade effect when switching tabs
+    document.addEventListener('DOMContentLoaded', () => {
+        const wrappers = document.querySelectorAll('.add-btn-wrapper');
+        const activeTab = '{{ $type }}';
 
-    wrappers.forEach(el => {
-        if (el.id === `add${activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('_faculty', 'Faculty')}`) {
-            el.classList.add('show');
-        } else {
-            el.classList.remove('show');
-        }
+        wrappers.forEach(el => {
+            if (el.id === `add${activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('_faculty', 'Faculty')}`) {
+                el.classList.add('show');
+            } else {
+                el.classList.remove('show');
+            }
+        });
     });
-});
 </script>
 @endsection

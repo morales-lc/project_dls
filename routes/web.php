@@ -2,7 +2,6 @@
 
 
 
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -31,34 +30,42 @@ use App\Http\Controllers\AlinetAppointmentManageController;
 // Information Literacy routes
 use App\Http\Controllers\InformationLiteracyController;
 
-
-
-
-Route::get('/search', [SearchController::class, 'index'])->name('search');
-Route::get('/resource/view', [ResourceController::class, 'show'])->name('resource.view');
-
-Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
-
-Route::view('/saved', 'saved')->name('saved');
-Route::view('/history', 'history')->name('history');
-Route::view('/settings', 'settings')->name('settings');
-
-Route::view('/about', 'about')->name('about');
-
 use App\Http\Controllers\ContactController;
 
 use Illuminate\Support\Facades\Auth;
 
+
+
+Route::view('/about', 'about')->name('about');
+
+
+
 Route::get('/about/contact', [ContactController::class, 'index'])->name('about.contact');
 
-// Admin Contact Info Management
-Route::get('/admin/contact-info', [ContactController::class, 'adminContactInfo'])->name('admin.contact-info');
-Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
+
 Route::view('/chart', 'chart')->name('chart');
 
 Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
-Route::view('/login', 'login')->name('login');
-Route::post('/login', [LoginController::class, 'login'])->name('login');
+// Show login page or redirect logged-in staff to their dashboards
+Route::get('/login', function () {
+    if (\Illuminate\Support\Facades\Auth::check()) {
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->role === 'librarian') {
+            return redirect()->route('librarian.dashboard');
+        }
+        // default: already authenticated non-staff users go home
+        return redirect('/');
+    }
+    return view('login');
+})->name('login');
+
+// Keep the POST login action only for guests
+Route::middleware('guest')->group(function () {
+    Route::post('/login', [LoginController::class, 'login'])->name('login');
+});
 // Logout route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
@@ -190,6 +197,15 @@ Route::middleware(['auth'])->group(function () {
             }
             abort(403);
         })->name('admin.dashboard');
+
+
+        // Admin Contact Info Management
+        Route::get('/admin/contact-info', [ContactController::class, 'adminContactInfo'])->name('admin.contact-info');
+        Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
+        // import routes
+        Route::get('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'showForm'])->name('marc.import.form');
+        Route::post('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'import'])->name('marc.import');
+
         Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
         Route::get('/libraries/staff/manage', [LibraryStaffController::class, 'manage'])->name('libraries.staff.manage');
         // Library Staff CRUD (admin-only)
@@ -244,12 +260,15 @@ Route::middleware(['auth'])->group(function () {
         return $next($request);
     }], function () {
         Route::get('/information-literacy/manage', [App\Http\Controllers\InformationLiteracyController::class, 'manage'])->name('information_literacy.manage');
+        // Librarian profile (view/edit own profile)
+        Route::get('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'edit'])->name('librarian.profile');
+        Route::put('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'update'])->name('librarian.profile.update');
         // Post Management routes
         Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
         Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
         Route::delete('/post-management/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('post.delete');
-    Route::get('/post-management/create', [App\Http\Controllers\PostController::class, 'create'])->name('post.create');
-    Route::get('/post-management', [App\Http\Controllers\PostController::class, 'postManagement'])->name('post.management');
+        Route::get('/post-management/create', [App\Http\Controllers\PostController::class, 'create'])->name('post.create');
+        Route::get('/post-management', [App\Http\Controllers\PostController::class, 'postManagement'])->name('post.management');
 
 
         Route::get('/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
@@ -280,10 +299,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/information-literacy/create', [InformationLiteracyController::class, 'create'])->name('information_literacy.create');
         Route::post('/information-literacy/store', [InformationLiteracyController::class, 'store'])->name('information_literacy.store');
-        Route::get('/information-literacy/manage', function () {
-            $posts = \App\Models\InformationLiteracyPost::orderBy('date_time', 'desc')->get();
-            return view('information_literacy.manage', compact('posts'));
-        })->name('information_literacy.manage');
+        // Use controller method for management so view receives a Paginator
+        Route::get('/information-literacy/manage', [InformationLiteracyController::class, 'manage'])->name('information_literacy.manage');
         Route::get('/information-literacy/{id}/edit', [InformationLiteracyController::class, 'edit'])->name('information_literacy.edit');
         Route::put('/information-literacy/{id}/update', [InformationLiteracyController::class, 'update'])->name('information_literacy.update');
         Route::delete('/information-literacy/{id}/delete', [InformationLiteracyController::class, 'destroy'])->name('information_literacy.delete');
@@ -340,16 +357,35 @@ Route::get('/lira/jotform', [App\Http\Controllers\LiRAController::class, 'showFo
 Route::get('/libraries/college', [LibraryStaffController::class, 'index'])->defaults('department', 'college')->name('libraries.college');
 Route::get('/libraries/graduate', [LibraryStaffController::class, 'index'])->defaults('department', 'graduate')->name('libraries.graduate');
 Route::get('/libraries/senior-high', [LibraryStaffController::class, 'index'])->defaults('department', 'senior_high')->name('libraries.senior_high');
-Route::get('/libraries/ibed', [LibraryStaffController::class, 'index'])->defaults('department', 'ibed')->name('libraries.ibed');
+Route::get('/libraries/k-10', [LibraryStaffController::class, 'index'])->defaults('department', 'ibed')->name('libraries.ibed');
 
 
 // Feedback routes (only for authenticated users)
 Route::middleware('auth')->group(function () {
     Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
     Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
+    // Search history
+    Route::get('/history', [App\Http\Controllers\SearchHistoryController::class, 'index'])->name('history');
+    Route::delete('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'destroy'])->name('history.delete');
+    Route::delete('/history', [App\Http\Controllers\SearchHistoryController::class, 'clearAll'])->name('history.clear');
+    Route::put('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'update'])->name('history.update');
+
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
 });
 
 // Online E-Libraries page
 Route::get('/elibraries', function () {
     return view('elibraries');
 })->name('elibraries');
+
+
+// Book Borrowing page
+use App\Http\Controllers\BookBorrowingController;
+
+Route::get('/book-borrowing', [BookBorrowingController::class, 'show'])->name('book.borrowing');
+
+// Scanning Services page
+Route::get('/scanning-services', [App\Http\Controllers\BookBorrowingController::class, 'scanningServices'])->name('scanning.services');
+
+// Netzone page
+Route::get('/netzone', [App\Http\Controllers\BookBorrowingController::class, 'netzone'])->name('netzone');

@@ -61,6 +61,8 @@ class AlertServiceController extends Controller
         $book = AlertBook::findOrFail($id);
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
+            'call_number' => 'nullable|string|max:255',
+            'author' => 'nullable|string|max:255',
             'pdf_file' => 'nullable|file|mimes:pdf',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'month' => 'required|integer|min:1|max:12',
@@ -75,6 +77,8 @@ class AlertServiceController extends Controller
             $coverPath = $request->file('cover_image')->store('alert_books/covers', 'public');
             $book->cover_image = $coverPath;
         }
+        $book->call_number = $request->input('call_number');
+    $book->author = $request->input('author');
         $book->title = $request->input('title');
         $book->department_id = $request->input('department_id');
         $book->month = $request->input('month');
@@ -111,6 +115,8 @@ class AlertServiceController extends Controller
     {
         $validated = $request->validate([
             'title' => 'nullable|string|max:255',
+            'call_number' => 'nullable|string|max:255',
+            'author' => 'nullable|string|max:255',
             'pdf_file' => 'required|file|mimes:pdf',
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
             'month' => 'required|integer|min:1|max:12',
@@ -121,6 +127,8 @@ class AlertServiceController extends Controller
         $coverPath = $request->file('cover_image') ? $request->file('cover_image')->store('alert_books/covers', 'public') : null;
         AlertBook::create([
             'title' => $request->input('title'),
+            'call_number' => $request->input('call_number'),
+            'author' => $request->input('author'),
             'pdf_path' => $pdfPath,
             'cover_image' => $coverPath,
             'department_id' => $request->input('department_id'),

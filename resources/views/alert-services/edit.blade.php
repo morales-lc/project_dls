@@ -36,6 +36,16 @@
                     <input type="text" name="title" class="form-control form-control-lg" value="{{ old('title', $book->title) }}">
                 </div>
 
+                <div class="col-12">
+                    <label class="form-label">Call Number (optional)</label>
+                    <input type="text" name="call_number" class="form-control form-control-lg" value="{{ old('call_number', $book->call_number) }}">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Author (optional)</label>
+                    <input type="text" name="author" class="form-control form-control-lg" value="{{ old('author', $book->author) }}">
+                </div>
+
                 <div class="col-md-6">
                     <label class="form-label">Month</label>
                     <select name="month" class="form-select form-select-lg" required>

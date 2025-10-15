@@ -102,116 +102,267 @@
         </div>
 
         <div class="card-body">
-          @if($bookmarks->isEmpty())
-            <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #ffe3ef; color: #d81b60; border: 1.5px solid #ffd1e3;">
-              <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no bookmarks yet.
+          {{-- Tabs: All / Catalogs --}}
+          <ul class="nav nav-tabs mb-3" id="bookmarkTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#tab-all" type="button" role="tab" aria-controls="tab-all" aria-selected="true">All</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="catalogs-tab" data-bs-toggle="tab" data-bs-target="#tab-catalogs" type="button" role="tab" aria-controls="tab-catalogs" aria-selected="false">Catalogs</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="mides-tab" data-bs-toggle="tab" data-bs-target="#tab-mides" type="button" role="tab" aria-controls="tab-mides" aria-selected="false">Mides</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="sidlak-tab" data-bs-toggle="tab" data-bs-target="#tab-sidlak" type="button" role="tab" aria-controls="tab-sidlak" aria-selected="false">Sidlak</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="posts-tab" data-bs-toggle="tab" data-bs-target="#tab-posts" type="button" role="tab" aria-controls="tab-posts" aria-selected="false">Posts</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="il-tab" data-bs-toggle="tab" data-bs-target="#tab-il" type="button" role="tab" aria-controls="tab-il" aria-selected="false">Information Literacy</button>
+            </li>
+          </ul>
+
+          <div class="tab-content" id="bookmarkTabsContent">
+            @php
+              // Prepare filtered collections for each tab
+              $catalogBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\Catalog::class);
+              $midesBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\MidesDocument::class);
+              $sidlakBookmarks = $bookmarks->filter(fn($b) => in_array($b->bookmarkable_type, [\App\Models\SidlakArticle::class, \App\Models\SidlakJournal::class]));
+              $postBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\Post::class);
+              $ilBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\InformationLiteracyPost::class);
+            @endphp
+
+            {{-- Helper to render a table for a given collection --}}
+            @php
+              function renderBookmarkRows($collection) {
+                foreach ($collection as $bm) {
+                  echo '<tr style="background: #fff;">';
+                  echo '<td class="text-capitalize text-center align-middle"><span class="badge bg-pink px-3 py-2"><i class="bi bi-bookmark fs-6 me-1"></i>'.class_basename($bm->bookmarkable_type).'</span></td>';
+                  echo '<td class="text-dark align-middle">';
+                  if ($bm->bookmarkable) {
+                    $item = $bm->bookmarkable;
+                    // determine bookmark type and open route/link
+                    $route = null;
+                    $typeValue = 'mides';
+                    if ($bm->bookmarkable_type === \App\Models\MidesDocument::class) {
+                      $route = route('mides.viewer', $item->id);
+                      $typeValue = 'mides';
+                    } elseif ($bm->bookmarkable_type === \App\Models\SidlakArticle::class) {
+                      $route = $item->pdf_file ? asset('storage/' . $item->pdf_file) : null;
+                      $typeValue = 'sidlak';
+                    } elseif ($bm->bookmarkable_type === \App\Models\SidlakJournal::class) {
+                      $route = route('sidlak.show', $item->id);
+                      $typeValue = 'sidlak_journal';
+                    } elseif ($bm->bookmarkable_type === \App\Models\InformationLiteracyPost::class) {
+                      $route = null;
+                      $typeValue = 'information_literacy';
+                    } elseif ($bm->bookmarkable_type === \App\Models\Catalog::class) {
+                      $route = route('catalogs.show', $item->id);
+                      $typeValue = 'catalog';
+                    } elseif ($bm->bookmarkable_type === \App\Models\Post::class) {
+                      $route = null;
+                      $typeValue = 'post';
+                    }
+                    echo '<div class="fw-semibold fs-6 mb-1 text-pink">'.htmlspecialchars($item->title ?? ($item->name ?? 'Item')).'</div>';
+                    echo '<div class="small text-muted">';
+                    if ($bm->bookmarkable_type === \App\Models\SidlakArticle::class) {
+                      echo 'Authors: '.htmlspecialchars($item->authors ?? '');
+                    } elseif ($bm->bookmarkable_type === \App\Models\SidlakJournal::class) {
+                      echo htmlspecialchars(($item->month ?? '').' '.($item->year ?? ''));
+                    } else {
+                      echo htmlspecialchars(($item->author ?? '').' '.($item->year ?? ''));
+                    }
+                    echo '</div>';
+                  } else {
+                    echo '<em class="text-danger">Item removed</em>';
+                  }
+                  echo '</td>';
+                  echo '<td class="text-center text-dark small align-middle">'.($bm->created_at->diffForHumans()).'</td>';
+                  echo '<td class="text-center align-middle">';
+                  echo '<div class="d-flex justify-content-center align-items-center gap-2">';
+                  if ($bm->bookmarkable) {
+                    if ($bm->bookmarkable_type === \App\Models\Post::class) {
+                      $post = $bm->bookmarkable;
+                      echo '<button class="btn btn-sm btn-outline-pink shadow-sm px-3 open-post-from-bookmark" data-post-id="'.($post->id).'" type="button"><i class="bi bi-box-arrow-up-right"></i> Open</button>';
+                    } elseif ($bm->bookmarkable_type === \App\Models\InformationLiteracyPost::class) {
+                      $info = $bm->bookmarkable;
+                      echo '<button class="btn btn-sm btn-outline-pink shadow-sm px-3 open-info-from-bookmark" data-info-id="'.($info->id).'" type="button"><i class="bi bi-box-arrow-up-right"></i> Open</button>';
+                      // hidden il data remains in DOM for modal population
+                      echo '<div class="il-bookmark-data d-none">';
+                      echo '<div class="il-title">'.htmlspecialchars($info->title).'</div>';
+                      echo '<div class="il-datetime">'.htmlspecialchars(date('F j, Y \a\t g:i A', strtotime($info->date_time))).'</div>';
+                      echo '<div class="il-type">'.htmlspecialchars(ucfirst($info->type)).'</div>';
+                      echo '<div class="il-facilitators">'.htmlspecialchars($info->facilitators).'</div>';
+                      echo '<div class="il-image">'.($info->image ? asset('storage/' . $info->image) : '').'</div>';
+                      echo '<div class="il-description">'.nl2br(e($info->description)).'</div>';
+                      echo '</div>';
+                    } else {
+                      if ($route) {
+                        echo '<a href="'.$route.'" class="btn btn-sm btn-outline-pink shadow-sm px-3" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Open</a>';
+                      }
+                    }
+                  }
+                  // Remove form
+                  echo '<form action="'.route('bookmarks.toggle').'" method="POST" class="d-inline bookmark-toggle">'.csrf_field().'<input type="hidden" name="id" value="'.($bm->bookmarkable_id).'">'.'<input type="hidden" name="type" value="'.($typeValue ?? 'mides').'">'.'<button class="btn btn-sm btn-outline-danger shadow-sm px-3" style="border-radius: 0.7rem; border: 1.5px solid #ffd1e3; font-weight: 500;"><i class="bi bi-x-circle"></i> Remove</button></form>';
+                  echo '</div>';
+                  echo '</td>';
+                  echo '</tr>';
+                }
+              }
+            @endphp
+
+            {{-- All tab (full table) --}}
+            <div class="tab-pane fade show active" id="tab-all" role="tabpanel" aria-labelledby="all-tab">
+              @if($bookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #ffe3ef; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($bookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
             </div>
-          @else
-            <div class="table-responsive table-responsive-mobile">
-              <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
-                <thead class="table-light">
-                  <tr>
-                    <th class="fw-bold text-center" style="width: 110px;">Type</th>
-                    <th class="fw-bold">Title / Info</th>
-                    <th class="fw-bold text-center" style="width: 120px;">Added</th>
-                    <th class="fw-bold text-center" style="width: 120px;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @foreach($bookmarks as $bm)
-                    <tr style="background: #fff;">
-                      <td class="text-capitalize text-center align-middle">
-                        <span class="badge bg-pink px-3 py-2">
-                          <i class="bi bi-bookmark fs-6 me-1"></i>{{ class_basename($bm->bookmarkable_type) }}
-                        </span>
-                      </td>
-                      <td class="text-dark align-middle">
-                          @if($bm->bookmarkable)
-                            @php
-                              $item = $bm->bookmarkable;
-                              // determine bookmark type and open route/link
-                              $route = null;
-                              $typeValue = 'mides';
-                              if ($bm->bookmarkable_type === \App\Models\MidesDocument::class) {
-                                $route = route('mides.viewer', $item->id);
-                                $typeValue = 'mides';
-                              } elseif ($bm->bookmarkable_type === \App\Models\SidlakArticle::class) {
-                                // direct link to stored PDF for Sidlak articles
-                                $route = $item->pdf_file ? asset('storage/' . $item->pdf_file) : null;
-                                $typeValue = 'sidlak';
-                              } elseif ($bm->bookmarkable_type === \App\Models\SidlakJournal::class) {
-                                // link to the journal show page
-                                $route = route('sidlak.show', $item->id);
-                                $typeValue = 'sidlak_journal';
-                              } elseif ($bm->bookmarkable_type === \App\Models\InformationLiteracyPost::class) {
-                                // information literacy posts: will open in an internal modal
-                                $route = null;
-                                $typeValue = 'information_literacy';
-                              }
-                            @endphp
-                            <div class="fw-semibold fs-6 mb-1 text-pink">{{ $item->title ?? ($item->name ?? 'Item') }}</div>
-                            <div class="small text-muted">
-                              @if($bm->bookmarkable_type === \App\Models\SidlakArticle::class)
-                                Authors: {{ $item->authors ?? '' }}
-                              @elseif($bm->bookmarkable_type === \App\Models\SidlakJournal::class)
-                                {{ $item->month ?? '' }} {{ $item->year ?? '' }}
-                              @else
-                                {{ $item->author ?? '' }} {{ $item->year ?? '' }}
-                              @endif
-                            </div>
-                        @else
-                          <em class="text-danger">Item removed</em>
-                        @endif
-                      </td>
-                      <td class="text-center text-dark small align-middle">{{ $bm->created_at->diffForHumans() }}</td>
-                      <td class="text-center align-middle">
-                        <div class="d-flex justify-content-center align-items-center gap-2">
-                          @if($bm->bookmarkable)
-                            @if($bm->bookmarkable_type === \App\Models\Post::class)
-                              @php $post = $bm->bookmarkable; @endphp
-                              <!-- Always open modal for posts so website/youtube/image are shown inside the modal -->
-                              <button class="btn btn-sm btn-outline-pink shadow-sm px-3 open-post-from-bookmark" data-post-id="{{ $post->id }}" type="button">
-                                <i class="bi bi-box-arrow-up-right"></i> Open
-                              </button>
-                            @elseif($bm->bookmarkable_type === \App\Models\InformationLiteracyPost::class)
-                              @php $info = $bm->bookmarkable; @endphp
-                              <!-- Open information literacy modal and populate from hidden row data -->
-                              <button class="btn btn-sm btn-outline-pink shadow-sm px-3 open-info-from-bookmark" data-info-id="{{ $info->id }}" type="button">
-                                <i class="bi bi-box-arrow-up-right"></i> Open
-                              </button>
-                              {{-- hidden data for modal population --}}
-                              <div class="il-bookmark-data d-none">
-                                <div class="il-title">{{ e($info->title) }}</div>
-                                <div class="il-datetime">{{ date('F j, Y \a\t g:i A', strtotime($info->date_time)) }}</div>
-                                <div class="il-type">{{ ucfirst($info->type) }}</div>
-                                <div class="il-facilitators">{{ e($info->facilitators) }}</div>
-                                <div class="il-image">{{ $info->image ? asset('storage/' . $info->image) : '' }}</div>
-                                <div class="il-description">{!! nl2br(e($info->description)) !!}</div>
-                              </div>
-                            @else
-                              @if($route)
-                                <a href="{{ $route }}" class="btn btn-sm btn-outline-pink shadow-sm px-3" target="_blank">
-                                  <i class="bi bi-box-arrow-up-right"></i> Open
-                                </a>
-                              @endif
-                            @endif
-                          @endif
-                          <form action="{{ route('bookmarks.toggle') }}" method="POST" class="d-inline bookmark-toggle">
-                            @csrf
-                            <input type="hidden" name="id" value="{{ $bm->bookmarkable_id }}">
-                            <input type="hidden" name="type" value="{{ $typeValue ?? 'mides' }}">
-                            <button class="btn btn-sm btn-outline-danger shadow-sm px-3" style="border-radius: 0.7rem; border: 1.5px solid #ffd1e3; font-weight: 500;">
-                              <i class="bi bi-x-circle"></i> Remove
-                            </button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
+
+            {{-- Catalogs tab (same table layout but filtered) --}}
+            <div class="tab-pane fade" id="tab-catalogs" role="tabpanel" aria-labelledby="catalogs-tab">
+              @if($catalogBookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #fff8f9; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no catalog bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($catalogBookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
             </div>
-          @endif
+
+            {{-- Mides tab --}}
+            <div class="tab-pane fade" id="tab-mides" role="tabpanel" aria-labelledby="mides-tab">
+              @if($midesBookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #ffeef6; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no Mides bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($midesBookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
+            </div>
+
+            {{-- Sidlak (articles + journals) tab --}}
+            <div class="tab-pane fade" id="tab-sidlak" role="tabpanel" aria-labelledby="sidlak-tab">
+              @if($sidlakBookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #fff8f9; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no Sidlak bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($sidlakBookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
+            </div>
+
+            {{-- Posts tab --}}
+            <div class="tab-pane fade" id="tab-posts" role="tabpanel" aria-labelledby="posts-tab">
+              @if($postBookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #fff8f9; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no Post bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($postBookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
+            </div>
+
+            {{-- Information Literacy tab --}}
+            <div class="tab-pane fade" id="tab-il" role="tabpanel" aria-labelledby="il-tab">
+              @if($ilBookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #fff8f9; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no Information Literacy bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($ilBookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
+            </div>
+          </div>
         </div>
       </div>
     </div>

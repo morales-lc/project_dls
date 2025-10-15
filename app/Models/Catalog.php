@@ -9,6 +9,7 @@ class Catalog extends Model
     protected $table = 'catalogs';
 
     protected $fillable = [
+        'unique_key',
         'title',
         'author',
         'call_number',
@@ -24,6 +25,6 @@ class Catalog extends Model
         'issn',
         'lccn',
         'subjects',
-        'additional_details',
+        'additional_details'
     ];
 }

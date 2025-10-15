@@ -30,6 +30,40 @@ class InformationLiteracyController extends Controller
         return view('information_literacy.index', compact('posts', 'bookmarkedIds'));
     }
 
+    // Management list with filters, sorting, and pagination
+    public function manage(Request $request)
+    {
+        $query = InformationLiteracyPost::query();
+
+        // search by title or facilitators
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('facilitators', 'like', "%{$search}%");
+            });
+        }
+
+        // filter by type
+        if ($request->filled('type')) {
+            $query->where('type', $request->input('type'));
+        }
+
+        // sorting
+        $sort = $request->input('sort', 'date_time');
+        $direction = $request->input('direction', 'desc');
+        $allowedSorts = ['date_time', 'title'];
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'date_time';
+        }
+        $direction = $direction === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sort, $direction);
+
+        $posts = $query->paginate(10)->appends($request->except('page'));
+
+        return view('information_literacy.manage', compact('posts'));
+    }
+
     // Show create form
     public function create()
     {

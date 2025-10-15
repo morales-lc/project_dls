@@ -2,6 +2,7 @@
 @push('management-head')
 <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 @endpush
 @section('title','Post Management')
 

@@ -57,7 +57,7 @@
                     @method('PUT')
 
                     <div class="row g-4">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label fw-semibold">Type</label>
                             <select name="type" class="form-select" required>
                                 <option value="Announcement" {{ $post->type == 'Announcement' ? 'selected' : '' }}>Announcement</option>
@@ -67,7 +67,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-9">
                             <label class="form-label fw-semibold">Title</label>
                             <input type="text" name="title" class="form-control" value="{{ $post->title }}" required>
                         </div>
@@ -81,7 +81,7 @@
                     </div>
 
                     <div class="row g-4 mt-1">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label class="form-label fw-semibold">Media Type</label>
                             <select id="mediaType" class="form-select" name="media_type" required onchange="toggleMediaInputs()">
                                 <option value="">Select Media Type</option>
@@ -91,7 +91,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-md-8">
                             <div id="imageInput" style="display:none;">
                                 <label class="form-label fw-semibold">Photo</label>
                                 <input type="file" name="photo" class="form-control" accept="image/*">

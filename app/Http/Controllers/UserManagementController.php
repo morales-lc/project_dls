@@ -168,14 +168,33 @@ class UserManagementController extends Controller
     public function delete($id)
     {
         Log::info('UserManagementController@delete called for id: ' . $id);
-        $sf = \App\Models\StudentFaculty::findOrFail($id);
-        if ($sf->user) {
-            Log::info('Deleting related user with id: ' . $sf->user->id);
-            $sf->user->delete();
+        $sf = \App\Models\StudentFaculty::find($id);
+        // If deleting a student/faculty, proceed as before
+        if ($sf) {
+            if ($sf->user) {
+                Log::info('Deleting related user with id: ' . $sf->user->id);
+                $sf->user->delete();
+            }
+            $sf->delete();
+            Log::info('Deleted student_faculty record with id: ' . $id);
+            return redirect()->route('user.management')->with('success', 'User deleted successfully!');
         }
-        $sf->delete();
-        Log::info('Deleted student_faculty record with id: ' . $id);
-        return redirect()->route('user.management')->with('success', 'User deleted successfully!');
+
+        // Otherwise, try to delete a User (admin or librarian)
+        $user = \App\Models\User::findOrFail($id);
+        // Prevent logged-in admin from deleting their own account
+        if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->id == $user->id && $user->role === 'admin') {
+            return redirect()->route('user.management', ['type' => 'admin'])->with('error', 'You cannot delete your own admin account while logged in.');
+        }
+        // If deleting an admin, ensure at least one admin remains
+        if ($user->role === 'admin') {
+            $adminCount = \App\Models\User::where('role', 'admin')->count();
+            if ($adminCount <= 1) {
+                return redirect()->route('user.management', ['type' => 'admin'])->with('error', 'There must be at least one admin account at all times.');
+            }
+        }
+        $user->delete();
+        return redirect()->route('user.management', ['type' => $user->role])->with('success', ucfirst($user->role) . ' deleted successfully!');
     }
 
     public function index(Request $request)

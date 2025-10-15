@@ -44,7 +44,7 @@
                     <button type="submit" class="btn btn-dark w-100">Filter</button>
                 </div>
                 <div class="col-md-1">
-                    <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                    <a href="{{ route('mides.management') }}" class="btn btn-pink">Clear</a>
                 </div>
             </form>
 

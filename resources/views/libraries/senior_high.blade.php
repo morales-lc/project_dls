@@ -154,7 +154,35 @@
         </div>
     </div>
 
+    
+    <!-- Alert Services Covers (Senior Highschool) -->
+    <div class="container py-5">
+        <div class="divider mx-auto mb-3"></div>
+        <h4 class="fw-bold text-center mb-3">Alert Services</h4>
+        <div class="divider mx-auto mb-3"></div>
+        
 
+        @if(isset($covers) && $covers->count())
+        <div class="row g-4 justify-content-center">
+            @foreach($covers as $cover)
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <a href="{{ $cover->pdf_path ? asset('storage/' . $cover->pdf_path) : '#' }}" target="_blank" class="d-block text-decoration-none text-dark">
+                        <img src="{{ $cover->cover_image ? asset('storage/' . $cover->cover_image) : asset('images/placeholder.jpg') }}" class="img-fluid rounded-top" style="height:260px; object-fit:cover; width:100%;">
+                        <div class="card-body">
+                            <h6 class="fw-bold mb-1">{{ $cover->title ?? 'Untitled' }}</h6>
+                        
+                        </div>
+                    </a>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @else
+        <div class="text-center text-muted">No recent alert covers available.</div>
+        @endif
+
+    </div>
 
     @include('footer')
 </body>

@@ -164,6 +164,7 @@
 
         <div class="d-flex justify-content-end mt-4">
             <button type="submit" form="sidlak-edit-form" class="btn btn-success px-4 shadow-sm">Update</button>
+            <a href="{{ route('sidlak.manage') }}" class="btn btn-outline-secondary px-4 shadow-sm">Cancel</a>
         </div>
     </div>
 </div>

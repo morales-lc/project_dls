@@ -316,12 +316,30 @@
     </div>
 
     <!-- Search -->
-    <form class="d-flex gap-2 flex-wrap mb-3" method="GET" action="{{ route('catalogs.search') }}">
-        <div class="input-group flex-grow-1" style="min-width:220px;">
-            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-            <input type="text" name="q" class="form-control border-start-0" value="{{ request('q') }}" placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
+    <form class="search-bar d-flex flex-nowrap align-items-center gap-2 flex-wrap"
+        method="GET"
+        action="{{ route('catalogs.search') }}"
+        style="max-width: 1600px;">
+        <div class="input-group flex-grow-1" style="min-width: 250px;">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" name="q" class="form-control" value="{{ request('q') }}"
+                placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
         </div>
-        <button type="submit" class="btn btn-primary px-4 shadow-sm">Search</button>
+        <button type="submit"
+            class="btn btn-pink"
+            style="
+            background-color: #e83e8c; 
+            color: white; 
+            border: none; 
+            padding: 0.55rem 1.25rem; 
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: 0.3s;
+        "
+            onmouseover="this.style.backgroundColor='#d63384';"
+            onmouseout="this.style.backgroundColor='#e83e8c';">
+            Search
+        </button>
     </form>
 
     @if($catalogs->total() > 0)

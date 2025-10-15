@@ -119,7 +119,16 @@ class CatalogController extends Controller
         ];
         $jotformUrl = $baseUrl . '?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
 
-        return view('catalogs.show', compact('catalog', 'recommendations', 'jotformUrl'));
+        // determine if current user bookmarked this catalog
+        $catalogBookmarked = false;
+        if ($sf) {
+            $catalogBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                ->where('bookmarkable_type', \App\Models\Catalog::class)
+                ->where('bookmarkable_id', $catalog->id)
+                ->exists();
+        }
+
+        return view('catalogs.show', compact('catalog', 'recommendations', 'jotformUrl', 'catalogBookmarked'));
     }
 
     // Catalog search
@@ -143,6 +152,20 @@ class CatalogController extends Controller
             ->paginate(10)
             ->appends($request->except('page'));
 
+        // Save search history for logged-in student/faculty
+        try {
+            $user = \Illuminate\Support\Facades\Auth::user();
+            if ($user && ($sf = $user->studentFaculty ?? null)) {
+                $resultsCount = $catalogs->total();
+                \App\Models\SearchHistory::create([
+                    'student_faculty_id' => $sf->id,
+                    'query' => $request->input('q', ''),
+                    'results_count' => $resultsCount,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // ignore save failures silently
+        }
         return view('catalogs.search', compact('catalogs'));
     }
 }

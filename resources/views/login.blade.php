@@ -43,6 +43,9 @@
                         @endforeach
                     </div>
                 @endif
+                @if(session('status'))
+                    <div class="alert alert-info">{{ session('status') }}</div>
+                @endif
                 <form method="POST" action="{{ route('login') }}">
                     @csrf
                     <div class="mb-3">

@@ -5,6 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IBED Library Staff</title>
     <style>
+        /* Header Banner */
+        .header-banner {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: url('{{ asset("images/k10_library.jpeg") }}') center center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .header-banner::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4); /* dark overlay */
+        }
+        .header-text {
+            position: relative;
+            z-index: 2;
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+        }
+
         /* Staff Card */
         .staff-card {
             padding: 2rem;
@@ -36,8 +61,12 @@
 <body>
     @include('navbar')
 
+    <!-- Header Banner -->
+    <div class="header-banner">
+        <div class="header-text">IBED Library</div>
+    </div>
+
     <div class="container py-5">
-        <h2 class="fw-bold mb-3 text-center text-pink">IBED Library Staff</h2>
         <div class="divider mx-auto mb-5"></div>
 
         <div class="row g-4 justify-content-center">

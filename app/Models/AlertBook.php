@@ -10,6 +10,8 @@ class AlertBook extends Model
 
     protected $fillable = [
         'title',
+        'call_number',
+        'author',
         'pdf_path',
         'cover_image',
         'department_id',

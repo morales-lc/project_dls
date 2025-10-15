@@ -17,7 +17,7 @@
                     <form method="POST" action="{{ route('dashboard.post.store') }}" enctype="multipart/form-data">
                         @csrf
                         <div class="row g-4">
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label class="form-label fw-semibold">Type</label>
                                 <select name="type" class="form-select" required>
                                     <option value="Announcement">Announcement</option>
@@ -26,7 +26,7 @@
                                     <option value="Post">Post</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-9">
                                 <label class="form-label fw-semibold">Title</label>
                                 <input type="text" name="title" class="form-control" required>
                             </div>
@@ -34,11 +34,11 @@
                         <div class="row g-4 mt-1">
                             <div class="col-12">
                                 <label class="form-label fw-semibold">Description</label>
-                                <textarea name="description" class="form-control" rows="3" required></textarea>
+                                <textarea name="description" class="form-control" rows="5" required></textarea>
                             </div>
                         </div>
                         <div class="row g-4 mt-1">
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label class="form-label fw-semibold">Media Type</label>
                                 <select id="mediaType" class="form-select" name="media_type" required onchange="toggleMediaInputs()">
                                     <option value="">Select Media Type</option>
@@ -47,7 +47,7 @@
                                     <option value="website">Website Link</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-9">
                                 <div id="imageInput" style="display:none;">
                                     <label class="form-label fw-semibold">Photo</label>
                                     <input type="file" name="photo" class="form-control" accept="image/*">

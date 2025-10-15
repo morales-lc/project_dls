@@ -11,18 +11,21 @@
             overflow: hidden !important;
         }
 
-        /* Card hover animation and improved palette */
+        /* Card hover animation and consistent border */
         .card.h-100 {
             transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
             border-radius: 0.85rem;
             overflow: hidden;
-            border: 2px solid transparent;
+            border: 2px solid #e0e0e0;
+            /* Light gray border by default */
+            background-color: #fff;
         }
 
         .card.h-100:hover {
             transform: translateY(-6px) scale(1.01);
             box-shadow: 0 10px 30px rgba(216, 27, 96, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
-            border-color: #d81b60; /* Pink highlight border */
+            border-color: #d81b60;
+            /* Pink border highlight */
         }
 
         .view-btn {
@@ -75,6 +78,7 @@
             }
         }
     </style>
+
 </head>
 
 <body>
@@ -193,10 +197,10 @@
                         $sf = optional(auth()->user()->studentFaculty);
                         $isBookmarked = false;
                         if ($sf && $sf->id) {
-                            $isBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
-                                ->where('bookmarkable_type', \App\Models\MidesDocument::class)
-                                ->where('bookmarkable_id', $doc->id)
-                                ->exists();
+                        $isBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                        ->where('bookmarkable_type', \App\Models\MidesDocument::class)
+                        ->where('bookmarkable_id', $doc->id)
+                        ->exists();
                         }
                         @endphp
                         @if($sf && $sf->id)
@@ -243,13 +247,13 @@
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ...';
                 var fd = new FormData(form);
                 fetch(form.action, {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
-                    },
-                    body: fd
-                }).then(res => res.json())
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
+                        },
+                        body: fd
+                    }).then(res => res.json())
                     .then(data => {
                         if (!data) throw new Error('No response');
                         if (data.status === 'bookmarked') {

@@ -50,7 +50,7 @@
                 <button type="submit" class="btn btn-dark w-100">Filter</button>
             </div>
             <div class="col-md-1">
-                <a href="{{ route('alert-services.manage') }}" class="btn btn-outline-secondary w-100">Clear</a>
+                <a href="{{ route('alert-services.manage') }}" class="btn btn-pink w-100">Clear</a>
             </div>
         </form>
 
@@ -61,9 +61,10 @@
                         <tr style="font-size:1.05rem;">
                             <th style="width:70px">Cover</th>
                             <th>Title</th>
+                            <th>Call Number</th>
+                            <th>Author</th>
                             <th>Department</th>
-                            <th>Month</th>
-                            <th>Year</th>
+                            <th>Date</th>
                             <th>PDF</th>
                             <th>Actions</th>
                         </tr>
@@ -79,9 +80,14 @@
                                 @endif
                             </td>
                             <td class="fw-semibold">{{ $book->title ?? 'Untitled' }}</td>
-                            <td><span class="badge bg-secondary-subtle text-dark px-3 py-2" style="font-size:0.98rem;">{{ $book->department->name ?? '-' }}</span></td>
-                            <td>{{ DateTime::createFromFormat('!m', $book->month)->format('F') }}</td>
-                            <td>{{ $book->year }}</td>
+                            <td class="text-muted">{{ $book->call_number ?? '-' }}</td>
+                            <td class="text-muted">{{ $book->author ?? '-' }}</td>
+                            <td style="white-space: normal; word-wrap: break-word; max-width: 180px;">
+                                <span class="badge bg-secondary-subtle text-dark px-3 py-2" style="font-size:0.98rem; white-space: normal; word-break: break-word;">
+                                    {{ $book->department->name ?? '-' }}
+                                </span>
+                            </td>
+                            <td>{{ DateTime::createFromFormat('!m', $book->month)->format('F') }} {{ $book->year }}</td>
                             <td><a href="{{ asset('storage/'.$book->pdf_path) }}" target="_blank" class="btn btn-sm btn-outline-primary px-3">View PDF</a></td>
                             <td>
                                 <a href="{{ route('alert-services.edit', $book->id) }}" class="btn btn-sm btn-warning px-3 me-1">Edit</a>
@@ -94,7 +100,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No books found.</td>
+                            <td colspan="8" class="text-center text-muted py-4">No books found.</td>
                         </tr>
                         @endforelse
                     </tbody>

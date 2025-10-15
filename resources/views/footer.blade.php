@@ -12,7 +12,7 @@
                 <div class="d-flex flex-column justify-content-start align-items-md-start align-items-center">
                     <div class="footer-brand mb-2" style="font-size:1.35rem; font-weight:700; letter-spacing:0.5px; display:flex; align-items:center; gap:0.5rem;">
                         <i class="bi bi-journal-bookmark-fill" style="color:#fff; font-size:1.7rem;"></i>
-                        <span>Lourdes College Library</span>
+                        <span>LC MIDES Digital Library</span>
                     </div>
                     <div class="footer-motto" style="font-size:1.08rem; color:#ffe3f1; font-weight:400; letter-spacing:0.2px;">Empowering Research &amp; Learning</div>
                 </div>
@@ -53,7 +53,7 @@
         </div>
     <div class="footer-divider my-4" style="border-top:2px solid #fff; opacity:0.18;"></div>
         <div class="footer-bottom text-center" style="font-size:1.07rem; color:#fff; opacity:0.85; letter-spacing:0.2px;">
-            &copy; {{ date('Y') }} Lourdes College Library. All rights reserved.
+            &copy; {{ date('Y') }} Lourdes College Learning Commons. All rights reserved.
         </div>
     </div>
     <style>

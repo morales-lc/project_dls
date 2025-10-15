@@ -11,6 +11,7 @@
     [ 'route' => 'user.management', 'icon' => 'bi-people', 'label' => 'User Management' ],
     [ 'route' => 'libraries.staff.manage', 'icon' => 'bi-person-badge', 'label' => 'Manage Library Staff' ],
     [ 'route' => 'mides.management', 'icon' => 'bi-journal-text', 'label' => 'Mides Management' ],
+    [ 'route' => 'marc.import.form', 'icon' => 'bi-file-earmark-arrow-up', 'label' => 'Import Catalog' ],
     [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],
     [ 'route' => 'alinet.manage', 'icon' => 'bi-calendar-check', 'label' => 'ALINET Appointments' ],
     [ 'route' => 'feedback.admin', 'icon' => 'bi-chat-dots', 'label' => 'Feedback' ],

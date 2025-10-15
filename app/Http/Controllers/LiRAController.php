@@ -10,6 +10,9 @@ class LiRAController extends Controller
     public function showForm(Request $request)
     {
         $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('status', 'Please log in to request via LiRA.');
+        }
         $sf = $user->studentFaculty ?? null;
         $first = $sf->first_name ?? '';
         $middle = $sf->middle_name ?? '';
@@ -47,6 +50,10 @@ class LiRAController extends Controller
             $examplePurposive = rtrim($examplePurposive, ', ');
         }
 
+        $action = $request->query('action', 'borrow');
+        $whatKind = $action === 'scanning' ? 'Library Scanning' : 'Book Borrowing';
+        $whatType = $action === 'scanning' ? 'Scanning' : 'Books';
+
         $baseUrl = 'https://jotform.com/221923899504465';
         $params = [
             'name[first]' => $first,
@@ -56,7 +63,7 @@ class LiRAController extends Controller
             'department' => $department,
             'programstrandgradeLevel' => $programStrandGradeLevel,
             'designation' => $designation,
-            'whatKind' => 'Book Borrowing',
+            'whatKind' => $whatKind,
             'whatType' => 'Books',
             'examplePurposive' => $examplePurposive,
             'forList' => '',

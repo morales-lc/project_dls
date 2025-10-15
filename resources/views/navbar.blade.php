@@ -260,6 +260,29 @@
             }
         }
 
+        /* --- Combined hover effect for logo + text --- */
+        .navbar-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.35s cubic-bezier(.68, -0.55, .27, 1.55), text-shadow 0.35s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.1) translateY(-3px);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Optional: soft glow effect for the logo */
+        .navbar-brand img {
+            transition: box-shadow 0.35s ease;
+        }
+
+        .navbar-brand:hover img {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+
 
         /* Hover to open dropdowns on desktop */
         @media (min-width: 992px) {
@@ -299,7 +322,8 @@
         <div class="container-fluid">
             <!-- Logo and Brand -->
             <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{{ route('dashboard') }}">
-                <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38" class="rounded" style="background:#fff; padding:2px;">
+                <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38"
+                    class="rounded" style="background:#fff; padding:2px;">
                 <span class="d-none d-md-inline">LC MIDES Digital Library</span>
             </a>
 
@@ -337,10 +361,10 @@
                             Libraries
                         </a>
                         <ul class="dropdown-menu {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show' : '' }}" aria-labelledby="librariesDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}" href="{{ route('libraries.ibed') }}">K-10 Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}" href="{{ route('libraries.college') }}">College Library</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}" href="{{ route('libraries.ibed') }}">IBED Library</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online E-Libraries</a></li>
                         </ul>
                     </li>
@@ -354,10 +378,11 @@
                             <li><a class="dropdown-item {{ request()->routeIs('lira.form') ? 'active' : '' }}" href="{{ route('lira.form') }}">LiRA</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('alert-services.*') ? 'active' : '' }}" href="{{ route('alert-services.index') }}">Alert Services</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a></li>
-                            <li><a class="dropdown-item" href="#">Book Borrowing</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('book.borrowing') ? 'active' : '' }}" href="{{ route('book.borrowing') }}">Book Borrowing</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
-                            <li><a class="dropdown-item" href="#">Scanning Services</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('scanning.services') ? 'active' : '' }}" href="{{ route('scanning.services') }}">Scanning Services</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('learning-spaces') ? 'active' : '' }}" href="{{ route('learning-spaces') }}">Learning Spaces</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('netzone') ? 'active' : '' }}" href="{{ route('netzone') }}">Netzone</a></li>
                         </ul>
                     </li>
 
@@ -411,7 +436,6 @@
                                     </a>
                                 </li>
                                 <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
-                                <li><a class="dropdown-item" href="{{ route('settings') }}"><i class="bi bi-gear me-2"></i>Settings</a></li>
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>

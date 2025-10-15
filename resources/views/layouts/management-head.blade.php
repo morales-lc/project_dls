@@ -3,11 +3,13 @@
     <title>@yield('title', 'Management')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     @stack('management-head')
     <style>
-        :root { --management-topnav-height: 72px; }
-        /* reasonable spacing between topnav and content */
-        #managementMain > main .container-fluid { padding-top: 2.0rem; }
+    :root { --management-topnav-height: 72px; }
+    /* reserve space for fixed topnav so content and sidebars don't overlap it */
+    #managementMain { padding-top: var(--management-topnav-height); }
+    #managementMain > main .container-fluid { padding-top: 2.5rem; }
           /* don't add padding to body (causes white gap above sticky topnav).
               Reserve the top space for management pages on the main content container instead. */
           /* body { padding-top: var(--management-topnav-height); } */

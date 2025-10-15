@@ -21,3 +21,44 @@
     padding-right: 0.5rem;
     transition: background 0.2s, color 0.2s;
 }
+
+/* Make all cards uniform height */
+.sidlak-card-hover {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Fix card body layout */
+.sidlak-card-hover .card-body {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
+}
+
+/* Limit title to one or two lines and show ellipsis */
+.sidlak-card-hover .card-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* number of lines before cutoff */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    min-height: 3rem; /* keeps titles aligned across cards */
+}
+
+/* Limit description text to a fixed number of lines */
+.sidlak-card-hover .card-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* controls how many lines of description */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+
+/* Optional: ensure all cards are equal height even with different content */
+.sidlak-card-link .card {
+    min-height: 520px; /* adjust as needed for consistent card size */
+}

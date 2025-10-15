@@ -1,4 +1,4 @@
-<nav id="adminTopnav" class="navbar navbar-expand-lg navbar-light sticky-top" style="background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%); border-bottom: 2px solid #d81b60; box-shadow: 0 4px 16px rgba(232,62,140,0.10); height:72px;">
+<nav id="adminTopnav" class="navbar navbar-expand-lg navbar-light" style="position:fixed; top:0; left:0; right:0; z-index:1050; background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%); border-bottom: 2px solid #d81b60; box-shadow: 0 4px 16px rgba(232,62,140,0.10); height:72px;">
     <div class="container-fluid px-4">
         <button id="sidebarToggleTop" class="btn btn-outline-pink d-none d-lg-inline me-3" type="button" aria-label="Toggle sidebar">
             <i class="bi bi-list fs-2"></i>

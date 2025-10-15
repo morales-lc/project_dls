@@ -8,6 +8,483 @@
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="{{ asset('css/news-card.css') }}" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
+
+
+    <style>
+        /* Keep search bar and button aligned side by side */
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Make the search bar full-width and stack on small screens */
+        @media (max-width: 575.98px) {
+            .search-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-bar .input-group,
+            .search-bar .btn {
+                width: 100%;
+            }
+        }
+
+        .card-clickable {
+            cursor: pointer;
+            transition: box-shadow .2s, transform .2s;
+        }
+
+        .card-clickable:focus,
+        .card-clickable:hover {
+            box-shadow: 0 4px 24px 0 rgba(216, 27, 96, 0.18), 0 1.5px 8px 0 rgba(66, 46, 89, 0.08);
+            transform: translateY(-2px) scale(1.02);
+            outline: 2px solid #d81b60;
+        }
+
+        /* Uniform card image and video size */
+        .lc-news-card-img,
+        .lc-news-card .lc-news-card-img,
+        .lc-news-card iframe.lc-news-card-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            border-radius: 0 !important;
+            background: #fff;
+            display: block;
+        }
+
+        .lc-news-card iframe.lc-news-card-img {
+            min-height: 180px;
+            max-height: 180px;
+        }
+
+        /* Modern modal, no gradients, pink highlights only */
+        .post-modal-glass {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 40px 0 rgba(216, 27, 96, 0.13), 0 2px 16px 0 rgba(66, 46, 89, 0.08);
+            border: 2px solid #ffd1e3;
+            overflow: hidden;
+        }
+
+        .animate-modal {
+            animation: modalPop .35s cubic-bezier(.4, 1.6, .6, 1) 1;
+        }
+
+        @keyframes modalPop {
+            0% {
+                transform: scale(.92) translateY(40px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .post-modal-header {
+            background: #ffe3ef;
+            border-bottom: 1.5px solid #ffd1e3;
+            padding-top: 1.2rem;
+            padding-bottom: 1.2rem;
+        }
+
+        #postModal .modal-title {
+            color: #d81b60;
+            font-size: 2.1rem;
+            letter-spacing: -0.5px;
+        }
+
+        #postModalType {
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            background: #d81b60 !important;
+            border-radius: 0.7rem;
+            padding: 0.4em 1.1em;
+            font-weight: 600;
+            box-shadow: 0 2px 8px 0 rgba(216, 27, 96, 0.08);
+        }
+
+        .post-modal-imgwrap {
+            background: #ffe3ef;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            overflow: hidden;
+        }
+
+        #postModalImageWrap img,
+        #postModalImageWrap iframe {
+            width: 100%;
+            height: 320px;
+            min-height: 180px;
+            max-height: 320px;
+            object-fit: cover;
+            border-top-left-radius: 1.5rem;
+            border-top-right-radius: 1.5rem;
+            box-shadow: 0 2px 16px 0 rgba(216, 27, 96, 0.08);
+            background: #fff;
+            display: block;
+        }
+
+        #postModalImageWrap iframe {
+            aspect-ratio: 16/9;
+        }
+
+        @media (max-width: 991px) {
+
+            #postModalImageWrap img,
+            #postModalImageWrap iframe {
+                height: 180px;
+                max-height: 180px;
+            }
+        }
+
+        .post-modal-body {
+            font-size: 1.18rem;
+            color: #a0003a;
+            line-height: 1.7;
+        }
+
+        #postModalDesc {
+            font-size: 1.18rem;
+            color: #a0003a;
+            line-height: 1.7;
+            word-break: break-word;
+        }
+
+        #postModalLinks a {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-radius: 2em;
+            font-weight: 600;
+            padding: 0.5em 1.5em;
+            font-size: 1.05rem;
+            box-shadow: 0 2px 8px 0 rgba(216, 27, 96, 0.08);
+            transition: background .18s, color .18s, box-shadow .18s;
+        }
+
+        #postModalLinks a.btn-primary {
+            background: #d81b60;
+            border: none;
+            color: #fff;
+        }
+
+        #postModalLinks a.btn-primary:hover {
+            background: #b8004c;
+            color: #fff;
+        }
+
+        #postModalLinks a.btn-danger {
+            background: #ff5252;
+            border: none;
+            color: #fff;
+        }
+
+        #postModalLinks a.btn-danger:hover {
+            background: #b8004c;
+            color: #fff;
+        }
+
+        @media (max-width: 767px) {
+            #postModal .modal-title {
+                font-size: 1.2rem;
+            }
+
+            #postModalImageWrap img,
+            #postModalImageWrap iframe {
+                max-height: 180px;
+            }
+
+            .post-modal-glass {
+                border-radius: 0.8rem;
+            }
+
+            .post-modal-header {
+                border-radius: 0.8rem 0.8rem 0 0;
+            }
+        }
+
+        /* Reduce horizontal gutter between news cards even further */
+        .news-carousel-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .news-carousel {
+            display: flex;
+            justify-content: flex-start;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            gap: 0.7rem;
+            padding-bottom: 0.5rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .news-carousel::-webkit-scrollbar {
+            display: none;
+        }
+
+        .carousel-card {
+            flex: 0 0 calc((100% - 1.4rem) / 3);
+            /* 3 cards, 2 gaps of 0.7rem */
+            max-width: calc((100% - 1.4rem) / 3);
+            min-width: calc((100% - 1.4rem) / 3);
+            margin-right: 0;
+        }
+
+        .lc-news-card {
+            border-radius: 0 !important;
+        }
+
+        @media (max-width: 991px) {
+            .carousel-card {
+                flex: 0 0 90vw;
+                max-width: 90vw;
+                min-width: 90vw;
+            }
+        }
+
+        .carousel-btn {
+            position: absolute;
+            top: 50%;
+            z-index: 2;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            padding: 0;
+            width: 3.2rem;
+            height: 3.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: filter .18s, box-shadow .18s;
+            box-shadow: none;
+        }
+
+        .carousel-btn.left {
+            left: -1.6rem;
+        }
+
+        .carousel-btn.right {
+            right: -1.6rem;
+        }
+
+        @media (max-width: 991px) {
+            .carousel-btn {
+                width: 2.4rem;
+                height: 2.4rem;
+            }
+
+            .carousel-btn.left {
+                left: -1.2rem;
+            }
+
+            .carousel-btn.right {
+                right: -1.2rem;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .carousel-btn {
+                width: 2rem;
+                height: 2rem;
+            }
+
+            .carousel-btn.left {
+                left: 0.1rem;
+            }
+
+            .carousel-btn.right {
+                right: 0.1rem;
+            }
+        }
+
+        .carousel-btn:active svg circle,
+        .carousel-btn:focus svg circle {
+            stroke: #b8004c;
+            filter: drop-shadow(0 2px 8px #ffd1e3);
+        }
+
+        .carousel-btn[disabled] {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .carousel-btn svg {
+            display: block;
+        }
+
+        .carousel-btn svg circle {
+            transition: stroke .18s, filter .18s;
+        }
+
+        .carousel-btn svg path {
+            transition: stroke .18s;
+        }
+
+        .carousel-btn:active svg path,
+        .carousel-btn:focus svg path {
+            stroke: #b8004c;
+        }
+
+        .carousel-btn.modern-btn {
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .carousel-dot {
+            width: 0.8rem;
+            height: 0.8rem;
+            border-radius: 50%;
+            background: #ffd1e3;
+            border: 2px solid #d81b60;
+            cursor: pointer;
+            transition: background .18s, border .18s;
+        }
+
+        .carousel-dot.active {
+            background: #d81b60;
+            border-color: #d81b60;
+        }
+
+        .section-white {
+            background: #fff;
+        }
+
+        .section-pink {
+            background: #ffb6c1;
+        }
+
+        .text-pink {
+            color: #d81b60 !important;
+        }
+
+        .bg-pink {
+            background: #d81b60 !important;
+        }
+
+        .section-pink .card {
+            background: #fff;
+        }
+
+        .section-pink .text-white {
+            color: #fff !important;
+        }
+
+        .section-pink .badge.bg-white.text-pink {
+            background: #fff !important;
+            color: #d81b60 !important;
+        }
+
+        .section-white .badge.bg-pink.text-white {
+            background: #d81b60 !important;
+            color: #fff !important;
+        }
+
+        .library-hours-gif:hover {
+            transform: scale(1.13) rotate(-2deg);
+            z-index: 2;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 16px 0 rgba(216, 27, 96, 0.10);
+        }
+
+
+        /* --- Featured Library Resources --- */
+        .featured-card {
+            border: 2px solid #ffe0ef;
+            border-radius: 1rem;
+            transition: all 0.3s ease;
+            background: linear-gradient(180deg, #fff 92%, #fff7fb 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .featured-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 10px 25px rgba(216, 27, 96, 0.18), 0 6px 10px rgba(0, 0, 0, 0.06);
+            border-color: #d81b60;
+        }
+
+        /* Animated pink glow line on hover */
+        .featured-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0%;
+            height: 4px;
+            background: linear-gradient(90deg, #d81b60, #ff9ecf);
+            transition: width 0.3s ease;
+        }
+
+        .featured-card:hover::after {
+            width: 100%;
+        }
+
+        /* Add subtle hover animation to button icons */
+        .featured-card a.btn i {
+            transition: transform 0.25s ease, color 0.25s ease;
+        }
+
+        .featured-card:hover a.btn i {
+            transform: scale(1.2);
+            color: #b8004c;
+        }
+
+        /* Card title and paragraph enhancements */
+        .featured-card .card-title {
+            color: #d81b60;
+            font-weight: 700;
+            margin-bottom: 0.6rem;
+            transition: color 0.3s ease;
+        }
+
+        .featured-card:hover .card-title {
+            color: #b8004c;
+        }
+
+        .featured-card .card-text {
+            color: #5a5a5a;
+            flex-grow: 1;
+            transition: color 0.25s ease;
+        }
+
+        .featured-card:hover .card-text {
+            color: #2f2f2f;
+        }
+
+        /* Pink outline button with hover fill */
+        .btn-outline-pink {
+            border-color: #d81b60;
+            color: #d81b60;
+            background-color: #fff;
+            transition: all 0.25s ease;
+            font-weight: 600;
+            border-radius: 0.6rem;
+        }
+
+        .btn-outline-pink:hover {
+            background-color: #d81b60;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3);
+        }
+    </style>
 </head>
 
 <body style="min-height: 100vh; overflow-y: auto; background-color: #f8f9fa;">
@@ -22,12 +499,30 @@
 
         <h2 class="fw-bold mb-4">Welcome to Lourdes College Library!</h2>
         <div class="mb-5">
-            <form class="d-flex gap-2 flex-wrap search-box" method="GET" action="{{ route('catalogs.search') }}">
-                <div class="input-group flex-grow-1" style="min-width:200px;">
+            <form class="search-bar d-flex flex-nowrap align-items-center gap-2 flex-wrap"
+                method="GET"
+                action="{{ route('catalogs.search') }}"
+                style="max-width: 1600px;">
+                <div class="input-group flex-grow-1" style="min-width: 250px;">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
-                    <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
+                    <input type="text" name="q" class="form-control" value="{{ request('q') }}"
+                        placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
                 </div>
-                <button type="submit" class="btn">Search</button>
+                <button type="submit"
+                    class="btn btn-pink"
+                    style="
+            background-color: #e83e8c; 
+            color: white; 
+            border: none; 
+            padding: 0.55rem 1.25rem; 
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: 0.3s;
+        "
+                    onmouseover="this.style.backgroundColor='#d63384';"
+                    onmouseout="this.style.backgroundColor='#e83e8c';">
+                    Search
+                </button>
             </form>
 
             <style>
@@ -50,7 +545,7 @@
         <div class="row g-4 mb-5">
             <div class="col-lg-8">
                 <section class="section-white rounded-4 shadow-sm p-4 h-100">
-                    <h4 class="fw-bold mb-3 text-pink">Library Announcements</h4>
+                    <h3 class="fw-bold mb-3 text-pink">Library Announcements</h3>
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item bg-transparent">Library Orientation for Freshmen: August 15, 2025, 9:00 AM at the Main Library Hall.</li>
                         <li class="list-group-item bg-transparent">New Arrivals: Over 200 new books in Science, Business, and Literature sections!</li>
@@ -60,7 +555,7 @@
             </div>
             <div class="col-lg-4 d-flex align-items-stretch">
                 <div class="section-white rounded-4 shadow-sm p-4 w-100 d-flex flex-column align-items-center justify-content-center">
-                    <h4 class="fw-bold mb-3">Library Hours</h4>
+                    <h3 class="fw-bold mb-3">Library Hours</h3>
                     <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
                 </div>
             </div>
@@ -74,7 +569,7 @@
         @endphp
         @foreach($types as $i => $type)
         <section class="{{ $i % 2 == 0 ? 'section-white' : 'section-pink' }} rounded-4 shadow-sm p-4 mb-5 position-relative" style="border:2.5px solid #4a90e2;">
-            <h4 class="fw-bold mb-3 {{ $i % 2 == 0 ? 'text-pink' : 'text-white' }}">{{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}</h4>
+            <h3 class="fw-bold mb-3 {{ $i % 2 == 0 ? 'text-pink' : 'text-white' }}">{{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}</h3>
             <div class="news-carousel-wrap">
                 @php
                 $cardCount = isset($posts) ? $posts->where('type', $type)->count() : 0;
@@ -174,422 +669,68 @@
 
         <!-- Featured Resources -->
         <div class="mb-5">
-            <h4 class="fw-bold">Featured Resources</h4>
+            <h4 class="fw-bold text-pink">Featured Resources</h4>
             <div class="row g-4">
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Online Journal Access</h5>
-                            <p class="card-text">Access thousands of academic journals and research papers through our digital library subscriptions.</p>
-                            <a href="#" class="btn btn-outline-primary btn-sm">Explore Journals</a>
+                    <div class="card featured-card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">SIDLAK Journal</h5>
+                            <p class="card-text">Browse the Lourdes College multidisciplinary research journal — latest issues, articles, and journal details.</p>
+                            <div class="mt-auto">
+                                <a href="{{ route('sidlak.index') }}" class="btn btn-outline-pink btn-sm">
+                                    <i class="bi bi-journal-richtext me-2"></i>View SIDLAK
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Library Guide</h5>
-                            <p class="card-text">Learn how to use the library catalog, borrow books, and access e-resources with our step-by-step guide.</p>
-                            <a href="#" class="btn btn-outline-primary btn-sm">View Guide</a>
+                    <div class="card featured-card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">MIDES Repository</h5>
+                            <p class="card-text">Access graduate and undergraduate theses, faculty publications, and other repository materials in the MIDES collection.</p>
+                            <div class="mt-auto">
+                                <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-pink btn-sm">
+                                    <i class="bi bi-journal-text me-2"></i>Open MIDES
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
+
                 <div class="col-md-4">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">Ask a Librarian</h5>
-                            <p class="card-text">Need help with your research? Chat or email with our librarians for assistance.</p>
-                            <a href="#" class="btn btn-outline-primary btn-sm">Contact Us</a>
+                    <div class="card featured-card h-100 shadow-sm">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">Alert Services</h5>
+                            <p class="card-text">Important alerts and timely notices grouped by month and department — stay informed about library services and updates.</p>
+                            <div class="mt-auto">
+                                <a href="{{ route('alert-services.index') }}" class="btn btn-outline-pink btn-sm">
+                                    <i class="bi bi-bell me-2"></i>View Alerts
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
         @include('partials.post-modal')
 
-        <style>
-            .card-clickable {
-                cursor: pointer;
-                transition: box-shadow .2s, transform .2s;
-            }
 
-            .card-clickable:focus,
-            .card-clickable:hover {
-                box-shadow: 0 4px 24px 0 rgba(216, 27, 96, 0.18), 0 1.5px 8px 0 rgba(66, 46, 89, 0.08);
-                transform: translateY(-2px) scale(1.02);
-                outline: 2px solid #d81b60;
-            }
 
-            /* Uniform card image and video size */
-            .lc-news-card-img,
-            .lc-news-card .lc-news-card-img,
-            .lc-news-card iframe.lc-news-card-img {
-                width: 100%;
-                height: 180px;
-                object-fit: cover;
-                border-radius: 0 !important;
-                background: #fff;
-                display: block;
-            }
-
-            .lc-news-card iframe.lc-news-card-img {
-                min-height: 180px;
-                max-height: 180px;
-            }
-
-            /* Modern modal, no gradients, pink highlights only */
-            .post-modal-glass {
-                background: #fff;
-                border-radius: 1.5rem;
-                box-shadow: 0 8px 40px 0 rgba(216, 27, 96, 0.13), 0 2px 16px 0 rgba(66, 46, 89, 0.08);
-                border: 2px solid #ffd1e3;
-                overflow: hidden;
-            }
-
-            .animate-modal {
-                animation: modalPop .35s cubic-bezier(.4, 1.6, .6, 1) 1;
-            }
-
-            @keyframes modalPop {
-                0% {
-                    transform: scale(.92) translateY(40px);
-                    opacity: 0;
-                }
-
-                100% {
-                    transform: scale(1) translateY(0);
-                    opacity: 1;
-                }
-            }
-
-            .post-modal-header {
-                background: #ffe3ef;
-                border-bottom: 1.5px solid #ffd1e3;
-                padding-top: 1.2rem;
-                padding-bottom: 1.2rem;
-            }
-
-            #postModal .modal-title {
-                color: #d81b60;
-                font-size: 2.1rem;
-                letter-spacing: -0.5px;
-            }
-
-            #postModalType {
-                font-size: 1rem;
-                letter-spacing: 0.5px;
-                background: #d81b60 !important;
-                border-radius: 0.7rem;
-                padding: 0.4em 1.1em;
-                font-weight: 600;
-                box-shadow: 0 2px 8px 0 rgba(216, 27, 96, 0.08);
-            }
-
-            .post-modal-imgwrap {
-                background: #ffe3ef;
-                border-top-left-radius: 1.5rem;
-                border-top-right-radius: 1.5rem;
-                overflow: hidden;
-            }
-
-            #postModalImageWrap img,
-            #postModalImageWrap iframe {
-                width: 100%;
-                height: 320px;
-                min-height: 180px;
-                max-height: 320px;
-                object-fit: cover;
-                border-top-left-radius: 1.5rem;
-                border-top-right-radius: 1.5rem;
-                box-shadow: 0 2px 16px 0 rgba(216, 27, 96, 0.08);
-                background: #fff;
-                display: block;
-            }
-
-            #postModalImageWrap iframe {
-                aspect-ratio: 16/9;
-            }
-
-            @media (max-width: 991px) {
-
-                #postModalImageWrap img,
-                #postModalImageWrap iframe {
-                    height: 180px;
-                    max-height: 180px;
-                }
-            }
-
-            .post-modal-body {
-                font-size: 1.18rem;
-                color: #a0003a;
-                line-height: 1.7;
-            }
-
-            #postModalDesc {
-                font-size: 1.18rem;
-                color: #a0003a;
-                line-height: 1.7;
-                word-break: break-word;
-            }
-
-            #postModalLinks a {
-                margin-right: 0.5rem;
-                margin-bottom: 0.5rem;
-                border-radius: 2em;
-                font-weight: 600;
-                padding: 0.5em 1.5em;
-                font-size: 1.05rem;
-                box-shadow: 0 2px 8px 0 rgba(216, 27, 96, 0.08);
-                transition: background .18s, color .18s, box-shadow .18s;
-            }
-
-            #postModalLinks a.btn-primary {
-                background: #d81b60;
-                border: none;
-                color: #fff;
-            }
-
-            #postModalLinks a.btn-primary:hover {
-                background: #b8004c;
-                color: #fff;
-            }
-
-            #postModalLinks a.btn-danger {
-                background: #ff5252;
-                border: none;
-                color: #fff;
-            }
-
-            #postModalLinks a.btn-danger:hover {
-                background: #b8004c;
-                color: #fff;
-            }
-
-            @media (max-width: 767px) {
-                #postModal .modal-title {
-                    font-size: 1.2rem;
-                }
-
-                #postModalImageWrap img,
-                #postModalImageWrap iframe {
-                    max-height: 180px;
-                }
-
-                .post-modal-glass {
-                    border-radius: 0.8rem;
-                }
-
-                .post-modal-header {
-                    border-radius: 0.8rem 0.8rem 0 0;
-                }
-            }
-
-            /* Reduce horizontal gutter between news cards even further */
-            .news-carousel-wrap {
-                position: relative;
-                display: flex;
-                align-items: center;
-            }
-
-            .news-carousel {
-                display: flex;
-                justify-content: flex-start;
-                overflow-x: hidden;
-                scroll-behavior: smooth;
-                gap: 0.7rem;
-                padding-bottom: 0.5rem;
-                scrollbar-width: none;
-                -ms-overflow-style: none;
-                width: 100%;
-                max-width: 100%;
-            }
-
-            .news-carousel::-webkit-scrollbar {
-                display: none;
-            }
-
-            .carousel-card {
-                flex: 0 0 calc((100% - 1.4rem) / 3);
-                /* 3 cards, 2 gaps of 0.7rem */
-                max-width: calc((100% - 1.4rem) / 3);
-                min-width: calc((100% - 1.4rem) / 3);
-                margin-right: 0;
-            }
-
-            .lc-news-card {
-                border-radius: 0 !important;
-            }
-
-            @media (max-width: 991px) {
-                .carousel-card {
-                    flex: 0 0 90vw;
-                    max-width: 90vw;
-                    min-width: 90vw;
-                }
-            }
-
-            .carousel-btn {
-                position: absolute;
-                top: 50%;
-                z-index: 2;
-                transform: translateY(-50%);
-                background: transparent;
-                border: none;
-                padding: 0;
-                width: 3.2rem;
-                height: 3.2rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                cursor: pointer;
-                transition: filter .18s, box-shadow .18s;
-                box-shadow: none;
-            }
-
-            .carousel-btn.left {
-                left: -1.6rem;
-            }
-
-            .carousel-btn.right {
-                right: -1.6rem;
-            }
-
-            @media (max-width: 991px) {
-                .carousel-btn {
-                    width: 2.4rem;
-                    height: 2.4rem;
-                }
-                .carousel-btn.left {
-                    left: -1.2rem;
-                }
-                .carousel-btn.right {
-                    right: -1.2rem;
-                }
-            }
-
-            @media (max-width: 575.98px) {
-                .carousel-btn {
-                    width: 2rem;
-                    height: 2rem;
-                }
-                .carousel-btn.left {
-                    left: 0.1rem;
-                }
-                .carousel-btn.right {
-                    right: 0.1rem;
-                }
-            }
-
-            .carousel-btn:active svg circle,
-            .carousel-btn:focus svg circle {
-                stroke: #b8004c;
-                filter: drop-shadow(0 2px 8px #ffd1e3);
-            }
-
-            .carousel-btn[disabled] {
-                opacity: 0.4;
-                pointer-events: none;
-            }
-
-            .carousel-btn svg {
-                display: block;
-            }
-
-            .carousel-btn svg circle {
-                transition: stroke .18s, filter .18s;
-            }
-
-            .carousel-btn svg path {
-                transition: stroke .18s;
-            }
-
-            .carousel-btn:active svg path,
-            .carousel-btn:focus svg path {
-                stroke: #b8004c;
-            }
-
-            .carousel-btn.modern-btn {
-                background: transparent;
-                border: none;
-                box-shadow: none;
-                padding: 0;
-            }
-
-            .carousel-dots {
-                display: flex;
-                justify-content: center;
-                gap: 0.5rem;
-                margin-top: 0.5rem;
-            }
-
-            .carousel-dot {
-                width: 0.8rem;
-                height: 0.8rem;
-                border-radius: 50%;
-                background: #ffd1e3;
-                border: 2px solid #d81b60;
-                cursor: pointer;
-                transition: background .18s, border .18s;
-            }
-
-            .carousel-dot.active {
-                background: #d81b60;
-                border-color: #d81b60;
-            }
-
-            .section-white {
-                background: #fff;
-            }
-
-            .section-pink {
-                background: #ffb6c1;
-            }
-
-            .text-pink {
-                color: #d81b60 !important;
-            }
-
-            .bg-pink {
-                background: #d81b60 !important;
-            }
-
-            .section-pink .card {
-                background: #fff;
-            }
-
-            .section-pink .text-white {
-                color: #fff !important;
-            }
-
-            .section-pink .badge.bg-white.text-pink {
-                background: #fff !important;
-                color: #d81b60 !important;
-            }
-
-            .section-white .badge.bg-pink.text-white {
-                background: #d81b60 !important;
-                color: #fff !important;
-            }
-
-            .library-hours-gif:hover {
-                transform: scale(1.13) rotate(-2deg);
-                z-index: 2;
-                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 16px 0 rgba(216, 27, 96, 0.10);
-            }
-        </style>
-
-        <!-- Library Hours moved above -->
 
         <!-- Library Services -->
         <div class="mb-5">
             <h4 class="fw-bold">Library Services</h4>
             <ul class="list-group">
-                <li class="list-group-item">Book Borrowing & Returning</li>
-                <li class="list-group-item">Reference and Research Assistance</li>
-                <li class="list-group-item">Internet and Computer Access</li>
-                <li class="list-group-item">Printing and Scanning</li>
-                <li class="list-group-item">Study Rooms and Discussion Areas</li>
-                <li class="list-group-item">Online Resources and Databases</li>
+                <li class="list-group-item">Catalog Browsing</li>
+                <li class="list-group-item">Book Borrowing</li>
+                <li class="list-group-item">Alert Services</li>
+                <li class="list-group-item">ALINET (Appointment Scheduling)</li>
+                <li class="list-group-item">Information Literacy</li>
+                <li class="list-group-item">Scanning Services</li>
+                <li class="list-group-item">Learning Spaces</li>
             </ul>
         </div>
 

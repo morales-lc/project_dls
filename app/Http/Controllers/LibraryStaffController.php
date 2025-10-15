@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\LibraryStaff;
+use App\Models\AlertBook;
+use App\Models\AlertDepartment;
 
 class LibraryStaffController extends Controller
 {
@@ -17,7 +19,22 @@ class LibraryStaffController extends Controller
     public function index($department)
     {
         $staff = LibraryStaff::where('department', $department)->get();
-        return view('libraries.' . $department, compact('staff'));
+        // Fetch 3 random alert covers for the Senior Highschool department
+        $covers = collect();
+        try {
+            $dept = AlertDepartment::where('name', 'Senior Highschool')->first();
+            if ($dept) {
+                $covers = AlertBook::where('department_id', $dept->id)
+                    ->whereNotNull('cover_image')
+                    ->inRandomOrder()
+                    ->take(3)
+                    ->get();
+            }
+        } catch (\Exception $e) {
+            // silently ignore and keep $covers empty
+        }
+
+        return view('libraries.' . $department, compact('staff', 'covers'));
     }
 
     public function create()

@@ -73,35 +73,57 @@
 
         /* Mobile Adjustments */
         @media (max-width: 768px) {
-            #toolbar {
-                flex-direction: column;
-                gap: 6px;
-                padding: 10px;
-                position: sticky;
+            /* Hide the top toolbar and show a compact bottom toolbar for touch devices */
+            #toolbar { display: none; }
+            #bottom-toolbar {
+                position: fixed;
+                bottom: 8px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(34,34,34,0.95);
+                padding: 8px 10px;
+                border-radius: 999px;
+                display: flex;
+                gap: 8px;
+                z-index: 1200;
+                align-items: center;
+                box-shadow: 0 6px 18px rgba(0,0,0,0.45);
             }
 
-            #toolbar button {
-                flex: 1 1 auto;
-                width: 100%;
-                max-width: 280px;
-                font-size: 13px;
-                padding: 8px;
+            #bottom-toolbar button {
+                background: #333;
+                color: #fff;
+                border: none;
+                padding: 10px 12px;
+                border-radius: 8px;
+                font-size: 16px;
+                min-width: 44px; /* recommend touch size */
+                min-height: 44px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
             }
 
             #pdf-container {
-                margin-top: 130px; /* more space for stacked toolbar */
-                height: calc(100vh - 130px);
-                padding: 5px;
+                margin-top: 0;
+                height: calc(100vh - 24px); /* leave room for bottom toolbar */
+                padding: 8px 6px 64px; /* bottom padding so last page isn't hidden */
+                box-sizing: border-box;
             }
-        }
 
-        @media (max-width: 480px) {
-            #toolbar {
-                font-size: 12px;
-            }
-            #toolbar button {
-                padding: 6px;
-                font-size: 12px;
+            /* Add a small toggle button on the bottom-left to open the full toolbar if needed */
+            #toolbar-toggle {
+                position: fixed;
+                left: 10px;
+                bottom: 18px;
+                z-index: 1210;
+                background: rgba(34,34,34,0.95);
+                color: #fff;
+                border: none;
+                padding: 10px 12px;
+                border-radius: 8px;
+                font-size: 16px;
+                box-shadow: 0 6px 18px rgba(0,0,0,0.35);
             }
         }
     </style>
@@ -139,6 +161,51 @@
 
         const container = document.getElementById("pdf-container");
 
+        // Create bottom toolbar for mobile and the toggle control
+        function ensureBottomToolbar() {
+            if (!document.getElementById('bottom-toolbar')) {
+                const bt = document.createElement('div');
+                bt.id = 'bottom-toolbar';
+                bt.innerHTML = `
+                    <button id="b-prev">⬅</button>
+                    <button id="b-next">➡</button>
+                    <button id="b-zoomOut">➖</button>
+                    <button id="b-zoomIn">➕</button>
+                    <button id="b-fitWidth">↔</button>
+                `;
+                document.body.appendChild(bt);
+
+                const toggle = document.createElement('button');
+                toggle.id = 'toolbar-toggle';
+                toggle.title = 'Open controls';
+                toggle.innerText = '☰';
+                document.body.appendChild(toggle);
+
+                // wire bottom toolbar to existing handlers
+                bt.querySelector('#b-prev').addEventListener('click', () => document.getElementById('prev').click());
+                bt.querySelector('#b-next').addEventListener('click', () => document.getElementById('next').click());
+                bt.querySelector('#b-zoomOut').addEventListener('click', () => document.getElementById('zoomOut').click());
+                bt.querySelector('#b-zoomIn').addEventListener('click', () => document.getElementById('zoomIn').click());
+                bt.querySelector('#b-fitWidth').addEventListener('click', () => document.getElementById('fitWidth').click());
+
+                toggle.addEventListener('click', () => {
+                    const top = document.getElementById('toolbar');
+                    if (top) {
+                        if (top.style.display === 'flex' || top.style.display === '') {
+                            top.style.display = 'none';
+                        } else {
+                            top.style.display = 'flex';
+                            top.style.position = 'fixed';
+                            top.style.top = '8px';
+                            top.style.left = '8px';
+                            top.style.right = '8px';
+                            top.style.zIndex = '1300';
+                        }
+                    }
+                });
+            }
+        }
+
         function renderPage(num) {
             if (!pdfDoc) return;
             // cancel any ongoing render to avoid flicker
@@ -150,9 +217,13 @@
             pdfDoc.getPage(num).then(page => {
                 let viewport;
                 if (fitMode) {
+                    // fit to available width and height (considering mobile bottom toolbar)
                     const desiredWidth = container.clientWidth - 10;
+                    const desiredHeight = container.clientHeight - 10;
                     const unscaledViewport = page.getViewport({ scale: 1 });
-                    const scaleFactor = desiredWidth / unscaledViewport.width;
+                    const scaleX = desiredWidth / unscaledViewport.width;
+                    const scaleY = desiredHeight / unscaledViewport.height;
+                    const scaleFactor = Math.min(scaleX, scaleY);
                     viewport = page.getViewport({ scale: scaleFactor });
                 } else {
                     viewport = page.getViewport({ scale });
@@ -233,9 +304,13 @@
             pdfDoc = pdf;
             document.getElementById("page_count").textContent = pdf.numPages;
             renderPage(pageNum);
+            // Ensure bottom toolbar exists on mobile
+            ensureBottomToolbar();
         });
 
         window.addEventListener("resize", () => {
+            // recreate bottom toolbar if viewport changes
+            try { ensureBottomToolbar(); } catch (e) {}
             if (fitMode) renderPage(pageNum);
         });
 

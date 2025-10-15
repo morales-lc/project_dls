@@ -41,7 +41,4 @@
             </a>
         </li>
     </ul>
-    <div class="mt-auto py-3 px-3">
-        <a href="#" id="sidebarToggleBottom" class="btn btn-outline-pink btn-sm w-100">Toggle</a>
-    </div>
 </nav>

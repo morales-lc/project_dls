@@ -1,4 +1,4 @@
-<nav id="librarianTopnav" class="navbar navbar-expand-lg navbar-light sticky-top" style="background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%); border-bottom: 2px solid #d81b60; box-shadow: 0 4px 16px rgba(232,62,140,0.10); height:72px;">
+<nav id="librarianTopnav" class="navbar navbar-expand-lg navbar-light" style="position:fixed; top:0; left:0; right:0; z-index:1050; background: linear-gradient(90deg, #f8bbd0 0%, #e83e8c 100%); border-bottom: 2px solid #d81b60; box-shadow: 0 4px 16px rgba(232,62,140,0.10); height:72px;">
     <div class="container-fluid px-4">
         <button id="sidebarToggleBtnTop" class="btn btn-outline-pink d-none d-lg-inline me-3" type="button" aria-label="Toggle sidebar">
             <i class="bi bi-list fs-2"></i>
@@ -15,7 +15,7 @@
                     <i class="bi bi-caret-down-fill ms-1" style="font-size:0.9rem; color:#d81b60;"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="librarianProfileDropdown">
-                    <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ route('librarian.profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
