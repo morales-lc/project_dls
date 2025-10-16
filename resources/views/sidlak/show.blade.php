@@ -131,7 +131,7 @@
                                     <div class="card-body">
                                         <h5 class="fw-bold" style="color:#e83e8c;">{{ $article->title }}</h5>
                                         <div class="mb-2 text-muted">Authors: {{ $article->authors }}</div>
-                                                    <a href="{{ asset('storage/' . $article->pdf_file) }}" target="_blank" class="btn btn-outline-success">Download PDF</a>
+                                                    <a href="{{ route('sidlak.article.download', $article->id) }}" target="_blank" class="btn btn-outline-success">Download PDF</a>
                                                     @if(Auth::check())
                                                         @php
                                                             // Use controller-provided list of bookmarked article IDs if available

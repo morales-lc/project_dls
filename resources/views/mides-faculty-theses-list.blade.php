@@ -73,7 +73,7 @@
                                                 <h5 class="modal-title" id="pdfModalLabel{{ $doc->id }}">{{ $doc->title }} ({{ $doc->year }})</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <iframe src="{{ route('mides.viewer', $doc->id) }}" width="100%" height="100%" style="border:none; min-height:70vh;"></iframe>
+                                            <iframe data-src="{{ route('mides.viewer', $doc->id) }}" src="about:blank" width="100%" height="100%" style="border:none; min-height:70vh;"></iframe>
                                         </div>
                                     </div>
                                 </div>
@@ -118,4 +118,21 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Lazy-load iframe src for PDF modals to avoid calling viewer route on page load
+    document.querySelectorAll('.modal').forEach(modalEl => {
+        modalEl.addEventListener('show.bs.modal', function (e) {
+            const iframe = this.querySelector('iframe[data-src]');
+            if (iframe && (!iframe.src || iframe.src === 'about:blank')) {
+                iframe.src = iframe.getAttribute('data-src');
+            }
+        });
+        modalEl.addEventListener('hidden.bs.modal', function (e) {
+            const iframe = this.querySelector('iframe[data-src]');
+            if (iframe) {
+                iframe.src = 'about:blank';
+            }
+        });
+    });
+</script>
 

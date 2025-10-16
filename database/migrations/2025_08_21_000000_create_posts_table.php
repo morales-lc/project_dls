@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->string('type'); // Announcement, Event, etc.
             $table->string('title');
-            $table->text('description');
+            $table->text('description')->nullable(); // New description field
             $table->string('photo')->nullable(); // Path to uploaded photo
             $table->string('youtube_link')->nullable(); // YouTube video URL
             $table->timestamps();

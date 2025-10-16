@@ -67,7 +67,7 @@
                             </select>
                         </div>
 
-                        <div class="col-md-9">
+                        <div class="col-md-12">
                             <label class="form-label fw-semibold">Title</label>
                             <input type="text" name="title" class="form-control" value="{{ $post->title }}" required>
                         </div>
@@ -76,7 +76,7 @@
                     <div class="row g-4 mt-1">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control" rows="3" required>{{ $post->description }}</textarea>
+                            <textarea name="description" class="form-control" rows="3">{{ $post->description }}</textarea>
                         </div>
                     </div>
 

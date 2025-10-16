@@ -50,7 +50,10 @@
         <!-- Tabs -->
         <ul class="nav nav-pills mb-3" id="userTypeTabs">
             <li class="nav-item">
-                <a class="nav-link {{ request('type', 'student_faculty') == 'student_faculty' ? 'active' : '' }}" href="{{ route('user.management', ['type' => 'student_faculty']) }}">Student/Faculty</a>
+                <a class="nav-link {{ request('type', 'student') == 'student' ? 'active' : '' }}" href="{{ route('user.management', ['type' => 'student']) }}">Student</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ request('type') == 'faculty' ? 'active' : '' }}" href="{{ route('user.management', ['type' => 'faculty']) }}">Faculty</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ request('type') == 'admin' ? 'active' : '' }}" href="{{ route('user.management', ['type' => 'admin']) }}">Admin</a>
@@ -89,7 +92,7 @@
                     <div class="col">
                         <input type="text" name="q" class="form-control" placeholder="Search name / email / username" value="{{ $search ?? '' }}">
                     </div>
-                    @if($type === 'student_faculty')
+                    @if($type === 'student' || $type === 'faculty')
                     <div class="col-auto">
                         <input type="text" name="school_id" class="form-control" placeholder="School ID" value="{{ $schoolId ?? '' }}">
                     </div>
@@ -109,19 +112,22 @@
                         <tr>
                             <th>Name</th>
                             <th>Email</th>
-                            @if ($type === 'student_faculty')
-                            <th>School ID</th>
-                            <th>Role</th>
-                            <th>Course</th>
-                            <th>Year Level</th>
-                            <th>Department</th>
-                            <th>Birthdate</th>
-                            <th>Profile Picture</th>
+                            @if ($type === 'student')
+                                <th>School ID</th>
+                                <th>Course</th>
+                                <th>Year Level</th>
+                                <th>Program</th>
+                                <th>Birthdate</th>
+                                <th>Profile Picture</th>
+                            @elseif ($type === 'faculty')
+                                <th>School ID</th>
+                                <th>Program</th>
+                                <th>Birthdate</th>
+                                <th>Profile Picture</th>
                             @else
-                            <th>Username</th>
-                            <th>Contact Number</th>
-                            <th>Address</th>
-                            <th>Role</th>
+                                <th>Username</th>
+                                <th>Contact Number</th>
+                                <th>Address</th>
                             @endif
                             <th>Actions</th>
                         </tr>
@@ -130,52 +136,66 @@
                         @foreach ($users as $user)
                         <tr>
                             <td>
-                                @if ($type === 'student_faculty')
-                                {{ $user->first_name }} {{ $user->last_name }}
+                                @if ($type === 'student' || $type === 'faculty')
+                                    {{ $user->first_name }} {{ $user->last_name }}
                                 @else
-                                {{ $user->name }}
+                                    {{ $user->name }}
                                 @endif
                             </td>
                             <td>
-                                @if ($type === 'student_faculty')
-                                {{ $user->user->email ?? '' }}
+                                @if ($type === 'student' || $type === 'faculty')
+                                    {{ $user->user->email ?? '' }}
                                 @else
-                                {{ $user->email }}
+                                    {{ $user->email }}
                                 @endif
                             </td>
-                            @if ($type === 'student_faculty')
-                            <td>{{ $user->school_id }}</td>
-                            <td>{{ $user->role }}</td>
-                            <td>{{ $user->course }}</td>
-                            <td>{{ $user->yrlvl }}</td>
-                            <td>{{ $user->department }}</td>
-                            <td>{{ $user->birthdate }}</td>
-                            <td>
-                                @php
-                                $profilePic = $user->profile_picture;
-                                $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                                @endphp
-                                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($user->first_name . ' ' . $user->last_name)) }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
-                            </td>
+                            @if ($type === 'student')
+                                <td>{{ $user->school_id }}</td>
+                                <td>{{ $user->course }}</td>
+                                <td>{{ $user->yrlvl }}</td>
+                                <td>{{ $user->program ? $user->program->name : '' }}</td>
+                                <td>{{ $user->birthdate }}</td>
+                                <td>
+                                    @php
+                                    $profilePic = $user->profile_picture;
+                                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                                    @endphp
+                                    <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($user->first_name . ' ' . $user->last_name)) }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                                </td>
+                            @elseif ($type === 'faculty')
+                                <td>{{ $user->school_id }}</td>
+                                <td>{{ $user->program ? $user->program->name : '' }}</td>
+                                <td>{{ $user->birthdate }}</td>
+                                <td>
+                                    @php
+                                    $profilePic = $user->profile_picture;
+                                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                                    @endphp
+                                    <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($user->first_name . ' ' . $user->last_name)) }}" alt="Profile Picture" class="rounded-circle" width="40" height="40">
+                                </td>
                             @else
-                            <td>{{ $user->username }}</td>
-                            <td>{{ $user->contact_number }}</td>
-                            <td>{{ $user->address }}</td>
-                            <td>{{ $user->role }}</td>
+                                <td>{{ $user->username }}</td>
+                                <td>{{ $user->contact_number }}</td>
+                                <td>{{ $user->address }}</td>
                             @endif
                             <td>
                                 <div class="d-flex gap-2 justify-content-center">
-                                    <!-- Update button -->
-                                    <button class="btn btn-warning btn-sm px-3 btn-animated"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editUserModal{{ $user->id }}">
-                                        <i class="bi bi-pencil-square me-1"></i> Update
-                                    </button>
+                                    @if ($type === 'student' || $type === 'faculty')
+                                        <a href="{{ route('student_faculty.edit', $user->id) }}" class="btn btn-warning btn-sm px-3 btn-animated">
+                                            <i class="bi bi-pencil-square me-1"></i> Update
+                                        </a>
+                                    @else
+                                        <button class="btn btn-warning btn-sm px-3 btn-animated"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#editUserModal{{ $user->id }}">
+                                            <i class="bi bi-pencil-square me-1"></i> Update
+                                        </button>
+                                    @endif
 
                                     <!-- Delete button -->
                                     @if (!($type === 'admin' && auth()->check() && auth()->user()->id == $user->id))
                                     <form method="POST"
-                                        action="{{ $type === 'student_faculty' ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}"
+                                        action="{{ ($type === 'student' || $type === 'faculty') ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}"
                                         onsubmit="return confirm('Delete this user?');">
                                         @csrf
                                         @method('DELETE')
@@ -185,65 +205,19 @@
                                     </form>
                                     @endif
                                 </div>
-                                <!-- Edit Modal -->
+                                @if ($type === 'admin' || $type === 'librarian')
+                                <!-- Edit Modal for admin/librarian only -->
                                 <div class="modal fade" id="editUserModal{{ $user->id }}" tabindex="-1" aria-labelledby="editUserLabel{{ $user->id }}" aria-hidden="true">
                                     <div class="modal-dialog modal-lg modal-dialog-centered">
                                         <div class="modal-content">
                                             <div class="modal-header">
-                                                <h5 class="modal-title" id="editUserLabel{{ $user->id }}">Update User - {{ $type === 'student_faculty' ? ($user->first_name . ' ' . $user->last_name) : ($user->name ?? $user->username) }}</h5>
+                                                <h5 class="modal-title" id="editUserLabel{{ $user->id }}">Update User - {{ $user->name ?? $user->username }}</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <form method="POST" action="{{ $type === 'student_faculty' ? route('user.update', $user->id) : route('staff.update', $user->id) }}">
+                                            <form method="POST" action="{{ route('staff.update', $user->id) }}">
                                                 @csrf
                                                 @method('PUT')
                                                 <div class="modal-body">
-                                                    @if ($type === 'student_faculty')
-                                                    <div class="row g-2">
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">First Name</label>
-                                                            <input type="text" name="first_name" class="form-control" value="{{ $user->first_name }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Last Name</label>
-                                                            <input type="text" name="last_name" class="form-control" value="{{ $user->last_name }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Email</label>
-                                                            <input type="email" name="email" class="form-control" value="{{ $user->user->email ?? '' }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">School ID</label>
-                                                            <input type="text" name="school_id" class="form-control" value="{{ $user->school_id }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Course</label>
-                                                            <input type="text" name="course" class="form-control" value="{{ $user->course }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Year Level</label>
-                                                            <input type="text" name="yrlvl" class="form-control" value="{{ $user->yrlvl }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Department</label>
-                                                            <input type="text" name="department" class="form-control" value="{{ $user->department }}">
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Birthdate</label>
-                                                            <input type="date" name="birthdate" class="form-control" value="{{ $user->birthdate }}">
-                                                        </div>
-                                                        <div class="col-12">
-                                                            <label class="form-label">Role</label>
-                                                            <select name="role" class="form-select">
-                                                                <option value="student" {{ $user->role === 'student' ? 'selected' : '' }}>Student</option>
-                                                                <option value="faculty" {{ $user->role === 'faculty' ? 'selected' : '' }}>Faculty</option>
-                                                            </select>
-                                                        </div>
-                                                        <div class="col-md-6">
-                                                            <label class="form-label">Password (leave blank to keep current)</label>
-                                                            <input type="password" name="password" class="form-control" autocomplete="new-password">
-                                                        </div>
-                                                    </div>
-                                                    @else
                                                     <div class="row g-2">
                                                         <div class="col-md-6">
                                                             <label class="form-label">Name</label>
@@ -277,7 +251,6 @@
                                                             <input type="password" name="password" class="form-control" autocomplete="new-password">
                                                         </div>
                                                     </div>
-                                                    @endif
                                                 </div>
                                                 <div class="modal-footer">
                                                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -288,6 +261,7 @@
                                     </div>
                                 </div>
                                 <!-- End Edit Modal -->
+                                @endif
                             </td>
                         </tr>
                         @endforeach
@@ -313,4 +287,52 @@
         });
     });
 </script>
+@if ($type === 'student_faculty')
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const programsEndpoint = "{{ route('api.programs') }}";
+        // When a modal is shown, populate dropdowns and select values
+        document.querySelectorAll('.modal').forEach(function(modal) {
+            modal.addEventListener('show.bs.modal', function() {
+                const programSel = modal.querySelector('.program-select');
+                const courseSel = modal.querySelector('.course-select');
+                if (programSel) {
+                    // Clear previous options
+                    programSel.innerHTML = '<option value="">-- Select Program --</option>';
+                    fetch(programsEndpoint).then(r => r.json()).then(programs => {
+                        const currentProgram = programSel.dataset.currentProgram;
+                        programs.forEach(p => {
+                            const o = document.createElement('option');
+                            o.value = p.id;
+                            o.textContent = p.name;
+                            if (String(p.id) === String(currentProgram)) o.selected = true;
+                            programSel.appendChild(o);
+                        });
+                        // If current program, load courses
+                        if (currentProgram && courseSel) {
+                            loadCourses(currentProgram, courseSel, courseSel.dataset.currentCourse);
+                        }
+                    });
+                    programSel.addEventListener('change', function() {
+                        if (courseSel) loadCourses(this.value, courseSel);
+                    });
+                }
+            });
+        });
+        function loadCourses(programId, courseSel, currentCourse = '') {
+            if (!programId) return;
+            fetch('/api/programs/' + programId + '/courses').then(r => r.json()).then(courses => {
+                courseSel.innerHTML = '<option value="">-- Select Course --</option>';
+                courses.forEach(c => {
+                    const o = document.createElement('option');
+                    o.value = c.name;
+                    o.textContent = c.name;
+                    if (String(c.name) === String(currentCourse)) o.selected = true;
+                    courseSel.appendChild(o);
+                });
+            });
+        }
+    });
+</script>
+@endif
 @endsection

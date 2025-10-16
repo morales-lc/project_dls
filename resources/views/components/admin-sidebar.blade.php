@@ -18,6 +18,7 @@
     [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
     [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'Sidlak Journals' ],
     [ 'route' => 'admin.contact-info', 'icon' => 'bi-telephone', 'label' => 'Contact Info Management' ],
+    [ 'route' => 'admin.analytics', 'icon' => 'bi-telephone', 'label' => 'Analytics' ],
     [ 'route' => 'admin.backup', 'icon' => 'bi-database', 'label' => 'System Backup' ],
     ];
         @endphp

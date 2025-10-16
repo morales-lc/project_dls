@@ -20,10 +20,10 @@ class UserManagementController extends Controller
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email',
                 'username' => 'required|string|max:255|unique:student_faculty,username',
-                'role' => 'required|in:student_faculty',
+                'role_type' => 'required|in:student,faculty',
+                'program_id' => 'required|exists:programs,id',
                 'course' => 'nullable|string|max:255',
                 'yrlvl' => 'nullable|string|max:255',
-                'department' => 'nullable|string|max:255',
                 'birthdate' => 'nullable|date',
                 'password' => 'nullable|string|min:6',
             ]);
@@ -44,11 +44,19 @@ class UserManagementController extends Controller
             $sf->first_name = $request->first_name;
             $sf->last_name = $request->last_name;
             $sf->username = $request->username;
-            $sf->role = $request->role;
-            $sf->course = $request->course;
-            $sf->yrlvl = $request->yrlvl;
-            $sf->department = $request->department;
+            $sf->role = $request->role_type;
+            $sf->program_id = $request->program_id;
+            if ($request->role_type === 'student') {
+                $sf->course = $request->course;
+                $sf->yrlvl = $request->yrlvl;
+            } else {
+                $sf->course = null;
+                $sf->yrlvl = null;
+            }
             $sf->birthdate = $request->birthdate;
+            if ($request->filled('password')) {
+                $sf->password = bcrypt($request->password);
+            }
             $sf->save();
 
             return redirect()->route('user.management')->with('success', 'Student/Faculty added successfully!');
@@ -117,14 +125,12 @@ class UserManagementController extends Controller
             $sf->department = $request->department;
             $sf->birthdate = $request->birthdate;
 
-            // If a password is provided, update both student_faculty.password (if used) and the related users.password
             if ($request->filled('password')) {
                 $sf->password = bcrypt($request->password);
             }
 
             $sf->save();
 
-            // Update or create linked users table record's email/password if applicable
             if ($sf->user) {
                 $sf->user->email = $request->email;
                 if ($request->filled('password')) {
@@ -169,7 +175,6 @@ class UserManagementController extends Controller
     {
         Log::info('UserManagementController@delete called for id: ' . $id);
         $sf = \App\Models\StudentFaculty::find($id);
-        // If deleting a student/faculty, proceed as before
         if ($sf) {
             if ($sf->user) {
                 Log::info('Deleting related user with id: ' . $sf->user->id);
@@ -180,13 +185,10 @@ class UserManagementController extends Controller
             return redirect()->route('user.management')->with('success', 'User deleted successfully!');
         }
 
-        // Otherwise, try to delete a User (admin or librarian)
         $user = \App\Models\User::findOrFail($id);
-        // Prevent logged-in admin from deleting their own account
         if (\Illuminate\Support\Facades\Auth::check() && \Illuminate\Support\Facades\Auth::user()->id == $user->id && $user->role === 'admin') {
             return redirect()->route('user.management', ['type' => 'admin'])->with('error', 'You cannot delete your own admin account while logged in.');
         }
-        // If deleting an admin, ensure at least one admin remains
         if ($user->role === 'admin') {
             $adminCount = \App\Models\User::where('role', 'admin')->count();
             if ($adminCount <= 1) {
@@ -199,14 +201,14 @@ class UserManagementController extends Controller
 
     public function index(Request $request)
     {
-        $type = $request->query('type', 'student_faculty');
-    $search = $request->query('q');
-    $schoolId = $request->query('school_id');
-    $hasSearch = !empty($search);
-    $hasSchoolId = !empty($schoolId);
+        $type = $request->query('type', 'student');
+        $search = $request->query('q');
+        $schoolId = $request->query('school_id');
+        $hasSearch = !empty($search);
+        $hasSchoolId = !empty($schoolId);
 
-        if ($type === 'student_faculty') {
-            $usersQuery = \App\Models\StudentFaculty::with('user');
+        if ($type === 'student' || $type === 'faculty') {
+            $usersQuery = \App\Models\StudentFaculty::with('user')->where('role', $type);
             if ($hasSearch) {
                 $s = $search;
                 $usersQuery->where(function ($q) use ($s) {
@@ -240,9 +242,6 @@ class UserManagementController extends Controller
         return view('user-management', compact('users', 'type', 'search', 'schoolId'));
     }
 
-    /**
-     * Show create form for different user types.
-     */
     public function create(Request $request)
     {
         $type = $request->query('type', 'student_faculty');

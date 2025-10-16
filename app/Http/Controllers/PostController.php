@@ -33,7 +33,7 @@ class PostController extends Controller
         $request->validate([
             'type' => 'required|string|max:50',
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'photo' => 'nullable|image|max:2048',
             'youtube_link' => 'nullable|url',
             'website_link' => 'nullable|url',
@@ -110,7 +110,7 @@ class PostController extends Controller
         $request->validate([
             'type' => 'required|string|max:50',
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'nullable|string',
             'photo' => 'nullable|image|max:2048',
             'youtube_link' => 'nullable|url',
             'website_link' => 'nullable|url',

@@ -85,11 +85,7 @@ Route::get('/profile/complete', function () {
 Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])->middleware('auth');
 
 
-Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
-Route::get('/user-management/create', [UserManagementController::class, 'create'])->name('user.create');
-Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
-Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
-Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
+
 
 // Staff (Admin/Librarian) management handled by a separate controller
 Route::middleware(['auth'])->group(function () {
@@ -102,17 +98,22 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/staff-management/add', [\App\Http\Controllers\StaffUserController::class, 'add'])->name('staff.add');
         Route::put('/staff-management/{id}', [\App\Http\Controllers\StaffUserController::class, 'update'])->name('staff.update');
         Route::delete('/staff-management/{id}', [\App\Http\Controllers\StaffUserController::class, 'delete'])->name('staff.delete');
+
+
+        Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
+        Route::get('/user-management/create', [UserManagementController::class, 'create'])->name('user.create');
+        Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
+        Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
+        Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
+
+        // Student/Faculty edit/update routes
+        Route::get('/student-faculty/{id}/edit', [\App\Http\Controllers\StudentFacultyController::class, 'edit'])->name('student_faculty.edit');
+        Route::put('/student-faculty/{id}', [\App\Http\Controllers\StudentFacultyController::class, 'update'])->name('student_faculty.update');
     });
 });
 
 
 
-// Mides routes
-Route::get('/mides-management', [MidesController::class, 'index'])->name('mides.management');
-Route::get('/mides-upload', [MidesController::class, 'create'])->name('mides.upload');
-Route::post('/mides-upload', [MidesController::class, 'store'])->name('mides.store');
-Route::put('/mides-management/{id}', [MidesController::class, 'update'])->name('mides.update');
-Route::delete('/mides-management/{id}', [MidesController::class, 'destroy'])->name('mides.delete');
 
 Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
 Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
@@ -163,11 +164,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// Admin Category Control Panel
-Route::get('/mides-categories-panel', [MidesController::class, 'categoriesPanel'])->name('mides.categories.panel');
-Route::post('/mides-categories-panel/add', [MidesController::class, 'addCategory'])->name('mides.categories.add');
-Route::put('/mides-categories-panel/{id}', [MidesController::class, 'updateCategory'])->name('mides.categories.update');
-Route::delete('/mides-categories-panel/{id}', [MidesController::class, 'deleteCategory'])->name('mides.categories.delete');
+
 // Admin Dashboard
 Route::get('/admin-dashboard', function () {
     if (Auth::check() && Auth::user()->role === 'admin') {
@@ -236,6 +233,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/sidlak/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create.short');
         Route::post('/sidlak', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store.short');
 
+    // Admin analytics: resource views/downloads
+    Route::get('/admin/analytics', [\App\Http\Controllers\AdminAnalyticsController::class, 'index'])->name('admin.analytics');
+
         // Alert Services create/store/edit/update/destroy (shared with librarian)
         Route::get('/alert-services/create', [AlertServiceController::class, 'create'])->name('alert-services.create');
         Route::post('/alert-services', [AlertServiceController::class, 'store'])->name('alert-services.store');
@@ -272,6 +272,8 @@ Route::middleware(['auth'])->group(function () {
 
 
         Route::get('/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
+
+    // (Moved: sidlak article download route will be registered in public routes so downloads are available to all users)
         // Sidlak create/store for librarians/admins
         Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
         Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store');
@@ -304,6 +306,20 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/information-literacy/{id}/edit', [InformationLiteracyController::class, 'edit'])->name('information_literacy.edit');
         Route::put('/information-literacy/{id}/update', [InformationLiteracyController::class, 'update'])->name('information_literacy.update');
         Route::delete('/information-literacy/{id}/delete', [InformationLiteracyController::class, 'destroy'])->name('information_literacy.delete');
+
+        // Admin Category Control Panel
+        Route::get('/mides-categories-panel', [MidesController::class, 'categoriesPanel'])->name('mides.categories.panel');
+        Route::post('/mides-categories-panel/add', [MidesController::class, 'addCategory'])->name('mides.categories.add');
+        Route::put('/mides-categories-panel/{id}', [MidesController::class, 'updateCategory'])->name('mides.categories.update');
+        Route::delete('/mides-categories-panel/{id}', [MidesController::class, 'deleteCategory'])->name('mides.categories.delete');
+
+
+        // Mides routes
+        Route::get('/mides-management', [MidesController::class, 'index'])->name('mides.management');
+        Route::get('/mides-upload', [MidesController::class, 'create'])->name('mides.upload');
+        Route::post('/mides-upload', [MidesController::class, 'store'])->name('mides.store');
+        Route::put('/mides-management/{id}', [MidesController::class, 'update'])->name('mides.update');
+        Route::delete('/mides-management/{id}', [MidesController::class, 'destroy'])->name('mides.delete');
     });
 });
 
@@ -323,6 +339,9 @@ use App\Http\Controllers\SidlakJournalController;
 
 Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
 Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->name('sidlak.show');
+
+// Public route for recording sidlak article downloads (moved out of admin group)
+Route::get('/sidlak/article/download/{id}', [SidlakJournalController::class, 'articleDownload'])->name('sidlak.article.download');
 
 
 Route::get('/information-literacy', [InformationLiteracyController::class, 'index'])->name('information_literacy.index');

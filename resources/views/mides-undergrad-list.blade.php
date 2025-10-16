@@ -74,22 +74,17 @@
                                     </button>
 
                                     <!-- PDF Modal -->
-                                    <div class="modal fade" id="pdfModal{{ $doc->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $doc->id }}" aria-hidden="true">
-                                        <div class="modal-dialog modal-xl modal-dialog-centered">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="pdfModalLabel{{ $doc->id }}">{{ $doc->title }} ({{ $doc->year }})</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <div class="modal fade" id="pdfModal{{ $doc->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $doc->id }}" aria-hidden="true">
+                                            <div class="modal-dialog modal-xl modal-dialog-centered">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="pdfModalLabel{{ $doc->id }}">{{ $doc->title }} ({{ $doc->year }})</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                    </div>
+                                                    <iframe data-src="{{ route('mides.undergrad.viewer', $doc->id) }}" src="about:blank" width="100%" height="100%" style="border:none; min-height:70vh;"></iframe>
                                                 </div>
-                                                <iframe
-                                                    src="{{ route('mides.undergrad.viewer', $doc->id) }}"
-                                                    width="100%"
-                                                    height="100%"
-                                                    style="border:none; min-height:70vh;">
-                                                </iframe>
                                             </div>
                                         </div>
-                                    </div>
                                 </td>
                                 <td class="text-center">
                                     @auth
@@ -132,5 +127,22 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Lazy-load iframe src for PDF modals to avoid calling viewer route on page load
+            document.querySelectorAll('.modal').forEach(modalEl => {
+                modalEl.addEventListener('show.bs.modal', function (e) {
+                    const iframe = this.querySelector('iframe[data-src]');
+                    if (iframe && (!iframe.src || iframe.src === 'about:blank')) {
+                        iframe.src = iframe.getAttribute('data-src');
+                    }
+                });
+                modalEl.addEventListener('hidden.bs.modal', function (e) {
+                    const iframe = this.querySelector('iframe[data-src]');
+                    if (iframe) {
+                        iframe.src = 'about:blank';
+                    }
+                });
+            });
+        </script>
 </body>
 </html>

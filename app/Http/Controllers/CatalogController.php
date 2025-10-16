@@ -80,7 +80,7 @@ class CatalogController extends Controller
         }
 
         // Build Jotform URL for Book Borrowing
-    $user = \Illuminate\Support\Facades\Auth::user();
+        $user = \Illuminate\Support\Facades\Auth::user();
         $sf = $user->studentFaculty ?? null;
         $first = $sf->first_name ?? '';
         $last = $sf->last_name ?? '';
@@ -132,40 +132,64 @@ class CatalogController extends Controller
     }
 
     // Catalog search
+    // Catalog search
     public function search(Request $request)
     {
+        $q = strtolower($request->input('q', ''));
+
+        // Normalize query: remove commas, periods, extra spaces
+        $normalizedQ = preg_replace('/[[:punct:]]+/', ' ', $q);
+        $normalizedQ = preg_replace('/\s+/', ' ', trim($normalizedQ));
+
         $query = Catalog::query();
 
-        if ($request->filled('q')) {
-            $q = $request->input('q');
-            $query->where(function ($sub) use ($q) {
-                $sub->where('title', 'like', "%{$q}%")
-                    ->orWhere('author', 'like', "%{$q}%")
-                    ->orWhere('isbn', 'like', "%{$q}%")
-                    ->orWhere('issn', 'like', "%{$q}%")
-                    ->orWhere('lccn', 'like', "%{$q}%")
-                    ->orWhere('additional_details', 'like', "%{$q}%");
+        if ($normalizedQ) {
+            $query->where(function ($sub) use ($normalizedQ) {
+                // normalize both sides in SQL
+                $sub->whereRaw("LOWER(REGEXP_REPLACE(title, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(REGEXP_REPLACE(author, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(REGEXP_REPLACE(publisher, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(REGEXP_REPLACE(call_number, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(REGEXP_REPLACE(subjects, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(isbn) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(issn) LIKE ?", ["%{$normalizedQ}%"])
+                    ->orWhereRaw("LOWER(lccn) LIKE ?", ["%{$normalizedQ}%"]);
             });
         }
 
-        $catalogs = $query->orderBy('title')
-            ->paginate(10)
-            ->appends($request->except('page'));
+        // Filters
+        if ($request->filled('year')) {
+            $query->where('year', $request->input('year'));
+        }
+        if ($request->filled('format')) {
+            $query->where('format', $request->input('format'));
+        }
 
-        // Save search history for logged-in student/faculty
+        // Order by relevance: Title matches first
+        $query->orderByRaw("
+        CASE
+            WHEN LOWER(title) LIKE ? THEN 1
+            WHEN LOWER(author) LIKE ? THEN 2
+            ELSE 3
+        END
+    ", ["%{$normalizedQ}%", "%{$normalizedQ}%"]);
+
+        $catalogs = $query->paginate(12)->appends($request->except('page'));
+
+        // Save search history
         try {
             $user = \Illuminate\Support\Facades\Auth::user();
             if ($user && ($sf = $user->studentFaculty ?? null)) {
-                $resultsCount = $catalogs->total();
                 \App\Models\SearchHistory::create([
                     'student_faculty_id' => $sf->id,
-                    'query' => $request->input('q', ''),
-                    'results_count' => $resultsCount,
+                    'query' => $normalizedQ,
+                    'results_count' => $catalogs->total(),
                 ]);
             }
         } catch (\Throwable $e) {
-            // ignore save failures silently
+            // ignore silently
         }
+
         return view('catalogs.search', compact('catalogs'));
     }
 }

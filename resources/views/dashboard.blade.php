@@ -118,16 +118,19 @@
         #postModalImageWrap img,
         #postModalImageWrap iframe {
             width: 100%;
-            height: 320px;
-            min-height: 180px;
-            max-height: 320px;
-            object-fit: cover;
+            height: auto;
+            max-height: 1200px;
+            /* Bigger modal image */
+            object-fit:scale-down;
+            /* Keeps full image visible */
             border-top-left-radius: 1.5rem;
             border-top-right-radius: 1.5rem;
             box-shadow: 0 2px 16px 0 rgba(216, 27, 96, 0.08);
             background: #fff;
             display: block;
+            margin: 0 auto;
         }
+
 
         #postModalImageWrap iframe {
             aspect-ratio: 16/9;

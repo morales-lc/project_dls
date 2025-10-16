@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\MidesDocument;
 use App\Models\MidesCategory;
+use Illuminate\Support\Facades\Auth;
 
 class MidesGraduateController extends Controller
 {
@@ -44,6 +45,26 @@ class MidesGraduateController extends Controller
     public function viewer($id)
     {
         $doc = \App\Models\MidesDocument::findOrFail($id);
+
+        // Record view for analytics
+        try {
+            $user = Auth::user();
+            if ($user) {
+                $sf = $user->studentFaculty ?? null;
+                \App\Models\ResourceView::create([
+                    'student_faculty_id' => $sf->id ?? null,
+                    'document_type' => 'mides',
+                    'document_id' => $doc->id,
+                    'program_id' => $sf->program_id ?? null,
+                    'course' => $sf->course ?? null,
+                    'role' => $sf->role ?? null,
+                    'action' => 'view',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // ignore analytics errors
+        }
+
         return view('mides-pdf-viewer', compact('doc'));
     }
 

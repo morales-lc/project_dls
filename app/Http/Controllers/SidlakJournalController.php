@@ -7,6 +7,7 @@ use App\Models\SidlakJournal;
 use App\Models\SidlakArticle;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\RedirectResponse;
 
 class SidlakJournalController extends Controller
 {
@@ -173,6 +174,31 @@ class SidlakJournalController extends Controller
         return view('sidlak.index', compact('journals'));
     }
 
+    // Record article download and redirect to file
+    public function articleDownload($id)
+    {
+        $article = SidlakArticle::findOrFail($id);
+        try {
+            $user = Auth::user();
+            if ($user) {
+                $sf = $user->studentFaculty ?? null;
+                \App\Models\ResourceView::create([
+                    'student_faculty_id' => $sf->id ?? null,
+                    'document_type' => 'sidlak',
+                    'document_id' => $article->id,
+                    'program_id' => $sf->program_id ?? null,
+                    'course' => $sf->course ?? null,
+                    'role' => $sf->role ?? null,
+                    'action' => 'download',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        return redirect(asset('storage/' . $article->pdf_file));
+    }
+
     public function create()
     {
         return view('sidlak.create');
@@ -204,7 +230,7 @@ class SidlakJournalController extends Controller
             ]);
 
 
-            // ✅ Parse month & year
+            //  Parse month & year
             $month = '';
             $year = '';
             if (preg_match('/^(\d{4})-(\d{2})$/', $request->month_year, $matches)) {
@@ -212,13 +238,13 @@ class SidlakJournalController extends Controller
                 $month = date('F', mktime(0, 0, 0, (int)$matches[2], 10));
             }
 
-            // ✅ Handle file upload safely
+            // Handle file upload safely
             $coverPhotoPath = null;
             if ($request->hasFile('cover_photo')) {
                 $coverPhotoPath = $request->file('cover_photo')->store('sidlak_covers', 'public');
             }
 
-            // ✅ Create journal
+            //  Create journal
             $journal = SidlakJournal::create([
                 'title' => $request->title,
                 'month' => $month,
@@ -227,7 +253,7 @@ class SidlakJournalController extends Controller
                 'print_issn' => $request->print_issn,
             ]);
 
-            // ✅ Create related records (wrapped safely)
+            //  Create related records 
             if ($request->articles) {
                 foreach ($request->articles as $article) {
                     $pdfPath = isset($article['pdf_file']) && is_object($article['pdf_file'])

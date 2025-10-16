@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class MidesSeniorHighController extends Controller
 {
@@ -48,8 +49,26 @@ class MidesSeniorHighController extends Controller
 
     public function viewer($id)
 {
-    $doc = \App\Models\MidesDocument::with('midesCategory')->findOrFail($id);
-    return view('mides-pdf-viewer', compact('doc'));
+        $doc = \App\Models\MidesDocument::with('midesCategory')->findOrFail($id);
+        try {
+            $user = Auth::user();
+            if ($user) {
+                $sf = $user->studentFaculty ?? null;
+                \App\Models\ResourceView::create([
+                    'student_faculty_id' => $sf->id ?? null,
+                    'document_type' => 'mides',
+                    'document_id' => $doc->id,
+                    'program_id' => $sf->program_id ?? null,
+                    'course' => $sf->course ?? null,
+                    'role' => $sf->role ?? null,
+                    'action' => 'view',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // ignore
+        }
+
+        return view('mides-pdf-viewer', compact('doc'));
 }
 
 }
