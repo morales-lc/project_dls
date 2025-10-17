@@ -68,14 +68,17 @@
                     </select>
                 </div>
                 <div class="col-12 col-md-3" id="mides-year-col">
-                    <select class="form-select" name="year">
-                        <option value="">SELECT YEAR</option>
-                        @if(isset($years))
-                            @foreach($years as $y)
-                                <option value="{{ $y }}" {{ (request('year') == $y) ? 'selected' : '' }}>{{ $y }}</option>
-                            @endforeach
-                        @endif
-                    </select>
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        pattern="\d{4}"
+                        maxlength="4"
+                        class="form-control"
+                        name="year"
+                        placeholder="ENTER YEAR (e.g., 2024)"
+                        value="{{ request('year') ?? '' }}"
+                        aria-label="Filter by year"
+                    >
                 </div>
             </div>
         </form>
@@ -136,7 +139,7 @@
         <!-- Categories Section -->
         <div class="mt-5 row g-4 justify-content-center">
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none mides-card-link">
+                <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none mides-card-link mides-card--grad">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-primary"><i class="bi bi-journal-bookmark"></i></span>
@@ -148,7 +151,7 @@
             </div>
 
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none mides-card-link">
+                <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none mides-card-link mides-card--undergrad">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-danger"><i class="bi bi-journal-text"></i></span>
@@ -160,7 +163,7 @@
             </div>
 
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none mides-card-link">
+                <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none mides-card-link mides-card--faculty">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-info"><i class="bi bi-person-badge"></i></span>
@@ -172,7 +175,7 @@
             </div>
 
             <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none mides-card-link">
+                <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none mides-card-link mides-card--shs">
                     <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
                         <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
                             <span class="display-4 text-success"><i class="bi bi-mortarboard"></i></span>

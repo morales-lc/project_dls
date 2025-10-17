@@ -8,10 +8,14 @@
 }
 .mides-card-link:hover .mides-card-hover,
 .mides-card-link:focus .mides-card-hover {
-    box-shadow: 0 8px 32px 0 rgba(25,118,210,0.13), 0 1.5px 8px 0 rgba(25,118,210,0.10);
+    /* Motion + colorized border/shadow based on variant color */
     transform: translateY(-6px) scale(1.025);
-    border-color: #1976d2;
     z-index: 2;
+    border-color: var(--mides-card-color, var(--bs-primary));
+    /* Fallback shadow, then color-mix enhancement if supported */
+    box-shadow: 0 8px 32px rgba(13,110,253,0.18), 0 2px 10px rgba(13,110,253,0.12);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--mides-card-color, var(--bs-primary)), transparent 82%),
+                0 2px 10px color-mix(in srgb, var(--mides-card-color, var(--bs-primary)), transparent 86%);
 }
 .mides-card-link:hover .mides-card-title,
 .mides-card-link:focus .mides-card-title {
@@ -25,6 +29,50 @@
 .mides-table-striped tbody tr:hover {
     background-color: #e3f2fd;
     transition: background 0.2s;
+}
+
+/* Category variants: set the base color using Bootstrap's palette via CSS vars */
+.mides-card--grad { --mides-card-color: var(--bs-primary); }
+.mides-card--undergrad { --mides-card-color: var(--bs-danger); }
+.mides-card--faculty { --mides-card-color: var(--bs-info); }
+.mides-card--shs { --mides-card-color: var(--bs-success); }
+
+/* Border defaults and smooth transitions */
+.mides-card-hover {
+    border: 2px solid var(--mides-card-color, #e0e0e0);
+    /* If supported, use a lighter initial border */
+    border-color: color-mix(in srgb, var(--mides-card-color, #e0e0e0), transparent 65%);
+    transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
+}
+
+/* Fallback initial borders to match text-* colors for older browsers */
+.mides-card--grad .mides-card-hover { border-color: rgba(13,110,253,0.35); }   /* primary */
+.mides-card--undergrad .mides-card-hover { border-color: rgba(220,53,69,0.35); } /* danger */
+.mides-card--faculty .mides-card-hover { border-color: rgba(13,202,240,0.35); }  /* info */
+.mides-card--shs .mides-card-hover { border-color: rgba(25,135,84,0.35); }       /* success */
+
+/* Fallback hover glows per variant for older browsers (overridden by color-mix rule when supported) */
+.mides-card--grad:hover .mides-card-hover,
+.mides-card--grad:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(13,110,253,0.18), 0 2px 10px rgba(13,110,253,0.12);
+}
+.mides-card--undergrad:hover .mides-card-hover,
+.mides-card--undergrad:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(220,53,69,0.18), 0 2px 10px rgba(220,53,69,0.12);
+}
+.mides-card--faculty:hover .mides-card-hover,
+.mides-card--faculty:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(13,202,240,0.18), 0 2px 10px rgba(13,202,240,0.12);
+}
+.mides-card--shs:hover .mides-card-hover,
+.mides-card--shs:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(25,135,84,0.18), 0 2px 10px rgba(25,135,84,0.12);
+}
+
+/* Subtle outline on focus for accessibility, using the same variant color */
+.mides-card-link:focus-visible .mides-card-hover {
+    outline: 3px solid color-mix(in srgb, var(--mides-card-color, var(--bs-primary)), transparent 75%);
+    outline-offset: 2px;
 }
 
 /* Shared MIDES styles */

@@ -1,4 +1,4 @@
-<nav id="sidebar" class="sidebar shadow-lg border-end" style="width:260px; min-width:260px; max-width:260px; height:100vh; overflow-y:auto; background:linear-gradient(135deg,#fff 80%,#ffe3f1 100%); border-radius:1.2rem 0 0 1.2rem; box-shadow:0 2px 16px rgba(232,62,140,0.08);">
+<nav id="sidebar" class="sidebar shadow-lg border-end" style="position:fixed; top: var(--management-topnav-height, 72px); left:0; width:260px; min-width:260px; max-width:260px; height: calc(100vh - var(--management-topnav-height, 72px)); overflow-y:auto; -webkit-overflow-scrolling: touch; background:linear-gradient(135deg,#fff 80%,#ffe3f1 100%); border-radius:1.2rem 0 0 1.2rem; box-shadow:0 2px 16px rgba(232,62,140,0.08);">
     <div class="sidebar-header d-flex align-items-center justify-content-end px-4 py-3" style="background:#ffe3ef; border-bottom:1.5px solid #ffd1e3; border-radius:1.2rem 0 0 0;">
         <button id="sidebarToggleBtn" class="btn btn-outline-pink d-lg-none" type="button" aria-label="Toggle sidebar">
             <i class="bi bi-list fs-2"></i>

@@ -233,8 +233,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/sidlak/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create.short');
         Route::post('/sidlak', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store.short');
 
-    // Admin analytics: resource views/downloads
-    Route::get('/admin/analytics', [\App\Http\Controllers\AdminAnalyticsController::class, 'index'])->name('admin.analytics');
 
         // Alert Services create/store/edit/update/destroy (shared with librarian)
         Route::get('/alert-services/create', [AlertServiceController::class, 'create'])->name('alert-services.create');
@@ -273,7 +271,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
 
-    // (Moved: sidlak article download route will be registered in public routes so downloads are available to all users)
+        // (Moved: sidlak article download route will be registered in public routes so downloads are available to all users)
         // Sidlak create/store for librarians/admins
         Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
         Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store');
@@ -320,6 +318,11 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/mides-upload', [MidesController::class, 'store'])->name('mides.store');
         Route::put('/mides-management/{id}', [MidesController::class, 'update'])->name('mides.update');
         Route::delete('/mides-management/{id}', [MidesController::class, 'destroy'])->name('mides.delete');
+
+        // Admin analytics: resource views/downloads
+        Route::get('/admin/analytics', [\App\Http\Controllers\AdminAnalyticsController::class, 'index'])->name('admin.analytics');
+        Route::get('/admin/analytics/export', [\App\Http\Controllers\AdminAnalyticsController::class, 'export'])->name('admin.analytics.export');
+        Route::get('/admin/analytics/export-xlsx', [\App\Http\Controllers\AdminAnalyticsController::class, 'exportXlsx'])->name('admin.analytics.export.xlsx');
     });
 });
 

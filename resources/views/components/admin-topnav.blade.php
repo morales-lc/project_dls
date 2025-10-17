@@ -16,6 +16,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="adminProfileDropdown">
                     <li><a class="dropdown-item" href="{{ route('admin.profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.analytics') }}"><i class="bi bi-person me-2"></i>Analytics</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">

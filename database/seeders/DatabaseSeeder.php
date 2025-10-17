@@ -20,6 +20,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $this->call(\Database\Seeders\MidesCategorySeeder::class);
+        // Ensure baseline reference data exists
+        $this->call([
+            \Database\Seeders\ProgramSeeder::class,
+            \Database\Seeders\MidesCategorySeeder::class,
+            \Database\Seeders\ResourceViewsSeeder::class,
+        ]);
     }
 }
