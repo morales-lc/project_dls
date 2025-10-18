@@ -500,7 +500,7 @@
     <!-- Content -->
     <div class="container mt-5 mb-5">
 
-        <h2 class="fw-bold mb-4">Welcome to Lourdes College Library!</h2>
+        <h2 class="fw-bold mb-4">Welcome to LC MIDES Digital Library!</h2>
         <div class="mb-5">
             <form class="search-bar d-flex flex-nowrap align-items-center gap-2 flex-wrap"
                 method="GET"
@@ -544,8 +544,14 @@
         </div>
 
         <!-- Featured Resources -->
+
+        @auth
         <div class="mb-5">
             <h4 class="fw-bold text-pink">Featured Resources</h4>
+
+
+
+
             <div class="row g-4">
                 <div class="col-md-4">
                     <div class="card featured-card h-100 shadow-sm">
@@ -560,6 +566,8 @@
                         </div>
                     </div>
                 </div>
+
+
 
                 <div class="col-md-4">
                     <div class="card featured-card h-100 shadow-sm">
@@ -590,6 +598,7 @@
                 </div>
             </div>
         </div>
+        @endauth
 
 
         <!-- Announcements & Library Hours Side by Side -->

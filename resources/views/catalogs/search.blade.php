@@ -306,6 +306,10 @@
     }
 </style>
 
+<head>
+    <title>Catalog Search</title>
+</head>
+
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
         <h4 class="mb-2 mb-md-0 text-primary">📚 Library Catalog</h4>

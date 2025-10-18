@@ -16,7 +16,7 @@ class ResourceViewsSeeder extends Seeder
     {
         $programs = Program::with('courses')->get();
         if ($programs->isEmpty()) {
-            $this->command?->warn('No programs found. Run ProgramSeeder first.');
+            $this->command?->warn('No programs found. Run ProgramSeeder first.'); //status
             return;
         }
 
