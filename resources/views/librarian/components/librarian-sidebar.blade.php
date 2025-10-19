@@ -40,10 +40,18 @@
                 <i class="bi bi-journal-text" style="color:#d81b60;font-size:1.3rem;"></i> <span>MIDES Management</span>
             </a>
         </li>
-                <li class="nav-item mb-1">
+        <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('admin.analytics') ? 'active' : '' }}" href="{{ route('admin.analytics') }}">
-                <i class="bi bi-journal-text" style="color:#d81b60;font-size:1.3rem;"></i> <span>Analytics</span>
+                <i class="bi bi-bar-chart" style="color:#d81b60;font-size:1.3rem;"></i> <span>Analytics</span>
             </a>
         </li>
+        </li>
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('e-libraries.manage') ? 'active' : '' }}" href="{{ route('e-libraries.manage') }}">
+                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i> <span>Manage E-libraries</span>
+            </a>
+        </li>
+
+        
     </ul>
 </nav>

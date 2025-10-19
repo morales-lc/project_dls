@@ -3,147 +3,109 @@
 @push('management-head')
 <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-
-<style>
-    body {
-        background: #f8f9fa;
-    }
-    .card {
-        border: none;
-        border-radius: 16px;
-        background: #fff;
-    }
-    .form-label {
-        font-weight: 600;
-        color: #555;
-    }
-    .form-control, .form-select {
-        border-radius: 8px;
-        padding: 10px;
-        border: 1px solid #ccc;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #e83e8c;
-        box-shadow: 0 0 4px rgba(232, 62, 140, 0.4);
-    }
-    .btn-pink {
-        background: #e83e8c;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        padding: 10px 20px;
-        font-weight: 600;
-    }
-    .btn-outline-secondary {
-        border-radius: 8px;
-    }
-    h2 {
-        color: #e83e8c;
-    }
-    .section-title {
-        font-size: 1rem;
-        font-weight: 700;
-        margin-top: 20px;
-        color: #333;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 5px;
-    }
-</style>
 @endpush
 
 @section('title', 'Add Student/Faculty')
 
 @section('content')
-<div class="container py-5">
-    <h2 class="fw-bold mb-4">Add Student/Faculty</h2>
-    <div class="card p-4 shadow rounded-4" style="max-width: 850px; margin:auto;">
-        <form method="POST" action="{{ route('user.add') }}">
+<div class="py-5 d-flex flex-column align-items-center justify-content-center">
+    <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 850px; background: #fff;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ route('user.management') }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Management</a>
+            <span></span>
+        </div>
+
+        <h2 class="fw-bold mb-4 text-center" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">
+            Add Student/Faculty
+        </h2>
+
+        {{-- Error Messages --}}
+        @if ($errors->any())
+            <div class="alert alert-danger w-100">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form method="POST" action="{{ route('user.add') }}" class="row g-4">
             @csrf
             <input type="hidden" name="role" value="student_faculty">
 
-            {{-- Error Messages --}}
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
             {{-- Basic Information --}}
-            <div class="section-title">Basic Information</div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">First Name</label>
-                    <input type="text" name="first_name" class="form-control" value="{{ old('first_name') }}" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Last Name</label>
-                    <input type="text" name="last_name" class="form-control" value="{{ old('last_name') }}" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Email</label>
-                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">School ID</label>
-                    <input type="text" name="school_id" class="form-control" placeholder="C22-0171" value="{{ old('school_id') }}" required>
-                </div>
+            <div class="col-12">
+                <h5 class="fw-bold text-secondary mt-3 mb-2">Basic Information</h5>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">First Name <span class="text-danger">*</span></label>
+                <input type="text" name="first_name" class="form-control form-control-lg" value="{{ old('first_name') }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Last Name <span class="text-danger">*</span></label>
+                <input type="text" name="last_name" class="form-control form-control-lg" value="{{ old('last_name') }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Email <span class="text-danger">*</span></label>
+                <input type="email" name="email" class="form-control form-control-lg" value="{{ old('email') }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">School ID <span class="text-danger">*</span></label>
+                <input type="text" name="school_id" class="form-control form-control-lg" placeholder="C22-0171" value="{{ old('school_id') }}" required>
             </div>
 
             {{-- Account Information --}}
-            <div class="section-title">Account Information</div>
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <label class="form-label">Username</label>
-                    <input type="text" name="username" class="form-control" value="{{ old('username') }}" required>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Role</label>
-                    <select name="role_type" id="roleTypeSelect" class="form-select" required onchange="toggleStudentFields()">
-                        <option value="student" {{ old('role_type') == 'student' ? 'selected' : '' }}>Student</option>
-                        <option value="faculty" {{ old('role_type') == 'faculty' ? 'selected' : '' }}>Faculty</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Password (optional)</label>
-                    <input type="password" name="password" class="form-control" autocomplete="new-password">
-                </div>
+            <div class="col-12">
+                <h5 class="fw-bold text-secondary mt-3 mb-2">Account Information</h5>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Username (for login) <span class="text-danger">*</span></label>
+                <input type="text" name="username" class="form-control form-control-lg" value="{{ old('username') }}" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control form-control-lg" autocomplete="new-password">
             </div>
 
             {{-- Academic Information --}}
-            <div class="section-title">Academic Information</div>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label">Program</label>
-                    <select name="program_id" id="programSelect" class="form-select" required>
-                        <option value="">-- Select Program --</option>
-                    </select>
-                </div>
+            <div class="col-12">
+                <h5 class="fw-bold text-secondary mt-3 mb-2">Academic Information</h5>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Role <span class="text-danger">*</span></label>
+                <select name="role_type" id="roleTypeSelect" class="form-select form-select-lg" required onchange="toggleStudentFields()">
+                    <option value="student" {{ old('role_type') == 'student' ? 'selected' : '' }}>Student</option>
+                    <option value="faculty" {{ old('role_type') == 'faculty' ? 'selected' : '' }}>Faculty</option>
+                </select>
+            </div>
+            <div class="col-12">
+                <label class="form-label">Program <span class="text-danger">*</span></label>
+                <select name="program_id" id="programSelect" class="form-select form-select-lg" required>
+                    <option value="">-- Select Program --</option>
+                </select>
             </div>
 
             {{-- Student-Only Fields --}}
-            <div id="studentFields" style="margin-top:10px;">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Course</label>
-                        <select name="course" id="courseSelect" class="form-select">
-                            <option value="">-- Select Course --</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Year Level</label>
-                        <input type="text" name="yrlvl" class="form-control" value="{{ old('yrlvl') }}">
-                    </div>
+            <div id="studentFields" class="row g-4">
+                <div class="col-md-8">
+                    <label class="form-label">Course</label>
+                    <select name="course" id="courseSelect" class="form-select form-select-lg">
+                        <option value="">-- Select Course --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Year Level</label>
+                    <input type="text" name="yrlvl" class="form-control form-control-lg" value="{{ old('yrlvl') }}">
                 </div>
             </div>
 
-            {{-- Buttons --}}
-            <div class="mt-4 d-flex justify-content-between">
-                <a href="{{ route('user.management') }}" class="btn btn-outline-secondary">Cancel</a>
-                <button type="submit" class="btn btn-pink">Add User</button>
+            {{-- Submit --}}
+            <div class="col-12 d-flex justify-content-center mt-4">
+                <button type="submit" class="btn btn-lg px-5 py-2"
+                    style="font-size:1.1rem; font-weight:600; background:#d81b60; color:#fff; border:none; border-radius:2em;">
+                    Add User
+                </button>
             </div>
         </form>
 
@@ -152,7 +114,7 @@
             function toggleStudentFields() {
                 var role = document.getElementById('roleTypeSelect').value;
                 var studentFields = document.getElementById('studentFields');
-                studentFields.style.display = (role === 'faculty') ? 'none' : 'block';
+                studentFields.style.display = (role === 'faculty') ? 'none' : 'flex';
             }
             document.addEventListener('DOMContentLoaded', function() {
                 toggleStudentFields();

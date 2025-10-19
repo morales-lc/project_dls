@@ -65,7 +65,7 @@
 
         <!-- Add Buttons (Fade-in/out) -->
         <div class="mb-4 text-start">
-            <div id="addStudentFaculty" class="add-btn-wrapper {{ $type === 'student_faculty' ? 'show' : '' }}">
+            <div id="addStudentFaculty" class="add-btn-wrapper {{ in_array($type, ['student_faculty','student','faculty']) ? 'show' : '' }}">
                 <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'student_faculty']) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Student/Faculty
                 </a>
@@ -278,8 +278,18 @@
         const wrappers = document.querySelectorAll('.add-btn-wrapper');
         const activeTab = '{{ $type }}';
 
+        // Map activeTab to the wrapper id to show
+        let targetId;
+        if (activeTab === 'student' || activeTab === 'faculty' || activeTab === 'student_faculty') {
+            targetId = 'addStudentFaculty';
+        } else if (activeTab === 'admin') {
+            targetId = 'addAdmin';
+        } else if (activeTab === 'librarian') {
+            targetId = 'addLibrarian';
+        }
+
         wrappers.forEach(el => {
-            if (el.id === `add${activeTab.charAt(0).toUpperCase() + activeTab.slice(1).replace('_faculty', 'Faculty')}`) {
+            if (el.id === targetId) {
                 el.classList.add('show');
             } else {
                 el.classList.remove('show');

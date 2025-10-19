@@ -22,7 +22,7 @@ class ProfileController extends Controller
         'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/'],
         'first_name' => ['required', 'string', 'max:255'],
         'last_name' => ['required', 'string', 'max:255'],
-        'username' => ['required', 'string', 'max:255'],
+        'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $userId],
         'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $userId],
         'password' => ['nullable', 'string', 'min:6', 'confirmed'],
         'course' => ['nullable', 'string', 'max:255'],
@@ -62,8 +62,9 @@ class ProfileController extends Controller
     $user = User::find(Auth::id());
 
     // Update user table
-    $user->name = $request->username;
+    $user->name = $request->first_name . ' ' . $request->last_name;
     $user->email = $request->email;
+    $user->username = $request->username;
     if ($request->filled('password')) {
         $user->password = bcrypt($request->password);
     }
@@ -82,10 +83,8 @@ class ProfileController extends Controller
         'school_id' => $request->school_id,
         'first_name' => $request->first_name,
         'last_name' => $request->last_name,
+        // keep username in student_faculty only for display if you still need it later
         'username' => $request->username,
-        'password' => $request->filled('password')
-            ? bcrypt($request->password)
-            : $user->studentFaculty->password,
         'course' => $request->course,
         'yrlvl' => $request->yrlvl,
         'program_id' => $request->program_id ?? null,

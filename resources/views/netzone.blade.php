@@ -1,242 +1,103 @@
-<!DOCTYPE html>
-<html lang="en">
+@include('navbar')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Netzone</title>
-    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow border-0 mb-4">
+                <div class="card-body">
+                    <h1 class="mb-3 fw-bold text-center" style="color:#e83e8c;">Netzone</h1>
+                    <hr class="mb-4" style="border-top:2px solid #e83e8c;">
+                    <div class="mb-4 d-flex flex-column flex-md-row align-items-center justify-content-center gap-4">
+                        <img src="{{ asset('images/netzone1.png') }}" alt="Netzone 1" class="img-fluid rounded shadow-sm learning-space-img" style="max-width: 420px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imgModal" data-img="{{ asset('images/netzone1.png') }}">
+                        <img src="{{ asset('images/netzone2.png') }}" alt="Netzone 2" class="img-fluid rounded shadow-sm learning-space-img" style="max-width: 420px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imgModal" data-img="{{ asset('images/netzone2.png') }}">
+                    </div>
+
+                    <!-- Image Modal -->
+                    <div class="modal fade" id="imgModal" tabindex="-1" aria-labelledby="imgModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content bg-transparent border-0">
+                                <div class="modal-body p-0 d-flex justify-content-center align-items-center">
+                                    <img id="modalImg" src="" alt="Preview" class="img-fluid rounded shadow" style="max-height:80vh; background:#fff;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
     <style>
-        .header-banner {
-            position: relative;
-            width: 100%;
-            height: 300px;
-            background: url('{{ asset("images/IMG_1462.JPG") }}') center center/cover no-repeat;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-        }
-
-        .header-banner::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-        }
-
-        .header-text {
-            position: relative;
-            z-index: 2;
-            font-size: 2.2rem;
-            font-weight: bold;
-            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
-        }
-
-        .divider {
-            width: 100%;
-            height: 4px;
-            background: #e83e8c;
-            border-radius: 2px;
-            margin: 2rem 0;
-        }
-
-        .netzone-images {
-            display: flex;
-            justify-content: center;
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .netzone-images img {
-            width: 420px;
-            max-width: 100%;
-            height: 220px;
-            object-fit: cover;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-        }
-
-        .netzone-title {
-            color: #e83e8c;
-            font-size: 1.7rem;
-            font-weight: bold;
-            text-align: center;
-            margin: 2rem 0 1rem;
-        }
-
-        .netzone-desc {
-            text-align: center;
-            font-size: 1.15rem;
-            color: #333;
-            margin-bottom: 2rem;
-        }
-
-        .reminders-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-align: center;
-            margin: 2rem 0 1rem;
-        }
-
-        .reminders-list {
-            max-width: 700px;
-            margin: 0 auto 2rem;
-            font-size: 1.08rem;
-            color: #333;
-        }
-
-        .reminders-list li {
-            margin-bottom: 1rem;
-        }
-
-        .reminders-list .red {
-            color: #e83e8c;
-            font-weight: bold;
-        }
-
-        .reminders-list .orange {
-            color: #d63384;
-            font-weight: bold;
-        }
-
-        .netzone-images img {
-            width: 420px;
-            max-width: 100%;
-            height: 220px;
-            object-fit: cover;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .netzone-images img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-        }
-
-        /* Modal styles */
-        .image-modal {
-            display: none;
-            position: fixed;
-            z-index: 9999;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.8);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .image-modal img {
-            max-width: 90%;
-            max-height: 80%;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-            animation: zoomIn 0.3s ease;
-        }
-
-        .image-modal.close {
-            display: none;
-        }
-
-        .image-modal span {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            color: #fff;
-            font-size: 2rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        @keyframes zoomIn {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        .reminders-card {
-            background: #fff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-            margin: 2rem auto;
-            max-width: 800px;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .reminders-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.15);
-        }
+    .learning-space-img {
+        transition: transform 0.33s cubic-bezier(.4,1.6,.6,1), box-shadow 0.2s;
+    }
+    .learning-space-img:hover, .learning-space-img:focus {
+        transform: scale(1.13) rotate(-2deg);
+        z-index: 2;
+        box-shadow: 0 8px 32px rgba(232,62,140,0.18);
+    }
+    .reminders-card { background: #fff; border-radius: 12px; padding: 2rem; box-shadow: 0 6px 20px rgba(0,0,0,0.08); margin: 2rem auto; max-width:800px; transition: transform .3s ease, box-shadow .3s ease; }
+    .reminders-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.15); }
     </style>
-</head>
 
-<body>
-    @include('navbar')
-    <div class="header-banner">
-        <div class="header-text">Netzone</div>
-    </div>
-    <div class="container py-5">
-        <div class="divider"></div>
-        <div class="netzone-images">
-            <img src="{{ asset('images/netzone1.png') }}" alt="Netzone 1">
-            <img src="{{ asset('images/netzone2.png') }}" alt="Netzone 2">
-        </div>
-        <div class="netzone-title">Netzone</div>
-        <div class="netzone-desc">
-            The College Library provides 30 terminals for the use of students. The Senior High School has its own Internet Room and has 10 terminals for use. In addition, there are spaces for students to use their laptops or notebooks.
-        </div>
-        <div class="reminders-card">
-            <div class="reminders-title">Reminders While Using the Netzone</div>
-            <ul class="reminders-list">
-                <li class="red">BE RESPECTFUL! Always treat the computer lab equipment AND your teacher and classmates the way that you would want your belongings and yourself to be treated.</li>
-                <li class="red">No food or drinks near the computers. NO EXCEPTIONS.</li>
-                <li class="orange">Enter the Netzone quietly and work quietly. There are other individuals who may be using the Netone. Please be respectful.</li>
-                <li class="orange">Surf safely! Only visit assigned websites. Some web links can contain viruses or malware. Others may contain inappropriate content.</li>
-                <li class="orange">Clean up your work area before you leave.</li>
-                <li class="orange">Do not change computer settings or backgrounds.</li>
-                <li class="orange">For your saving and printing needs, proceed to the Concierge</li>
-            </ul>
-        </div>
-    </div>
-    @include('footer')
-
-    <div class="image-modal" id="imageModal">
-        <span id="closeModal">&times;</span>
-        <img id="modalImg" src="" alt="Expanded view">
-    </div>
-
-
-    <script>
-        const images = document.querySelectorAll('.netzone-images img');
-        const modal = document.getElementById('imageModal');
-        const modalImg = document.getElementById('modalImg');
-        const closeModal = document.getElementById('closeModal');
-
-        images.forEach(img => {
-            img.addEventListener('click', () => {
-                modal.style.display = 'flex';
-                modalImg.src = img.src;
-            });
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var imgModal = document.getElementById('imgModal');
+    var modalImg = document.getElementById('modalImg');
+    document.querySelectorAll('.learning-space-img').forEach(function(img) {
+        img.addEventListener('click', function() {
+            var src = this.getAttribute('data-img');
+            modalImg.src = src;
         });
+    });
+    // Clear image on modal close
+    imgModal.addEventListener('hidden.bs.modal', function () {
+        modalImg.src = '';
+    });
+});
+</script>
+                    <div class="mb-4">
+                        <h4 class="fw-semibold" style="color:#e83e8c;">What is the Netzone?</h4>
+                        <p class="fs-5">The College Library provides 30 terminals for the use of students. The Senior High School has its own Internet Room and has 10 terminals for use. In addition, there are spaces for students to use their laptops or notebooks.</p>
+                    </div>
+                    <div class="reminders-card" role="region" aria-labelledby="netzone-reminders">
+                        <div id="netzone-reminders" class="reminders-title" style="font-size:1.25rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#e83e8c" viewBox="0 0 16 16" class="me-2" aria-hidden="true" focusable="false">
+                                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-11.412-1 4a.5.5 0 0 1-.97 0l-1-4A.5.5 0 0 1 6.5 0h3a.5.5 0 0 1 .43.588z"/>
+                            </svg>
+                            Reminders While Using the Netzone
+                        </div>
+                        <ul class="reminders-list mt-3" style="list-style:none; padding-left:0;">
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="badge rounded-pill bg-pink me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">1</span>
+                                <span class="flex-fill"><strong class="text-danger">BE RESPECTFUL!</strong> Always treat the computer lab equipment AND your teacher and classmates the way that you would want your belongings and yourself to be treated.</span>
+                            </li>
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="badge rounded-pill bg-pink me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">2</span>
+                                <span class="flex-fill text-danger">No food or drinks near the computers. <strong>NO EXCEPTIONS.</strong></span>
+                            </li>
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">3</span>
+                                <span class="flex-fill">Enter the Netzone quietly and work quietly. There are other individuals who may be using the Netone. Please be respectful.</span>
+                            </li>
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">4</span>
+                                <span class="flex-fill">Surf safely! Only visit assigned websites. Some web links can contain viruses or malware. Others may contain inappropriate content.</span>
+                            </li>
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">5</span>
+                                <span class="flex-fill">Clean up your work area before you leave.</span>
+                            </li>
+                            <li class="d-flex align-items-start mb-2">
+                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">6</span>
+                                <span class="flex-fill">Do not change computer settings or backgrounds.</span>
+                            </li>
+                            <li class="d-flex align-items-start mb-0">
+                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">7</span>
+                                <span class="flex-fill">For your saving and printing needs, proceed to the Concierge.</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-        closeModal.addEventListener('click', () => {
-            modal.style.display = 'none';
-        });
-
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.style.display = 'none';
-            }
-        });
-    </script>
-</body>
-
-</html>
+@include('footer')

@@ -137,7 +137,7 @@
                 }
                 @endphp
                 @if(!empty($profileSrc))
-                <img src="{{ $profileSrc }}" alt="{{ $sf->username ?? ($sf->first_name . ' ' . $sf->last_name) }}" class="img-fluid rounded-circle profile-avatar" style="width:160px; height:160px; object-fit:cover; max-width:100%;">
+                <img src="{{ $profileSrc }}" alt="{{ Auth::user()->username ?? ($sf->username ?? ($sf->first_name . ' ' . $sf->last_name)) }}" class="img-fluid rounded-circle profile-avatar" style="width:160px; height:160px; object-fit:cover; max-width:100%;">
                 @else
                 <div class="rounded-circle bg-light d-flex justify-content-center align-items-center profile-avatar" style="width:160px; height:160px;">
                   <i class="bi bi-person-circle" style="font-size:4.5rem; color:#c1b7bf"></i>
@@ -150,13 +150,13 @@
             </div>
             <div class="col-12 col-md-8">
               <div class="mb-2">
-                <h4 class="fw-bold mb-1 text-pink">{{ ($sf->first_name || $sf->last_name) ? ($sf->first_name . ' ' . $sf->last_name) : ($sf->username ?? 'User') }}</h4>
+                <h4 class="fw-bold mb-1 text-pink">{{ ($sf->first_name || $sf->last_name) ? ($sf->first_name . ' ' . $sf->last_name) : (Auth::user()->username ?? ($sf->username ?? 'User')) }}</h4>
                 <div class="small text-muted mb-3">{{ $sf->user->email ?? '' }}</div>
               </div>
               <div class="rounded-4 shadow-sm" style="background:#fff;">
                 <div class="profile-row row">
                   <div class="col-sm-6 profile-label">Username</div>
-                  <div class="col-sm-6 profile-value">{{ $sf->username ?? '-' }}</div>
+                  <div class="col-sm-6 profile-value">{{ Auth::user()->username ?? ($sf->username ?? '-') }}</div>
                 </div>
                 <div class="profile-row row">
                   <div class="col-sm-6 profile-label">School ID</div>
@@ -221,7 +221,7 @@
                 <div class="col-md-6">
                   <div class="mb-3">
                     <label class="form-label">Username</label>
-                    <input name="username" id="usernameInput" class="form-control" value="{{ $sf->username ?? '' }}">
+                    <input name="username" id="usernameInput" class="form-control" value="{{ Auth::user()->username ?? ($sf->username ?? '') }}">
                   </div>
                 </div>
                 <div class="col-md-6">

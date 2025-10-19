@@ -18,9 +18,13 @@
     [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
     [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'Sidlak Journals' ],
     [ 'route' => 'admin.contact-info', 'icon' => 'bi-telephone', 'label' => 'Contact Info Management' ],
-    [ 'route' => 'admin.analytics', 'icon' => 'bi-telephone', 'label' => 'Analytics' ],
+    [ 'route' => 'admin.analytics', 'icon' => 'bi-bar-chart', 'label' => 'Analytics' ],
+        [ 'route' => 'e-libraries.manage', 'icon' => 'bi-globe-americas', 'label' => 'Manage E-libraries' ],
     [ 'route' => 'admin.backup', 'icon' => 'bi-database', 'label' => 'System Backup' ],
+
     ];
+
+ 
         @endphp
         @foreach($sidebarItems as $item)
         <li class="nav-item mb-1">

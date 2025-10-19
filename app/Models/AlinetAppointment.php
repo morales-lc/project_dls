@@ -14,15 +14,19 @@ class AlinetAppointment extends Model
         'firstname',
         'lastname',
         'email',
+        'mode_of_research',
         'strand_course',
         'institution_college',
+        'titles_or_topics',
         'appointment_date',
-        'services',
+        'assistance',
+        'resource_types',
         'status',
     ];
 
     protected $casts = [
-        'services' => 'array',
+        'assistance' => 'array',
+        'resource_types' => 'array',
         'appointment_date' => 'date',
         'status' => 'string',
     ];
@@ -69,7 +73,29 @@ class AlinetAppointment extends Model
     public function scopeService($query, ?string $service)
     {
         if (!empty($service)) {
-            $query->whereJsonContains('services', $service);
+            // Backward-compatible filter: check both assistance and resource_types
+            $query->where(function ($q) use ($service) {
+                $q->whereJsonContains('assistance', $service)
+                  ->orWhereJsonContains('resource_types', $service);
+            });
+        }
+        return $query;
+    }
+
+    // Optional: filter specifically by assistance
+    public function scopeAssistance($query, ?string $val)
+    {
+        if (!empty($val)) {
+            $query->whereJsonContains('assistance', $val);
+        }
+        return $query;
+    }
+
+    // Optional: filter specifically by resource type
+    public function scopeResourceType($query, ?string $val)
+    {
+        if (!empty($val)) {
+            $query->whereJsonContains('resource_types', $val);
         }
         return $query;
     }

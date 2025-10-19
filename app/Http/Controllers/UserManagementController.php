@@ -19,7 +19,7 @@ class UserManagementController extends Controller
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email',
-                'username' => 'required|string|max:255|unique:student_faculty,username',
+                'username' => 'required|string|max:255|unique:users,username',
                 'role_type' => 'required|in:student,faculty',
                 'program_id' => 'required|exists:programs,id',
                 'course' => 'nullable|string|max:255',
@@ -32,6 +32,7 @@ class UserManagementController extends Controller
             $user = new \App\Models\User();
             $user->email = $request->email;
             $user->name = $request->first_name . ' ' . $request->last_name;
+            $user->username = $request->username;
             if ($request->filled('password')) {
                 $user->password = bcrypt($request->password);
             }
@@ -43,7 +44,6 @@ class UserManagementController extends Controller
             $sf->school_id = $request->school_id;
             $sf->first_name = $request->first_name;
             $sf->last_name = $request->last_name;
-            $sf->username = $request->username;
             $sf->role = $request->role_type;
             $sf->program_id = $request->program_id;
             if ($request->role_type === 'student') {
@@ -54,9 +54,6 @@ class UserManagementController extends Controller
                 $sf->yrlvl = null;
             }
             $sf->birthdate = $request->birthdate;
-            if ($request->filled('password')) {
-                $sf->password = bcrypt($request->password);
-            }
             $sf->save();
 
             return redirect()->route('user.management')->with('success', 'Student/Faculty added successfully!');
@@ -106,7 +103,7 @@ class UserManagementController extends Controller
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],
-                'username' => ['required', 'string', 'max:255', Rule::unique('student_faculty', 'username')->ignore($sf->id)],
+                'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($userId)],
                 'role' => 'required|string|max:255',
                 'course' => 'nullable|string|max:255',
                 'yrlvl' => 'nullable|string|max:255',
@@ -118,21 +115,17 @@ class UserManagementController extends Controller
             $sf->school_id = $request->school_id;
             $sf->first_name = $request->first_name;
             $sf->last_name = $request->last_name;
-            $sf->username = $request->username;
             $sf->role = $request->role;
             $sf->course = $request->course;
             $sf->yrlvl = $request->yrlvl;
             $sf->department = $request->department;
             $sf->birthdate = $request->birthdate;
 
-            if ($request->filled('password')) {
-                $sf->password = bcrypt($request->password);
-            }
-
             $sf->save();
 
             if ($sf->user) {
                 $sf->user->email = $request->email;
+                $sf->user->username = $request->username;
                 if ($request->filled('password')) {
                     $sf->user->password = bcrypt($request->password);
                 }

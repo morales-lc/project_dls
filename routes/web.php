@@ -404,10 +404,24 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
 });
 
-// Online E-Libraries page
-Route::get('/elibraries', function () {
-    return view('elibraries');
-})->name('elibraries');
+// Online E-Libraries page (public)
+use App\Http\Controllers\ELibraryController;
+Route::get('/elibraries', [ELibraryController::class, 'index'])->name('elibraries');
+
+// E-Libraries management (admin/librarian)
+Route::middleware(['auth'])->group(function () {
+    Route::group(['middleware' => function ($request, $next) {
+        if (!in_array(Auth::user()->role, ['librarian', 'admin'])) abort(403);
+        return $next($request);
+    }], function () {
+        Route::get('/e-libraries/manage', [ELibraryController::class, 'manage'])->name('e-libraries.manage');
+        Route::get('/e-libraries/create', [ELibraryController::class, 'create'])->name('e-libraries.create');
+        Route::post('/e-libraries', [ELibraryController::class, 'store'])->name('e-libraries.store');
+        Route::get('/e-libraries/{id}/edit', [ELibraryController::class, 'edit'])->name('e-libraries.edit');
+        Route::put('/e-libraries/{id}', [ELibraryController::class, 'update'])->name('e-libraries.update');
+        Route::delete('/e-libraries/{id}', [ELibraryController::class, 'destroy'])->name('e-libraries.destroy');
+    });
+});
 
 
 // Book Borrowing page

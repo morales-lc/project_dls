@@ -23,8 +23,44 @@
         <div class="content">
             <p>Dear <strong>{{ $appointment->firstname }}</strong>,</p>
             <p>Your <strong>ALINET appointment request</strong> has been <span style="color:green; font-weight:bold;">accepted</span>.</p>
-            <p>Please visit us on your scheduled date:</p>
-            <p class="date">{{ $appointment->appointment_date->format('F d, Y') }}</p>
+            @if(($appointment->mode_of_research ?? '') === 'Online (Virtual)')
+                <p>Mode: <strong>Online (Virtual)</strong></p>
+                <p>Please use the following guest account to access the resources:</p>
+                <div style="background:#f1f7ff; border:1px solid #cfe3ff; padding:12px 14px; border-radius:6px; margin:12px 0;">
+                    <div><strong>Email:</strong> example@example.com</div>
+                    <div><strong>Password:</strong> example</div>
+                </div>
+                <p>Requested assistance:</p>
+                <ul>
+                    @foreach((array) $appointment->assistance as $s)
+                    <li>{{ $s }}</li>
+                    @endforeach
+                </ul>
+                <p>Resource types:</p>
+                <ul>
+                    @foreach((array) $appointment->resource_types as $s)
+                    <li>{{ $s }}</li>
+                    @endforeach
+                </ul>
+            @else
+                <p>Mode: <strong>Onsite</strong></p>
+                @if(!empty($appointment->appointment_date))
+                    <p>Please visit us on:</p>
+                    <p class="date">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('F d, Y') }} — 8:00am–3:00pm</p>
+                @endif
+                <p>Requested assistance:</p>
+                <ul>
+                    @foreach((array) $appointment->assistance as $s)
+                    <li>{{ $s }}</li>
+                    @endforeach
+                </ul>
+                <p>Resource types:</p>
+                <ul>
+                    @foreach((array) $appointment->resource_types as $s)
+                    <li>{{ $s }}</li>
+                    @endforeach
+                </ul>
+            @endif
             <p>We look forward to assisting you.</p>
             <p style="margin-top:24px;">
                 Sincerely,<br>

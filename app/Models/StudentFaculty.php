@@ -12,8 +12,8 @@ class StudentFaculty extends Model
         'school_id',
         'first_name',
         'last_name',
-        'username',
-        'password',
+        // 'username' is no longer an auth field; keep for display only, but do not mass-assign
+        // 'password' removed; passwords live only on users table
         'course',
         'yrlvl',
         'program_id',

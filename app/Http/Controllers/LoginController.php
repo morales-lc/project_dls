@@ -21,40 +21,23 @@ class LoginController extends Controller
             'password' => 'required|string',
         ]);
 
-        $sf = StudentFaculty::where('username', $request->username)->first();
-        if ($sf && $sf->user) {
-            $user = $sf->user;
-            if (Hash::check($request->password, $user->password)) {
-                Auth::login($user);
-                $request->session()->regenerate();
-                return redirect()->intended('/');
+        $user = \App\Models\User::where('email', $request->username)
+            ->orWhere('username', $request->username)
+            ->first();
+
+        if ($user && Hash::check($request->password, $user->password)) {
+            Auth::login($user);
+            $request->session()->regenerate();
+            // Optional role-based redirection
+            if ($user->role === 'admin') {
+                return redirect()->intended(route('admin.dashboard'));
             }
-        } else {
-            // Try to login as admin/librarian using username or email
-            $user = \App\Models\User::where('email', $request->username)
-                ->orWhere('username', $request->username)
-                ->first();
-            if ($user) {
-                // If admin/librarian
-                if (in_array($user->role, ['admin', 'librarian']) && Hash::check($request->password, $user->password)) {
-                    Auth::login($user);
-                    $request->session()->regenerate();
-                    if ($user->role === 'admin') {
-                        return redirect()->intended(route('admin.dashboard'));
-                    }
-                    if ($user->role === 'librarian') {
-                        return redirect()->intended(route('librarian.dashboard'));
-                    }
-                    return redirect()->intended('/');
-                }
-                // If student/faculty (created via Google login, no username)
-                if (in_array($user->role, ['student', 'faculty']) && Hash::check($request->password, $user->password)) {
-                    Auth::login($user);
-                    $request->session()->regenerate();
-                    return redirect()->intended('/');
-                }
+            if ($user->role === 'librarian') {
+                return redirect()->intended(route('librarian.dashboard'));
             }
+            return redirect()->intended('/');
         }
+
         return back()->withErrors([
             'username' => 'The provided credentials do not match our records.',
         ]);

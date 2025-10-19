@@ -41,6 +41,15 @@ class AlinetAppointmentManageController extends Controller
         ]);
         $appointment = AlinetAppointment::findOrFail($id);
         $appointment->status = $request->status;
+
+        // If accepting an Onsite request, set appointment_date to the upcoming Saturday (next Saturday if today is Sunday)
+    if ($request->status === 'accepted' && (stripos($appointment->mode_of_research, 'Onsite') !== false)) {
+            $tz = 'Asia/Manila';
+            $today = \Carbon\Carbon::now($tz)->startOfDay();
+            $dow = (int) $today->dayOfWeek; // 0=Sun..6=Sat
+            $daysAhead = ($dow === 0) ? 6 : (6 - $dow);
+            $appointment->appointment_date = $today->copy()->addDays($daysAhead)->toDateString();
+        }
         $appointment->save();
 
         // Send email to requester using Mailable classes

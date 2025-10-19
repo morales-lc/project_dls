@@ -21,6 +21,18 @@
     <div class="profile-title">Complete Your Profile</div>
     <div class="profile-box shadow-sm">
         <h3 class="fw-bold text-center mb-4">Profile Details</h3>
+        @if (session('error'))
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                <strong>Heads up:</strong> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
         @if ($errors->any())
             <div class="alert alert-danger">
                 <ul class="mb-0">
@@ -47,15 +59,19 @@
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" id="email" class="form-control" value="{{ old('email', Auth::user()->studentFaculty->email ?? Auth::user()->email) }}" readonly>
+                <input type="email" name="email" id="email" class="form-control" value="{{ old('email', Auth::user()->email) }}" readonly>
             </div>
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" name="username" id="username" class="form-control" value="{{ old('username', Auth::user()->studentFaculty->username ?? Auth::user()->name) }}" required>
+                <input type="text" name="username" id="username" class="form-control" value="{{ old('username', Auth::user()->username ?? (Auth::user()->studentFaculty->username ?? '')) }}" required>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" name="password" id="password" class="form-control" value="" placeholder="Enter new password if you want to change it">
+            </div>
+            <div class="mb-3">
+                <label for="password_confirmation" class="form-label">Confirm Password</label>
+                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" value="" placeholder="Re-enter the password">
             </div>
             <div class="mb-3">
                 <label for="role" class="form-label">Role</label>

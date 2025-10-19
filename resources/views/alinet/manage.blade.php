@@ -73,8 +73,11 @@
                             <th>Email</th>
                             <th>Strand/Course</th>
                             <th>Institution/College</th>
+                            <th>Titles/Topics</th>
                             <th>Date</th>
-                            <th>Services</th>
+                            <th>Mode</th>
+                            <th>Assistance</th>
+                            <th>Resource Types</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -87,9 +90,22 @@
                             <td>{{ $a->email }}</td>
                             <td>{{ $a->strand_course }}</td>
                             <td>{{ $a->institution_college }}</td>
-                            <td>{{ \Carbon\Carbon::parse($a->appointment_date)->format('F j, Y') }}</td>
+                            <td class="text-start" style="max-width: 260px; white-space: pre-wrap;">{{ $a->titles_or_topics }}</td>
                             <td>
-                                @foreach($a->services as $s)
+                                @if(!empty($a->appointment_date))
+                                    {{ \Carbon\Carbon::parse($a->appointment_date)->format('F j, Y') }}
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
+                            <td>{{ $a->mode_of_research }}</td>
+                            <td>
+                                @foreach((array) $a->assistance as $s)
+                                <span class="badge bg-pink text-dark mb-1" style="background:#fcb6d0; color:#d81b60;">{{ $s }}</span>
+                                @endforeach
+                            </td>
+                            <td>
+                                @foreach((array) $a->resource_types as $s)
                                 <span class="badge bg-pink text-dark mb-1" style="background:#fcb6d0; color:#d81b60;">{{ $s }}</span>
                                 @endforeach
                             </td>
@@ -117,7 +133,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="9" class="text-center">No appointments found.</td>
+                            <td colspan="12" class="text-center">No appointments found.</td>
                         </tr>
                         @endforelse
                     </tbody>

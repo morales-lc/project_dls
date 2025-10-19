@@ -11,7 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Register route middleware alias
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureRole::class,
+            'profile.completed' => \App\Http\Middleware\EnsureProfileCompleted::class,
+        ]);
+
+        // Apply to web routes except the profile completion route itself via explicit route middleware
+        $middleware->appendToGroup('web', [
+            \App\Http\Middleware\EnsureProfileCompleted::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

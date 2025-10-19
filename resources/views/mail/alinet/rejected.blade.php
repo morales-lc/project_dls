@@ -22,6 +22,7 @@
         <div class="content">
             <p>Dear <strong>{{ $appointment->firstname }}</strong>,</p>
             <p>We regret to inform you that your <strong>ALINET appointment request</strong> has been <strong>rejected</strong>.</p>
+            <p>Mode requested: <strong>{{ $appointment->mode_of_research }}</strong></p>
             @if(!empty($reason))
             <div style="background:#fff7f7; border:1px solid #f3d6d6; padding:12px 14px; border-radius:6px; margin:12px 0; color:#8a2a2a;">
                 <div style="font-weight:bold; margin-bottom:6px;">Reason from the librarian</div>

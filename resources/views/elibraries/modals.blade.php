@@ -1,3 +1,4 @@
+{{-- Deprecated: legacy static modals retained for reference only. Do not include this file. Use resources/views/e-libraries/*.blade.php instead. --}}
 <!-- Wiley Instructions Modal -->
 <!-- Wiley Instructions Modal -->
 <div class="modal fade" id="wileyModal" tabindex="-1" aria-labelledby="wileyModalLabel" aria-hidden="true">
