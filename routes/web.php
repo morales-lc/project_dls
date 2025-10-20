@@ -56,6 +56,9 @@ Route::get('/login', function () {
         if ($user->role === 'librarian') {
             return redirect()->route('librarian.dashboard');
         }
+        if ($user->role === 'guest') {
+            return redirect()->route('guest.dashboard');
+        }
         // default: already authenticated non-staff users go home
         return redirect('/');
     }
@@ -159,8 +162,13 @@ Route::get('/mides/seniorhigh/viewer/{id}', [MidesSeniorHighController::class, '
 
 // Bookmarks (students/faculty)
 Route::middleware('auth')->group(function () {
-    Route::get('/bookmarks', [\App\Http\Controllers\BookmarkController::class, 'index'])->name('bookmarks.index');
-    Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+    Route::group(['middleware' => function ($request, $next) {
+        if (Auth::check() && Auth::user()->role === 'guest') abort(403);
+        return $next($request);
+    }], function () {
+        Route::get('/bookmarks', [\App\Http\Controllers\BookmarkController::class, 'index'])->name('bookmarks.index');
+        Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+    });
 });
 
 
@@ -377,10 +385,17 @@ Route::get('/api/programs/{id}/courses', function ($id) {
 
 // LiRA Jotform
 use App\Http\Controllers\LiRAController;
-
 Route::get('/lira/form', [LiRAController::class, 'showForm'])->name('lira.form');
-// LiRA Jotform autofill route
+Route::post('/lira/submit', [LiRAController::class, 'submit'])->name('lira.submit');
+// Backwards compatible route name used elsewhere (catalogs/show) - keep pointing to internal form
 Route::get('/lira/jotform', [App\Http\Controllers\LiRAController::class, 'showForm'])->name('lira.jotform');
+
+// Admin management for LiRA requests (librarian + admin)
+Route::middleware(['auth','role:librarian,admin'])->group(function(){
+    Route::get('/lira/manage', [LiRAController::class, 'index'])->name('lira.manage');
+    Route::post('/lira/{id}/decide', [LiRAController::class, 'decide'])->name('lira.decide');
+    Route::delete('/lira/{id}', [LiRAController::class, 'destroy'])->name('lira.destroy');
+});
 
 
 
@@ -391,17 +406,22 @@ Route::get('/libraries/senior-high', [LibraryStaffController::class, 'index'])->
 Route::get('/libraries/k-10', [LibraryStaffController::class, 'index'])->defaults('department', 'ibed')->name('libraries.ibed');
 
 
-// Feedback routes (only for authenticated users)
+// Feedback routes (only for authenticated non-guest users)
 Route::middleware('auth')->group(function () {
-    Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
-    Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
-    // Search history
-    Route::get('/history', [App\Http\Controllers\SearchHistoryController::class, 'index'])->name('history');
-    Route::delete('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'destroy'])->name('history.delete');
-    Route::delete('/history', [App\Http\Controllers\SearchHistoryController::class, 'clearAll'])->name('history.clear');
-    Route::put('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'update'])->name('history.update');
+    Route::group(['middleware' => function ($request, $next) {
+        if (Auth::check() && Auth::user()->role === 'guest') abort(403);
+        return $next($request);
+    }], function () {
+        Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
+        Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
+        // Search history
+        Route::get('/history', [App\Http\Controllers\SearchHistoryController::class, 'index'])->name('history');
+        Route::delete('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'destroy'])->name('history.delete');
+        Route::delete('/history', [App\Http\Controllers\SearchHistoryController::class, 'clearAll'])->name('history.clear');
+        Route::put('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'update'])->name('history.update');
 
-    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+        Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
+    });
 });
 
 // Online E-Libraries page (public)
@@ -434,3 +454,15 @@ Route::get('/scanning-services', [App\Http\Controllers\BookBorrowingController::
 
 // Netzone page
 Route::get('/netzone', [App\Http\Controllers\BookBorrowingController::class, 'netzone'])->name('netzone');
+
+// Guest role routes: limited-access dashboard and entry points
+Route::middleware(['auth','role:guest'])->group(function () {
+    Route::get('/guest/dashboard', function () {
+        return view('guest.dashboard');
+    })->name('guest.dashboard');
+    // Within guest dashboard, they can navigate to:
+    // - MIDES search and sections (already public routes): mides.dashboard, mides.search, mides.undergrad, mides.graduate, etc.
+    // - SIDLAK (public): sidlak.index
+    // - E-Libraries (public): elibraries
+    // - Catalog search (public): catalogs.search
+});

@@ -538,7 +538,7 @@
                 <h4 class="title-text">{{ $catalog->title }}</h4>
                 <div class="button-group">
                     <div class="button-group request-buttons">
-                        <a href="{{ route('lira.jotform', [
+                        <a href="{{ route('lira.form', [
                                             'title' => $catalog->title,
                                             'author' => $catalog->author,
                                             'call_number' => $catalog->call_number,
@@ -550,7 +550,7 @@
                             <i class="bi bi-send"></i> Request Borrow
                         </a>
 
-                        <a href="{{ route('lira.jotform', [
+                        <a href="{{ route('lira.form', [
                                             'title' => $catalog->title,
                                             'author' => $catalog->author,
                                             'call_number' => $catalog->call_number,

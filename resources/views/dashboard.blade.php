@@ -3,11 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Learning Commons</title>
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="{{ asset('css/news-card.css') }}" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.png') }}">
 
 
     <style>

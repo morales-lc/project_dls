@@ -35,6 +35,9 @@ class LoginController extends Controller
             if ($user->role === 'librarian') {
                 return redirect()->intended(route('librarian.dashboard'));
             }
+            if ($user->role === 'guest') {
+                return redirect()->intended(route('guest.dashboard'));
+            }
             return redirect()->intended('/');
         }
 

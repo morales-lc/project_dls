@@ -7,24 +7,82 @@
     <title>E-Libraries</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        /* Responsive fixes */
+        @media (max-width: 768px) {
+            .elib-card {
+                flex-direction: column;
+                align-items: flex-start;
+                text-align: center;
+            }
+
+            .elib-logo {
+                max-width: 100%;
+                max-height: 140px;
+                margin: 0 auto 1rem auto;
+                display: block;
+            }
+
+            .elib-title {
+                font-size: 1.1rem;
+            }
+
+            .elib-desc {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Even smaller screens */
+        @media (max-width: 480px) {
+            .hero {
+                padding: 1.5rem 1rem;
+            }
+
+            .elib-card {
+                padding: 1rem;
+            }
+
+            .elib-title {
+                font-size: 1rem;
+            }
+
+            .elib-desc {
+                font-size: 0.85rem;
+            }
+        }
+
         :root {
             --brand-pink: #d81b60;
             --soft-gray: #f5f6fa;
             --soft-blue: #f0f3f9;
         }
-        body { background: var(--soft-gray); }
+
+        body {
+            background: var(--soft-gray);
+        }
 
         /* Hero */
         .hero {
             background: linear-gradient(135deg, #ffe6ef, #f3f7ff);
             border-radius: 18px;
             padding: 2.25rem 1.5rem;
-            box-shadow: 0 10px 24px rgba(0,0,0,0.06);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
         }
-        .hero h1 { color: var(--brand-pink); font-weight: 800; letter-spacing: .5px; }
-        .hero p { color: #555; margin-bottom: 1rem; }
 
-        .search-input { border-radius: 12px; padding: .75rem 1rem; }
+        .hero h1 {
+            color: var(--brand-pink);
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
+
+        .hero p {
+            color: #555;
+            margin-bottom: 1rem;
+        }
+
+        .search-input {
+            border-radius: 12px;
+            padding: .75rem 1rem;
+        }
 
         /* Cards */
         .elib-card {
@@ -36,23 +94,82 @@
             border-radius: 14px;
             padding: 1.25rem 1.5rem;
             background: #fff;
-            border: 1px solid rgba(0,0,0,0.04);
+            border: 1px solid rgba(0, 0, 0, 0.04);
         }
-        .elib-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); background: #fff5f7; }
-        .elib-card:nth-child(even) { background: var(--soft-blue); }
 
-        .elib-logo { max-width: 200px; max-height: 180px; object-fit: contain; margin-right: 1.25rem; }
-        .elib-title { font-family: "Georgia", serif; font-weight: 700; color: #b23a48; font-size: 1.25rem; }
-        .elib-desc { color: #555; line-height: 1.55; }
-        .elib-badges .badge { font-weight: 500; }
+        .elib-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+            background: #fff5f7;
+        }
+
+        .elib-card:nth-child(even) {
+            background: var(--soft-blue);
+        }
+
+        .elib-logo {
+            max-width: 200px;
+            max-height: 180px;
+            object-fit: contain;
+            margin-right: 1.25rem;
+        }
+
+        .elib-title {
+            font-family: "Georgia", serif;
+            font-weight: 700;
+            color: #b23a48;
+            font-size: 1.25rem;
+        }
+
+        .elib-desc {
+            color: #555;
+            line-height: 1.55;
+        }
+
+        .elib-badges .badge {
+            font-weight: 500;
+        }
 
         /* Modal enhancements */
-        .elib-modal-header { background: linear-gradient(135deg, #ffe6ef, #f3f7ff); }
-        .elib-modal-header .modal-title { color: var(--brand-pink); font-weight: 800; }
-        .elib-modal-body { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; }
-        .elib-modal-logo { width: 100%; max-height: 160px; object-fit: contain; border-radius: .75rem; background: #fff; padding: .75rem; box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
-        .elib-instructions { max-height: 340px; overflow: auto; border-radius: .5rem; background: #fff; padding: 1rem; border: 1px solid #eee; }
-        @media (max-width: 767px) { .elib-modal-body { grid-template-columns: 1fr; } }
+        .elib-modal-header {
+            background: linear-gradient(135deg, #ffe6ef, #f3f7ff);
+        }
+
+        .elib-modal-header .modal-title {
+            color: var(--brand-pink);
+            font-weight: 800;
+        }
+
+        .elib-modal-body {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 1rem;
+        }
+
+        .elib-modal-logo {
+            width: 100%;
+            max-height: 160px;
+            object-fit: contain;
+            border-radius: .75rem;
+            background: #fff;
+            padding: .75rem;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .elib-instructions {
+            max-height: 340px;
+            overflow: auto;
+            border-radius: .5rem;
+            background: #fff;
+            padding: 1rem;
+            border: 1px solid #eee;
+        }
+
+        @media (max-width: 767px) {
+            .elib-modal-body {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 
@@ -91,9 +208,9 @@
                     <h5 class="elib-title mb-2">{{ $lib->name }}</h5>
                     <div class="elib-badges mb-2">
                         @if($lib->username || $lib->password)
-                            <span class="badge text-bg-warning">Credentials required</span>
+                        <span class="badge text-bg-warning">Credentials required</span>
                         @else
-                            <span class="badge text-bg-success">Open access</span>
+                        <span class="badge text-bg-success">Open access</span>
                         @endif
                     </div>
                     <p class="elib-desc mb-0">{{ $lib->description }}</p>
@@ -112,11 +229,11 @@
                             <div class="elib-modal-body">
                                 <div>
                                     @if($lib->image)
-                                        <img src="{{ asset('storage/'.$lib->image) }}" alt="{{ $lib->name }} Logo" class="elib-modal-logo">
+                                    <img src="{{ asset('storage/'.$lib->image) }}" alt="{{ $lib->name }} Logo" class="elib-modal-logo">
                                     @else
-                                        <div class="elib-modal-logo d-flex align-items-center justify-content-center" style="background:#fafafa;">
-                                            <span class="text-muted">No image</span>
-                                        </div>
+                                    <div class="elib-modal-logo d-flex align-items-center justify-content-center" style="background:#fafafa;">
+                                        <span class="text-muted">No image</span>
+                                    </div>
                                     @endif
                                     <div class="mt-3">
                                         <a href="{{ $lib->link }}" target="_blank" class="btn btn-success w-100">Open Database</a>
@@ -126,9 +243,9 @@
                                     <p class="mb-2">{{ $lib->description }}</p>
                                     <div class="elib-instructions mb-3">
                                         @if($lib->instructions)
-                                            {!! $lib->instructions !!}
+                                        {!! $lib->instructions !!}
                                         @else
-                                            <p class="text-muted mb-0">No additional instructions provided.</p>
+                                        <p class="text-muted mb-0">No additional instructions provided.</p>
                                         @endif
                                     </div>
 
@@ -168,29 +285,33 @@
 
     <script>
         // Copy buttons feedback
-        document.addEventListener('click', function(e){
+        document.addEventListener('click', function(e) {
             const btn = e.target.closest('.copy-btn');
-            if(!btn) return;
+            if (!btn) return;
             const id = btn.getAttribute('data-copy');
             const el = id ? document.getElementById(id) : null;
-            if(!el) return;
+            if (!el) return;
             const text = el.textContent || el.innerText || '';
-            navigator.clipboard.writeText(text).then(()=>{
+            navigator.clipboard.writeText(text).then(() => {
                 const prev = btn.textContent;
                 btn.textContent = 'Copied!';
                 btn.classList.remove('btn-outline-primary');
                 btn.classList.add('btn-success');
-                setTimeout(()=>{ btn.textContent = prev; btn.classList.add('btn-outline-primary'); btn.classList.remove('btn-success'); }, 1200);
+                setTimeout(() => {
+                    btn.textContent = prev;
+                    btn.classList.add('btn-outline-primary');
+                    btn.classList.remove('btn-success');
+                }, 1200);
             });
         });
 
         // Client-side filter
         const searchInput = document.getElementById('elibSearch');
         const list = document.getElementById('elibList');
-        if(searchInput && list){
-            searchInput.addEventListener('input', function(){
+        if (searchInput && list) {
+            searchInput.addEventListener('input', function() {
                 const q = (this.value || '').toLowerCase().trim();
-                list.querySelectorAll('.elib-card').forEach(card=>{
+                list.querySelectorAll('.elib-card').forEach(card => {
                     const name = (card.getAttribute('data-name') || '');
                     const desc = (card.getAttribute('data-desc') || '');
                     const show = !q || name.includes(q) || desc.includes(q);

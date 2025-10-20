@@ -2,6 +2,41 @@
 @push('management-head')
 <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<style>
+    /* ===== Hover pop-out effect for appointment rows ===== */
+    table.table tr.record-row {
+        transition:
+            transform 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s ease;
+    }
+
+    table.table tr.record-row:hover {
+        background-color: #fff6f9;
+        /* soft pink tint */
+        transform: scale(1.02);
+        /* slight pop-out */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        /* floating look */
+        position: relative;
+        z-index: 5;
+        /* ensures hover row appears above others */
+    }
+
+    /* Keep cell background consistent on hover */
+    table.table tr.record-row:hover>td {
+        background-color: transparent;
+    }
+
+    /* Cursor & selection behavior */
+    table.table tr.record-row td {
+        cursor: pointer;
+    }
+
+    table.table tr.record-row td:last-child {
+        cursor: default;
+    }
+</style>
 @endpush
 @section('title','ALINET Appointments Management')
 
@@ -68,47 +103,44 @@
                 <table class="table table-bordered table-sm align-middle text-center" style="font-size: 0.9rem;">
                     <thead class="table-pink" style="background:#fcb6d0; color:#d81b60;">
                         <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Strand/Course</th>
-                            <th>Institution/College</th>
-                            <th>Titles/Topics</th>
-                            <th>Date</th>
-                            <th>Mode</th>
-                            <th>Assistance</th>
-                            <th>Resource Types</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th style="min-width: 220px;">Name</th>
+                            <th style="min-width: 200px;">Email</th>
+                            <th style="min-width: 140px;">Date</th>
+                            <th style="min-width: 180px;">Mode</th>
+                            <th style="min-width: 110px;">Status</th>
+                            <th style="min-width: 160px;">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($appointments as $i => $a)
-                        <tr style="height: 48px;">
-                            <td>{{ $appointments->firstItem() + $i }}</td>
-                            <td>{{ $a->prefix ? $a->prefix . ' ' : '' }}{{ $a->firstname }} {{ $a->lastname }}</td>
+                        @php
+                        $dateText = !empty($a->appointment_date)
+                        ? \Carbon\Carbon::parse($a->appointment_date)->format('F j, Y')
+                        : '—';
+                        @endphp
+                        <tr class="record-row" style="height: 48px; cursor: pointer;" title="Click to view details"
+                            data-appointment="true"
+                            data-id="{{ $a->id }}"
+                            data-prefix="{{ e($a->prefix) }}"
+                            data-firstname="{{ e($a->firstname) }}"
+                            data-lastname="{{ e($a->lastname) }}"
+                            data-email="{{ e($a->email) }}"
+                            data-strand="{{ e($a->strand_course) }}"
+                            data-institution="{{ e($a->institution_college) }}"
+                            data-titles="{{ e($a->titles_or_topics) }}"
+                            data-date="{{ e($a->appointment_date) }}"
+                            data-date-text="{{ $dateText }}"
+                            data-mode="{{ e($a->mode_of_research) }}"
+                            data-assistance='@json($a->assistance)'
+                            data-resource-types='@json($a->resource_types)'
+                            data-status="{{ e($a->status) }}"
+                            data-created="{{ optional($a->created_at)->format('F j, Y g:i A') }}">
+                            <td class="text-start">
+                                {{ $a->prefix ? $a->prefix . ' ' : '' }}{{ $a->firstname }} {{ $a->lastname }}
+                            </td>
                             <td>{{ $a->email }}</td>
-                            <td>{{ $a->strand_course }}</td>
-                            <td>{{ $a->institution_college }}</td>
-                            <td class="text-start" style="max-width: 260px; white-space: pre-wrap;">{{ $a->titles_or_topics }}</td>
-                            <td>
-                                @if(!empty($a->appointment_date))
-                                    {{ \Carbon\Carbon::parse($a->appointment_date)->format('F j, Y') }}
-                                @else
-                                    <span class="text-muted">—</span>
-                                @endif
-                            </td>
+                            <td>{{ $dateText }}</td>
                             <td>{{ $a->mode_of_research }}</td>
-                            <td>
-                                @foreach((array) $a->assistance as $s)
-                                <span class="badge bg-pink text-dark mb-1" style="background:#fcb6d0; color:#d81b60;">{{ $s }}</span>
-                                @endforeach
-                            </td>
-                            <td>
-                                @foreach((array) $a->resource_types as $s)
-                                <span class="badge bg-pink text-dark mb-1" style="background:#fcb6d0; color:#d81b60;">{{ $s }}</span>
-                                @endforeach
-                            </td>
                             <td>
                                 @if($a->status === 'pending')
                                 <span class="badge bg-warning text-dark">Pending</span>
@@ -123,9 +155,9 @@
                                 <form method="POST" action="{{ route('alinet.status', $a->id) }}" class="d-inline">
                                     @csrf
                                     <input type="hidden" name="status" value="accepted">
-                                    <button class="btn btn-success btn-sm mb-1" type="submit">Accept</button>
+                                    <button class="btn btn-success btn-sm mb-1 no-row-modal" data-no-row-click="true" type="submit">Accept</button>
                                 </form>
-                                <button class="btn btn-danger btn-sm mb-1" type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" data-action="{{ route('alinet.status', $a->id) }}" data-name="{{ $a->firstname }} {{ $a->lastname }}">Reject</button>
+                                <button class="btn btn-danger btn-sm mb-1 no-row-modal" data-no-row-click="true" type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" data-action="{{ route('alinet.status', $a->id) }}" data-name="{{ $a->firstname }} {{ $a->lastname }}">Reject</button>
                                 @else
                                 <span class="text-muted">—</span>
                                 @endif
@@ -133,7 +165,7 @@
                         </tr>
                         @empty
                         <tr>
-                            <td colspan="12" class="text-center">No appointments found.</td>
+                            <td colspan="6" class="text-center">No appointments found.</td>
                         </tr>
                         @endforelse
                     </tbody>
@@ -177,6 +209,83 @@
     </div>
 </div>
 
+<!-- Details Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header" style="background:#fce1ea; border-bottom: 1px solid #f5b1c9;">
+                <div>
+                    <h5 class="modal-title fw-bold" id="detailsTitle" style="color:#d81b60;">Appointment Details</h5>
+                    <div class="small text-muted" id="detailsSubtitle"></div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0" style="background:#fff7fa;">
+                            <div class="card-body py-3">
+                                <h6 class="text-uppercase text-muted mb-3" style="letter-spacing: .08em;">Requester</h6>
+                                <dl class="row mb-0 small">
+                                    <dt class="col-5 text-muted">Full name</dt>
+                                    <dd class="col-7" id="d_name">—</dd>
+                                    <dt class="col-5 text-muted">Email</dt>
+                                    <dd class="col-7" id="d_email">—</dd>
+                                    <dt class="col-5 text-muted">Strand/Course</dt>
+                                    <dd class="col-7" id="d_strand">—</dd>
+                                    <dt class="col-5 text-muted">Institution/College</dt>
+                                    <dd class="col-7" id="d_institution">—</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0" style="background:#fff7fa;">
+                            <div class="card-body py-3">
+                                <h6 class="text-uppercase text-muted mb-3" style="letter-spacing: .08em;">Appointment</h6>
+                                <dl class="row mb-0 small">
+                                    <dt class="col-5 text-muted">Mode</dt>
+                                    <dd class="col-7" id="d_mode">—</dd>
+                                    <dt class="col-5 text-muted">Preferred/Set Date</dt>
+                                    <dd class="col-7" id="d_date">—</dd>
+                                    <dt class="col-5 text-muted">Status</dt>
+                                    <dd class="col-7" id="d_status">—</dd>
+                                    <dt class="col-5 text-muted">Submitted</dt>
+                                    <dd class="col-7" id="d_created">—</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="card border-0" style="background:#fff;">
+                            <div class="card-body py-3">
+                                <h6 class="text-uppercase text-muted mb-3" style="letter-spacing: .08em;">Research Need</h6>
+                                <div class="mb-3">
+                                    <div class="text-muted small mb-1">Titles/Topics</div>
+                                    <div id="d_titles" class="border rounded p-2 bg-light" style="white-space: pre-wrap;">—</div>
+                                </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="text-muted small mb-1">Assistance</div>
+                                        <div id="d_assistance" class="d-flex flex-wrap gap-1"></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="text-muted small mb-1">Resource Types</div>
+                                        <div id="d_resources" class="d-flex flex-wrap gap-1"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background:#fff;">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('management-scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -190,6 +299,77 @@
             form.setAttribute('action', action);
             nameEl.textContent = 'Rejecting: ' + name;
             form.querySelector('textarea[name="reason"]').value = '';
+        });
+
+        // Row click to open details modal
+        const detailsModalEl = document.getElementById('detailsModal');
+        const detailsModal = detailsModalEl ? new bootstrap.Modal(detailsModalEl) : null;
+        const byId = (id) => document.getElementById(id);
+
+        function renderChips(container, items) {
+            container.innerHTML = '';
+            if (!items || (Array.isArray(items) && items.length === 0)) {
+                container.innerHTML = '<span class="text-muted">—</span>';
+                return;
+            }
+            try {
+                if (typeof items === 'string') {
+                    items = JSON.parse(items);
+                }
+            } catch (e) {}
+            (items || []).forEach(function(txt) {
+                if (txt === null || txt === undefined || txt === '') return;
+                const span = document.createElement('span');
+                span.className = 'badge text-dark';
+                span.style.background = '#fcb6d0';
+                span.style.color = '#d81b60';
+                span.textContent = txt;
+                container.appendChild(span);
+            });
+            if (!container.childElementCount) {
+                container.innerHTML = '<span class="text-muted">—</span>';
+            }
+        }
+
+        document.querySelectorAll('tr.record-row').forEach(function(row) {
+            row.addEventListener('click', function(ev) {
+                // Prevent triggering when clicking buttons/links inside the row
+                const target = ev.target;
+                if (target.closest('[data-no-row-click="true"],button,a,form,input,select,textarea')) return;
+                if (!detailsModal) return;
+
+                const prefix = row.getAttribute('data-prefix') || '';
+                const firstname = row.getAttribute('data-firstname') || '';
+                const lastname = row.getAttribute('data-lastname') || '';
+                const name = (prefix ? prefix + ' ' : '') + firstname + ' ' + lastname;
+                const email = row.getAttribute('data-email') || '—';
+                const strand = row.getAttribute('data-strand') || '—';
+                const institution = row.getAttribute('data-institution') || '—';
+                const titles = row.getAttribute('data-titles') || '—';
+                const dateText = row.getAttribute('data-date-text') || '—';
+                const mode = row.getAttribute('data-mode') || '—';
+                const status = row.getAttribute('data-status') || '—';
+                const created = row.getAttribute('data-created') || '—';
+                const assistance = row.getAttribute('data-assistance');
+                const resourceTypes = row.getAttribute('data-resource-types');
+
+                byId('detailsTitle').textContent = name;
+                byId('detailsSubtitle').textContent = email;
+                byId('d_name').textContent = name;
+                byId('d_email').textContent = email;
+                byId('d_strand').textContent = strand || '—';
+                byId('d_institution').textContent = institution || '—';
+                byId('d_mode').textContent = mode;
+                byId('d_date').textContent = dateText;
+                byId('d_status').textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                byId('d_created').textContent = created;
+                byId('d_titles').textContent = titles;
+
+                renderChips(byId('d_assistance'), assistance ? JSON.parse(assistance) : []);
+                renderChips(byId('d_resources'), resourceTypes ? JSON.parse(resourceTypes) : []);
+
+                detailsModal.show();
+            });
         });
     });
 </script>

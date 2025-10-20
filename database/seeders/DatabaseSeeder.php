@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             \Database\Seeders\ProgramSeeder::class,
             \Database\Seeders\MidesCategorySeeder::class,
             \Database\Seeders\ResourceViewsSeeder::class,
+            \Database\Seeders\GuestUserSeeder::class,
         ]);
     }
 }

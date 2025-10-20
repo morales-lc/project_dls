@@ -1,3 +1,6 @@
+
+<title>ALINET</title>
+
 @include('navbar')
 <style>
     body {

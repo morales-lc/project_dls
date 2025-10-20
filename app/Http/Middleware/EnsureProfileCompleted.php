@@ -16,8 +16,8 @@ class EnsureProfileCompleted
 
         $user = Auth::user();
 
-        // Skip for admin/librarian
-        if (in_array($user->role, ['admin', 'librarian'])) {
+        // Skip for admin/librarian/guest
+        if (in_array($user->role, ['admin', 'librarian', 'guest'])) {
             return $next($request);
         }
 
