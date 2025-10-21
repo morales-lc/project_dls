@@ -566,13 +566,13 @@
                     @auth
                     @php $isBookmarked = $catalogBookmarked ?? false; @endphp
                     <form method="POST" action="{{ route('bookmarks.toggle') }}"
-                        class="d-inline bookmark-form mt-2 w-100 text-center">
+                        class="d-inline bookmark-toggle mt-2 w-100 text-center">
                         @csrf
                         <input type="hidden" name="id" value="{{ $catalog->id }}">
                         <input type="hidden" name="type" value="catalog">
-                        <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-dark' }} btn-animated w-100">
+                        <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-dark' }} btn-animated w-100 bookmark-btn">
                             <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill' : 'bi-plus-circle' }} me-1"></i>
-                            <span>{{ $isBookmarked ? 'Bookmarked' : 'Add to list' }}</span>
+                            <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Add to list' }}</span>
                         </button>
                     </form>
                     @else
@@ -709,75 +709,79 @@
 @include('footer')
 
 <script>
-    // Hook into existing bookmark-form behavior to add a small pop animation
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.bookmark-form').forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                // existing AJAX handler elsewhere will update the button state.
-                // We'll add a short-lived animation to the button when the request succeeds.
-                e.preventDefault();
-                var btn = form.querySelector('button');
-                if (!btn) return;
-                var originalHtml = btn.innerHTML;
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>...';
+    // Delegated submit listener so it always intercepts form submission (prevents full page reload)
+    (function(){
+        async function handleToggle(e){
+            e.preventDefault();
+            var form = e.target.closest('.bookmark-toggle');
+            if (!form) return;
+            var btn = form.querySelector('.bookmark-btn');
+            if (!btn) return;
 
+            var originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>...';
+
+            try {
                 var fd = new FormData(form);
-                fetch(form.action, {
+                var csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || form.querySelector('input[name="_token"]').value;
+                var resp = await fetch(form.action, {
                     method: 'POST',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        'X-CSRF-TOKEN': csrf
                     },
                     body: fd
-                }).then(function(res) {
-                    return res.json();
-                }).then(function(data) {
-                    if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
-                        // Toggle classes based on server response
-                        var isNowBookmarked = data.status === 'bookmarked';
-                        if (isNowBookmarked) {
-                            btn.classList.remove('btn-outline-dark');
-                            btn.classList.add('btn-primary');
-                            btn.querySelector('i')?.classList.remove('bi-plus-circle');
-                            btn.querySelector('i')?.classList.add('bi-bookmark-fill');
-                            btn.querySelector('span')?.textContent = 'Bookmarked';
-                        } else {
-                            btn.classList.remove('btn-primary');
-                            btn.classList.add('btn-outline-dark');
-                            btn.querySelector('i')?.classList.remove('bi-bookmark-fill');
-                            btn.querySelector('i')?.classList.add('bi-plus-circle');
-                            btn.querySelector('span')?.textContent = 'Add to list';
-                        }
-
-                        // Add pop animation class and remove it after it finishes
-                        btn.classList.add('bookmark-pop');
-                        var handle = function() {
-                            btn.classList.remove('bookmark-pop');
-                            btn.removeEventListener('animationend', handle);
-                        };
-                        btn.addEventListener('animationend', handle);
-
-                        // show a small toast-like alert
-                        var alert = document.createElement('div');
-                        alert.className = 'alert alert-success position-fixed end-0 m-4 shadow-sm';
-                        alert.style.zIndex = 1050;
-                        alert.textContent = data.message || (isNowBookmarked ? 'Added to your list' : 'Removed from your list');
-                        document.body.appendChild(alert);
-                        setTimeout(function() {
-                            alert.remove();
-                        }, 2200);
-                    } else {
-                        alert((data && data.message) || 'Unexpected response');
-                    }
-                }).catch(function(err) {
-                    console.error(err);
-                    alert('Failed to toggle bookmark.');
-                }).finally(function() {
-                    btn.disabled = false;
-                    btn.innerHTML = originalHtml;
                 });
-            });
+                var data = await resp.json();
+
+                if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
+                    var isNowBookmarked = data.status === 'bookmarked';
+                    if (isNowBookmarked) {
+                        btn.classList.remove('btn-outline-dark');
+                        btn.classList.add('btn-primary');
+                        btn.querySelector('i')?.classList.remove('bi-plus-circle');
+                        btn.querySelector('i')?.classList.add('bi-bookmark-fill');
+                        btn.querySelector('.bookmark-text')?.textContent = 'Bookmarked';
+                    } else {
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-outline-dark');
+                        btn.querySelector('i')?.classList.remove('bi-bookmark-fill');
+                        btn.querySelector('i')?.classList.add('bi-plus-circle');
+                        btn.querySelector('.bookmark-text')?.textContent = 'Add to list';
+                    }
+
+                    // pop animation
+                    btn.classList.add('bookmark-pop');
+                    var handle = function() {
+                        btn.classList.remove('bookmark-pop');
+                        btn.removeEventListener('animationend', handle);
+                    };
+                    btn.addEventListener('animationend', handle);
+
+                    // toast-like alert
+                    var alertEl = document.createElement('div');
+                    alertEl.className = 'alert alert-success position-fixed end-0 m-4 shadow-sm';
+                    alertEl.style.zIndex = 1050;
+                    alertEl.textContent = data.message || (isNowBookmarked ? 'Added to your list' : 'Removed from your list');
+                    document.body.appendChild(alertEl);
+                    setTimeout(function(){ alertEl.remove(); }, 2200);
+                } else {
+                    alert((data && data.message) || 'Unexpected response');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to toggle bookmark.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
+
+        document.addEventListener('submit', function(e){
+            if (e.target && e.target.classList && e.target.classList.contains('bookmark-toggle')){
+                handleToggle(e);
+            }
         });
-    });
+    })();
 </script>

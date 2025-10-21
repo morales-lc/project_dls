@@ -62,8 +62,12 @@
                     <tbody>
                         @foreach($records as $record)
                         <tr>
-                            <td>{{ $record->title }}</td>
-                            <td>{{ $record->author }}</td>
+                            <td>
+                                <button type="button" class="btn btn-link p-0 text-start text-decoration-none" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $record->id }}">{{ $record->title }}</button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-link p-0 text-start text-decoration-none" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $record->id }}">{{ $record->author }}</button>
+                            </td>
                             <td>{{ $record->year }}</td>
                             <td class="text-center">
                                 <button type="button" class="btn btn-outline-pink btn-sm view-btn" data-bs-toggle="modal" data-bs-target="#pdfModal{{ $record->id }}"><i class="bi bi-file-earmark-pdf"></i> View</button>
@@ -76,6 +80,40 @@
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
                                             <iframe src="{{ route('mides.seniorhigh.viewer', $record->id) }}" width="100%" height="100%" style="border:none; min-height:70vh;"></iframe>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Details Modal -->
+                                <div class="modal fade" id="detailsModal{{ $record->id }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ $record->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header bg-light">
+                                                <h5 class="modal-title" id="detailsModalLabel{{ $record->id }}"><i class="bi bi-file-text me-2"></i>Document Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <dl class="row mb-0">
+                                                    <dt class="col-sm-3">Title</dt>
+                                                    <dd class="col-sm-9 text-break">{{ $record->title }}</dd>
+
+                                                    <dt class="col-sm-3">Author</dt>
+                                                    <dd class="col-sm-9 text-break">{{ $record->author }}</dd>
+
+                                                    <dt class="col-sm-3">Year</dt>
+                                                    <dd class="col-sm-9">{{ $record->year }}</dd>
+
+                                                    <dt class="col-sm-3">Type</dt>
+                                                    <dd class="col-sm-9">{{ $record->type ?? 'Senior High School Research Paper' }}</dd>
+
+                                                    <dt class="col-sm-3">Program</dt>
+                                                    <dd class="col-sm-9">{{ $program }}</dd>
+                                                </dl>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <a class="btn btn-outline-pink" target="_blank" href="{{ route('mides.seniorhigh.viewer', $record->id) }}"><i class="bi bi-file-earmark-pdf"></i> Open PDF</a>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -93,11 +131,11 @@
                                         }
                                     @endphp
                                     @if($sf && $sf->id)
-                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline bookmark-form">
+                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline bookmark-toggle">
                                             @csrf
                                             <input type="hidden" name="id" value="{{ $record->id }}">
                                             <input type="hidden" name="type" value="mides">
-                                            <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} bookmark-btn"><i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i> {{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</button>
+                                            <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} bookmark-btn"><i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i> <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span></button>
                                         </form>
                                     @endif
                                 @endauth
@@ -118,3 +156,61 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </div>
+<div style="height: 100px;"></div>
+@include('footer')
+</html>
+<script>
+    // Generic bookmark toggle handler (AJAX)
+    (function(){
+        async function handleToggle(e){
+            e.preventDefault();
+            const form = e.target.closest('.bookmark-toggle') || e.target;
+            if (!form) return;
+            const btn = form.querySelector('.bookmark-btn');
+            const icon = btn.querySelector('i');
+            const textEl = btn.querySelector('.bookmark-text');
+            const formData = new FormData(form);
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>...';
+
+            try{
+                const resp = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || form.querySelector('input[name="_token"]')?.value
+                    },
+                    body: formData
+                });
+
+                if (!resp.ok) throw new Error('Network response not ok');
+                const data = await resp.json();
+                if (data.status === 'bookmarked'){
+                    btn.classList.remove('btn-outline-warning');
+                    btn.classList.add('btn-pink');
+                    if (icon) icon.className = 'bi bi-bookmark-fill';
+                    if (textEl) textEl.textContent = 'Bookmarked';
+                } else {
+                    btn.classList.remove('btn-pink');
+                    btn.classList.add('btn-outline-warning');
+                    if (icon) icon.className = 'bi bi-bookmark';
+                    if (textEl) textEl.textContent = 'Bookmark';
+                }
+            }catch(err){
+                console.error('Bookmark toggle failed', err);
+            }finally{
+                btn.disabled = false;
+                if (btn.innerHTML.includes('spinner-border')){
+                    btn.innerHTML = originalHtml;
+                }
+            }
+        }
+
+        document.addEventListener('submit', function(e){
+            if (e.target && e.target.classList && e.target.classList.contains('bookmark-toggle')){
+                handleToggle(e);
+            }
+        });
+    })();
+</script>

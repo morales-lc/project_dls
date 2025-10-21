@@ -607,16 +607,24 @@
                 <section class="section-white rounded-4 shadow-sm p-4 h-100">
                     <h3 class="fw-bold mb-3 text-pink">Library Announcements</h3>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item bg-transparent">Library Orientation for Freshmen: August 15, 2025, 9:00 AM at the Main Library Hall.</li>
-                        <li class="list-group-item bg-transparent">New Arrivals: Over 200 new books in Science, Business, and Literature sections!</li>
-                        <li class="list-group-item bg-transparent">Library will be closed on August 21 for a public holiday.</li>
+                        @if(isset($libraryAnnouncements) && $libraryAnnouncements->count())
+                            @foreach($libraryAnnouncements as $ann)
+                                <li class="list-group-item bg-transparent">{{ $ann->text }}</li>
+                            @endforeach
+                        @else
+                            <li class="list-group-item bg-transparent text-muted">No announcements at the moment.</li>
+                        @endif
                     </ul>
                 </section>
             </div>
             <div class="col-lg-4 d-flex align-items-stretch">
                 <div class="section-white rounded-4 shadow-sm p-4 w-100 d-flex flex-column align-items-center justify-content-center">
                     <h3 class="fw-bold mb-3">Library Hours</h3>
-                    <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    @if(isset($librarySettings) && $librarySettings->library_hours_gif)
+                        <img src="{{ asset('storage/' . $librarySettings->library_hours_gif) }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    @else
+                        <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    @endif
                 </div>
             </div>
         </div>

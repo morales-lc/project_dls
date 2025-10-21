@@ -7,12 +7,8 @@ use App\Models\Catalog;
 
 class CatalogController extends Controller
 {
-    // Display paginated catalog list
-    public function index()
-    {
-        $catalogs = Catalog::orderBy('title')->paginate(12);
-        return view('catalogs.index', compact('catalogs'));
-    }
+ 
+
 
     // Show catalog creation form
     public function create()

@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\Post;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use App\Models\LibrarySetting;
+use App\Models\LibraryAnnouncement;
 
 class PostController extends Controller
 {
@@ -25,7 +27,16 @@ class PostController extends Controller
             }
         }
 
-        return view('dashboard', ['posts' => $posts, 'bookmarkedPostIds' => $bookmarkedPostIds]);
+        // Load library settings and active announcements for the dashboard section
+        $settings = LibrarySetting::singleton();
+        $announcements = LibraryAnnouncement::where('active', true)->orderBy('position')->get();
+
+        return view('dashboard', [
+            'posts' => $posts,
+            'bookmarkedPostIds' => $bookmarkedPostIds,
+            'librarySettings' => $settings,
+            'libraryAnnouncements' => $announcements,
+        ]);
     }
 
     public function store(Request $request)

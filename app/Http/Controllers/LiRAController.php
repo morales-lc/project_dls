@@ -160,13 +160,23 @@ class LiRAController extends Controller
     {
         $q = LiraRequest::query();
         if ($request->filled('status')) {
-            $q->where('status', $request->input('status'));
+            $status = $request->input('status');
+            if ($status === 'awaiting_response') {
+                // Accepted but not yet responded
+                $q->where('status', 'accepted')->whereNull('response_sent_at');
+            } else {
+                $q->where('status', $status);
+            }
         }
         if ($request->filled('email')) {
             $q->where('email', 'like', '%'.$request->input('email').'%');
         }
 
-        $items = $q->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+        $items = $q->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
+        if ($request->ajax()) {
+            // Return only the list HTML for dynamic updates
+            return response()->view('lira.partials.list', compact('items'));
+        }
         return view('lira.manage', compact('items'));
     }
 
@@ -195,6 +205,42 @@ class LiRAController extends Controller
         Mail::to($lira->email)->send(new LiraDecision($lira, $lira->status, $lira->decision_reason));
 
         return redirect()->back()->with('status', 'Decision recorded.');
+    }
+
+    // Send a custom response to the requester (post-acceptance)
+    public function respond(Request $request, $id)
+    {
+        $lira = LiraRequest::findOrFail($id);
+
+        // Only allow responding to accepted requests
+        if ($lira->status !== 'accepted') {
+            return redirect()->back()->with('status', 'Only accepted requests can be responded to.');
+        }
+        // Prevent duplicate response unless explicitly allowed in future
+        if (!empty($lira->response_sent_at)) {
+            return redirect()->back()->with('status', 'A response has already been sent for this request.');
+        }
+
+        $validated = $request->validate([
+            'response_subject' => 'required|string|max:255',
+            'response_message' => 'required|string|max:10000',
+        ]);
+
+        // Send email to requester
+        try {
+            Mail::to($lira->email)->send(new \App\Mail\LiraResponse($lira, $validated['response_subject'], $validated['response_message']));
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('status', 'Failed to send email: '.$e->getMessage());
+        }
+
+        // Record response metadata
+        $lira->response_subject = $validated['response_subject'];
+        $lira->response_message = $validated['response_message'];
+        $lira->response_sent_at = now();
+        $lira->responded_by = Auth::id();
+        $lira->save();
+
+        return redirect()->back()->with('status', 'Response sent to requester.');
     }
 
     //delete a LiRA request

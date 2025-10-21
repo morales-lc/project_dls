@@ -1,96 +1,119 @@
+
+<title>LiRA Request Form</title>
 @include('navbar')
 
 <style>
+    /* Wrapper card to match ALINET theme */
+    .lira-form-card {
+        background: #fff0f6; /* light pink */
+        border-radius: 1.5rem;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+        border: 4px solid #4a90e2; /* blue border */
+        padding: 2.5rem 2rem 1.5rem 2rem;
+        max-width: 900px;
+        margin: 48px auto; /* spacing from top */
+    }
+
     .lira-banner {
         width: 100%;
         height: auto;
         object-fit: contain;
     }
 
-    /* Pink theme accent */
-    .btn-pink {
-        background-color: #e83e8c;
-        border: none;
-        color: #fff;
-    }
-
-    .btn-pink:hover {
-        background-color: #c2185b;
-    }
-
-    /* Field clarity */
-    .form-label {
+    /* Scoped label styles inside LiRA card */
+    .lira-form-card .form-label {
         font-weight: 600;
-        color: #444;
+        font-size: 1.05rem;
+        color: #222;
     }
 
-    .form-control,
-    .form-select {
-        border-radius: .5rem;
+    /* Inputs/selects themed like ALINET */
+    .lira-form-card .form-control,
+    .lira-form-card .form-select {
+        background: #ffe3ef; /* soft pink */
+        border: 1.5px solid #fcb6d0; /* light pink border */
+        color: #d81b60; /* pink text */
+        font-size: 1rem;
+        border-radius: 0.5rem;
         padding: .65rem .75rem;
-        border: 1px solid #ddd;
     }
 
-    .form-section {
-        background: #f9f9fb;
+    .lira-form-card .form-control:focus,
+    .lira-form-card .form-select:focus {
+        border-color: #d81b60;
+        box-shadow: 0 0 0 0.2rem #fcb6d0;
+    }
+
+    /* Buttons to match ALINET buttons */
+    .lira-btn-pink {
+        background: #fcb6d0;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 0.7rem 2.0rem;
+        font-size: 1rem;
+        transition: background 0.2s;
+    }
+    .lira-btn-pink:hover { background: #d81b60; color: #fff; }
+
+    .lira-btn-outline {
+        background: #fff;
+        color: #d81b60;
+        border: 2px solid #fcb6d0;
+        font-weight: 600;
+        border-radius: 0.5rem;
+        padding: 0.7rem 2.0rem;
+        font-size: 1rem;
+        transition: background 0.2s, color 0.2s;
+    }
+    .lira-btn-outline:hover { background: #fcb6d0; color: #fff; }
+
+    /* Sections inside LiRA form */
+    .lira-form-card .form-section {
+        background: #fff8fb;
         padding: 1.25rem;
         border-radius: .75rem;
         margin-bottom: 1.5rem;
-        border: 1px solid #eee;
+        border: 1px solid #fcb6d0;
     }
-
-    .form-section h5 {
+    .lira-form-card .form-section h5 {
         font-size: 1.1rem;
         font-weight: 700;
         margin-bottom: 1rem;
         color: #e83e8c;
     }
 
-    /* Checkbox clarity */
-    .form-check {
-        margin-bottom: .5rem;
-    }
+    /* Checkbox spacing */
+    .lira-form-card .form-check { margin-bottom: .5rem; }
 
     /* Step visuals */
-    .lira-step {
-        animation: fadeIn .3s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(5px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+    .lira-step { animation: fadeIn .3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
     /* Required note */
-    .note-required {
-        font-size: .9rem;
-        color: #666;
-        margin-bottom: 1rem;
-        font-style: italic;
-    }
-    .required {
-        color: #e53935;
-        font-weight: bold;
-        margin-left: 3px;
-    }
+    .note-required { font-size: .9rem; color: #666; margin-bottom: 1rem; font-style: italic; }
+    .required { color: #e53935; font-weight: bold; margin-left: 3px; }
+
+    /* Optional divider like ALINET */
+    .lira-form-divider { border-top: 1.5px solid #fcb6d0; margin: 1.5rem 0; }
 </style>
 
 <div style="height: 50px;"></div>
 
 <div class="container py-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h2 class="fw-bold text-center" style="color:#e83e8c;">LiRA (Library Research Assistance)</h2>
-                    <hr>
+        <div class="col-lg-10">
+            <div class="lira-form-card">
+                <h2 class="fw-bold text-center mb-3" style="color:#e83e8c;">LiRA (Library Research Assistance)</h2>
+                <div class="lira-form-divider"></div>
 
-                    @if(session('status'))
-                    <div class="alert alert-success">{{ session('status') }}</div>
-                    @endif
+                @if(session('status'))
+                <div class="alert alert-success">{{ session('status') }}</div>
+                @endif
 
-                    <form method="POST" action="{{ route('lira.submit') }}" id="liraForm" novalidate>
-                        @csrf
+                <form method="POST" action="{{ route('lira.submit') }}" id="liraForm" novalidate>
+                    @csrf
 
                         <input type="hidden" name="action" value="{{ $prefill['action'] ?? 'borrow' }}">
 
@@ -241,16 +264,16 @@
                             </div>
                         </div>
 
-                        <div class="d-flex justify-content-between mt-3">
-                            <button type="button" class="btn btn-outline-secondary" id="backBtn">Back</button>
-                            <div>
-                                <button type="button" class="btn btn-secondary me-2" id="saveBtn">Save</button>
-                                <button type="button" class="btn btn-pink" id="nextBtn">Next</button>
-                                <button type="submit" class="btn btn-pink d-none" id="submitBtn">Submit</button>
+                        <div class="lira-form-divider"></div>
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                            <button type="button" class="lira-btn-outline" id="backBtn">Back</button>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="lira-btn-outline" id="saveBtn">Save</button>
+                                <button type="button" class="lira-btn-pink" id="nextBtn">Next</button>
+                                <button type="submit" class="lira-btn-pink d-none" id="submitBtn">Submit</button>
                             </div>
                         </div>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
     </div>

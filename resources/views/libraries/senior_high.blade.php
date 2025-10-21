@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Senior High School Library Staff</title>
+    <title>Senior High School Library</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         /* Header Banner */
@@ -101,7 +101,7 @@
 
     <!-- Header Banner -->
     <div class="header-banner">
-        <div class="header-text">Senior High School Library Staff</div>
+        <div class="header-text">Senior High School Library</div>
     </div>
 
     <!-- Staff Section -->

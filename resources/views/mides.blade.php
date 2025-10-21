@@ -17,9 +17,9 @@
     <div class="container py-5">
         <!-- Centered top section -->
         <div class="text-center mb-4">
-            <h2 class="fw-bold mb-2">Welcome to MIDES Repository!</h2>
-            <div class="text-secondary mb-2">
-                <em>The Mides Repository is a digital repository of scholarly and creative works of the faculty, students, and personnel of Lourdes College.</em>
+            <h2 class="fw-bold mb-2" style="color:#e83e8c;">Welcome to MIDES Repository!</h2>
+            <div class="fs-5 fw-semibold mb-1" style="color:#e83e8c;">
+                The Mides Repository is a digital repository of scholarly and creative works of the faculty, students, and personnel of Lourdes College.
             </div>
             <div class="text-muted small">
                 <strong>Graduate Theses</strong> (contains abstracts, introduction, and related literature of the theses completed for the M.A. programs in Lourdes College)<br>

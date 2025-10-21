@@ -21,8 +21,13 @@
             </a>
         </li>
         <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('mides.management') ? 'active' : '' }}" href="{{ route('mides.management') }}">
+                <i class="bi bi-journal-text" style="color:#d81b60;font-size:1.3rem;"></i> <span>MIDES Management</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('sidlak.manage') ? 'active' : '' }}" href="{{ route('sidlak.manage') }}">
-                <i class="bi bi-journal-richtext" style="color:#d81b60;font-size:1.3rem;"></i> <span>Sidlak Management</span>
+                <i class="bi bi-journal-richtext" style="color:#d81b60;font-size:1.3rem;"></i> <span>SIDLAK Management</span>
             </a>
         </li>
         <li class="nav-item mb-1">
@@ -33,11 +38,6 @@
         <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('alert-services.manage') ? 'active' : '' }}" href="{{ route('alert-services.manage') }}">
                 <i class="bi bi-bell" style="color:#d81b60;font-size:1.3rem;"></i> <span>Alert Services</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('mides.management') ? 'active' : '' }}" href="{{ route('mides.management') }}">
-                <i class="bi bi-journal-text" style="color:#d81b60;font-size:1.3rem;"></i> <span>MIDES Management</span>
             </a>
         </li>
         <li class="nav-item mb-1">
@@ -52,6 +52,12 @@
             </a>
         </li>
 
-        
+        <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('lira.manage') ? 'active' : '' }}" href="{{ route('lira.manage') }}">
+                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i> <span>LiRA Requests</span>
+            </a>
+        </li>
+
+
     </ul>
 </nav>

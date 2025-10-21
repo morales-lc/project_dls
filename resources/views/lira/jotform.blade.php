@@ -8,6 +8,15 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 
     <style>
+        /* LiRA themed card to match ALINET blue border + light pink */
+        .lira-form-card {
+            background: #fff0f6;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+            border: 4px solid #4a90e2;
+            padding: 2.5rem 2rem 1.5rem 2rem;
+        }
+
         .btn-pink {
             background: #e83e8c;
             color: #fff;
@@ -20,14 +29,6 @@
         .btn-pink:focus {
             background: #f06292;
             color: #fff;
-        }
-
-        .card {
-            border-radius: 1.5rem !important;
-        }
-
-        .card-body {
-            border-radius: 1.5rem !important;
         }
 
         .jotform-container {
@@ -49,7 +50,7 @@
                 min-height: 90vh;
             }
 
-            .card-body {
+            .lira-form-card {
                 padding: 1.5rem !important;
             }
 
@@ -86,12 +87,8 @@
             }
 
             /* Remove card side rounding so it blends to edges */
-            .card {
+            .lira-form-card {
                 border-radius: 0 !important;
-            }
-
-            /* Reduce internal padding slightly for comfort */
-            .card-body {
                 padding: 1rem !important;
             }
 
@@ -111,8 +108,7 @@
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <div class="card shadow-lg border-0 rounded-4" style="background: linear-gradient(135deg, #fff 80%, #ffe3f1 100%);">
-                    <div class="card-body p-5">
+                <div class="lira-form-card">
                         <div class="d-flex align-items-center mb-4 gap-3">
                             <div class="bg-pink d-flex align-items-center justify-content-center rounded-circle"
                                 style="width:56px;height:56px;">
@@ -126,12 +122,11 @@
 
 
 
-                        <div class="jotform-container rounded-4 overflow-hidden border"
-                            style="box-shadow:0 2px 16px rgba(232,62,140,0.08);">
-                            <iframe id="jotformFrame"
-                                src="{{ $jotformUrl }}"
-                                allowfullscreen></iframe>
-                        </div>
+                    <div class="jotform-container rounded-4 overflow-hidden border"
+                        style="box-shadow:0 2px 16px rgba(232,62,140,0.08); background:#fff;">
+                        <iframe id="jotformFrame"
+                            src="{{ $jotformUrl }}"
+                            allowfullscreen></iframe>
                     </div>
                 </div>
             </div>

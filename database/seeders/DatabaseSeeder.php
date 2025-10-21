@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             \Database\Seeders\ProgramSeeder::class,
             \Database\Seeders\MidesCategorySeeder::class,
+            \Database\Seeders\MidesDocumentSeeder::class,
+            \Database\Seeders\MidesGraduateChildhoodEducationSeeder::class,
             \Database\Seeders\ResourceViewsSeeder::class,
             \Database\Seeders\GuestUserSeeder::class,
         ]);

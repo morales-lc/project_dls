@@ -85,6 +85,29 @@
                     if(adminSidebar) adminSidebar.style.transform = 'translateX(0)';
                     if(librarianSidebar) librarianSidebar.style.transform = 'translateX(0)';
                 }
+
+                // Ensure mouse wheel always scrolls the visible sidebar when hovered
+                try {
+                    var ensureSidebarWheelScroll = function(sideEl){
+                        if(!sideEl) return;
+                        sideEl.addEventListener('wheel', function(e){
+                            // Only handle when pointer is over the sidebar
+                            if(!sideEl.matches(':hover')) return;
+                            var delta = e.deltaY;
+                            var prev = sideEl.scrollTop;
+                            sideEl.scrollTop += delta;
+                            // If the sidebar can scroll, prevent page scroll
+                            if(sideEl.scrollTop !== prev) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }
+                        }, { passive: false });
+                    };
+                    ensureSidebarWheelScroll(adminSidebar);
+                    ensureSidebarWheelScroll(librarianSidebar);
+                } catch(err) {
+                    // no-op: older browsers
+                }
             });
         })();
     </script>

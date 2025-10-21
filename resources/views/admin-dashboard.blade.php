@@ -97,6 +97,7 @@
                             <div class="d-flex flex-wrap gap-2">
                                 <a href="{{ route('alert-services.manage') }}" class="btn btn-outline-pink"><i class="bi bi-bell me-2"></i>Alert Services</a>
                                 <a href="{{ route('post.management') }}" class="btn btn-outline-pink"><i class="bi bi-file-earmark-post me-2"></i>Posts</a>
+                                <a href="{{ route('library.content.manage') }}" class="btn btn-outline-pink"><i class="bi bi-collection-play me-2"></i>Library Content</a>
                                 <a href="{{ route('sidlak.manage') }}" class="btn btn-outline-pink"><i class="bi bi-journal-richtext me-2"></i>Sidlak</a>
                                 <a href="{{ route('mides.categories.panel') }}" class="btn btn-outline-pink"><i class="bi bi-tags me-2"></i>MIDES Categories</a>
                                     <a href="{{ route('admin.contact-info') }}" class="btn btn-outline-pink"><i class="bi bi-telephone me-2"></i>Contact Info</a>

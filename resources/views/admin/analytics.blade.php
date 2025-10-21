@@ -385,7 +385,7 @@ foreach ($programs as $p) {
                     datasets: [{
                         label: 'Monthly Total',
                         data: values,
-                        backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                        backgroundColor: 'rgba(54, 162, 235, 1)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 2,
                         fill: true,

@@ -28,6 +28,7 @@
       <li class="nav-item"><a class="nav-link {{ request('status')=='pending' ? 'active' : '' }}" href="{{ $build('pending') }}">Pending</a></li>
       <li class="nav-item"><a class="nav-link {{ request('status')=='accepted' ? 'active' : '' }}" href="{{ $build('accepted') }}">Accepted</a></li>
       <li class="nav-item"><a class="nav-link {{ request('status')=='rejected' ? 'active' : '' }}" href="{{ $build('rejected') }}">Rejected</a></li>
+      <li class="nav-item"><a class="nav-link {{ request('status')=='awaiting_response' ? 'active' : '' }}" href="{{ $build('awaiting_response') }}">Awaiting Response</a></li>
     </ul>
     <form class="d-flex mb-3" method="GET">
       <input name="email" value="{{ request('email') }}" class="form-control me-2" placeholder="filter by email">
@@ -35,33 +36,8 @@
     </form>
     </div>
 
-  <div class="list-group">
-    @foreach($items as $it)
-      <div class="list-group-item d-flex justify-content-between align-items-start" data-id="{{ $it->id }}">
-        <div class="flex-grow-1 lira-row" role="button" tabindex="0" data-item="{{ base64_encode($it->toJson()) }}">
-          <div><strong>{{ $it->first_name }} {{ $it->last_name }}</strong> <small class="text-muted">({{ $it->email }})</small></div>
-          <div class="text-muted">{{ $it->created_at->toDayDateTimeString() }} — {{ $it->action }}</div>
-          <div class="mt-2">{{ $it->for_borrow_scan }}</div>
-        </div>
-        <div class="text-end ms-3" style="min-width: 180px;">
-          @php
-            $badge = 'secondary';
-            if ($it->status === 'pending') $badge = 'warning';
-            elseif ($it->status === 'accepted') $badge = 'success';
-            elseif ($it->status === 'rejected') $badge = 'danger';
-          @endphp
-          <div class="mb-2"><span class="badge bg-{{ $badge }}">{{ ucfirst($it->status ?? 'pending') }}</span></div>
-          <div class="d-flex justify-content-end gap-2">
-            <button type="button" class="btn btn-sm btn-outline-secondary lira-row" data-item="{{ base64_encode($it->toJson()) }}">View</button>
-            <form class="lira-delete-form" method="POST" action="{{ route('lira.destroy', $it->id) }}">
-              @csrf
-              @method('DELETE')
-              <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    @endforeach
+  <div id="liraListContainer">
+    @include('lira.partials.list', ['items' => $items])
   </div>
 
     <!-- Details Modal -->
@@ -96,7 +72,38 @@
       </div>
     </div>
 
-    <div class="mt-3">{{ $items->links() }}</div>
+    <!-- Respond Modal (separate) -->
+    <div class="modal fade" id="liraRespondModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Send Response to Requester</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="liraRespondInfo" class="mb-3 text-muted small"></div>
+            <form id="respondForm" method="POST" action="">
+              @csrf
+              <div class="mb-2">
+                <label for="response_subject" class="form-label">Email subject</label>
+                <input id="response_subject" name="response_subject" class="form-control" placeholder="Response to your LiRA request" maxlength="255">
+              </div>
+              <div class="mb-2">
+                <label for="response_message" class="form-label">Message to requester</label>
+                <textarea id="response_message" name="response_message" class="form-control" rows="6" placeholder="Write your response..."></textarea>
+              </div>
+            </form>
+            <div id="respondNotice" class="text-muted small mt-1"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" form="respondForm" class="btn btn-primary">Send Response</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- pagination is rendered inside liraListContainer -->
 </div>
 
 @endsection
@@ -104,10 +111,162 @@
 @push('management-scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-  const rows = document.querySelectorAll('.lira-row');
   const modal = new bootstrap.Modal(document.getElementById('liraDetailsModal'));
   const details = document.getElementById('liraDetailsHtml');
   const decisionForm = document.getElementById('decisionForm');
+  const respondForm = document.getElementById('respondForm');
+  const respondModal = new bootstrap.Modal(document.getElementById('liraRespondModal'));
+  const listContainer = document.getElementById('liraListContainer');
+
+  function bindRowHandlers(scope) {
+    scope.querySelectorAll('.lira-row').forEach(r => r.addEventListener('click', onRowClick));
+    scope.querySelectorAll('.lira-respond-btn').forEach(b => b.addEventListener('click', onRespondClick));
+    scope.querySelectorAll('.pagination a').forEach(a => a.addEventListener('click', onPaginateClick));
+    scope.querySelectorAll('.lira-delete-form').forEach(form => form.addEventListener('submit', onDeleteSubmit));
+  }
+
+  async function loadList(url) {
+    const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const html = await resp.text();
+    listContainer.innerHTML = html;
+    bindRowHandlers(listContainer);
+  }
+
+  function onTabClick(e) {
+    e.preventDefault();
+    const url = this.href;
+    history.replaceState({}, '', url);
+    loadList(url);
+  }
+
+  function onPaginateClick(e) {
+    e.preventDefault();
+    const url = this.href;
+    history.replaceState({}, '', url);
+    loadList(url);
+  }
+
+  function onRowClick(e){
+    if (e.target.closest('form')) return;
+    let item;
+    try {
+      const raw = this.getAttribute('data-item') || '';
+      item = JSON.parse(atob(raw));
+    } catch(e) {
+      console.error('Failed to parse LiRA row data:', e);
+      return;
+    }
+    let html = '<dl class="row">';
+    const show = (k,l) => html += `<dt class="col-sm-4">${k}</dt><dd class="col-sm-8">${l??'-'}</dd>`;
+    show('Name', item.first_name + ' ' + (item.middle_name? (item.middle_name + ' ') : '') + item.last_name);
+    show('Email', item.email);
+    show('Designation', item.designation);
+    show('Department', item.department);
+    show('Action', item.action);
+    show('Assistance types', Array.isArray(item.assistance_types) ? item.assistance_types.join(', ') : (item.assistance_types || ''));
+    show('Resource types', Array.isArray(item.resource_types) ? item.resource_types.join(', ') : (item.resource_types || ''));
+    show('Titles of', item.titles_of);
+    show('For borrow/scan (details)', item.for_borrow_scan);
+    show('For list', item.for_list);
+    show('For videos', Array.isArray(item.for_videos) ? item.for_videos.join(', ') : (item.for_videos || ''));
+    show('Status', item.status);
+    show('Submitted', item.created_at);
+    if (item.decision_reason) { show('Decision reason', item.decision_reason); }
+    html += '</dl>';
+    details.innerHTML = html;
+    decisionForm.action = '/lira/' + item.id + '/decide';
+    const acceptBtn = decisionForm.querySelector('button[name="decision"][value="accepted"]');
+    const rejectBtn = decisionForm.querySelector('button[name="decision"][value="rejected"]');
+    const reasonField = document.getElementById('decision_reason');
+    const isPending = (item.status === 'pending' || !item.status);
+    acceptBtn.disabled = !isPending;
+    rejectBtn.disabled = !isPending;
+    reasonField.disabled = !isPending;
+    const notice = document.getElementById('decisionNotice');
+    notice.textContent = isPending ? '' : 'This request has already been processed and can no longer be changed.';
+    modal.show();
+  }
+
+  function onRespondClick(e){
+    e.stopPropagation();
+    let item;
+    try {
+      const raw = this.getAttribute('data-item') || '';
+      item = JSON.parse(atob(raw));
+    } catch(err) {
+      console.error('Failed to parse LiRA row data:', err);
+      return;
+    }
+    respondForm.action = '/lira/' + item.id + '/respond';
+    const subjectField = document.getElementById('response_subject');
+    const messageField = document.getElementById('response_message');
+    const respondNotice = document.getElementById('respondNotice');
+    const info = document.getElementById('liraRespondInfo');
+    const parts = [];
+    parts.push(`<strong>${item.first_name} ${item.last_name}</strong> <span class="text-muted">(${item.email})</span>`);
+    if (item.for_borrow_scan) parts.push(`<div class="mt-1">${item.for_borrow_scan}</div>`);
+    if (item.titles_of) parts.push(`<div class="mt-1"><em>${item.titles_of}</em></div>`);
+    info.innerHTML = parts.join('');
+    const canRespond = (item.status === 'accepted') && !item.response_sent_at;
+    subjectField.value = 'Response to your LiRA request';
+    const submittedStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+    messageField.value = `This is a response to your LiRA request submitted on ${submittedStr}.\n\n[Type your message here]\n\nBest regards,\nLC Learning Commons`;
+    const submitBtn = document.querySelector('#liraRespondModal button[type="submit"]');
+    submitBtn.disabled = !canRespond;
+    subjectField.disabled = !canRespond;
+    messageField.disabled = !canRespond;
+    respondNotice.textContent = canRespond ? '' : (item.response_sent_at ? ('A response was already sent on ' + item.response_sent_at + '.') : 'Responses can be sent only after accepting the request.');
+    respondModal.show();
+  }
+
+  function onDeleteSubmit(e){
+    e.preventDefault();
+    if (!confirm('Delete this LiRA request? This action cannot be undone.')) return;
+    const form = e.target;
+    const url = form.action;
+    const row = form.closest('[data-id]');
+    const token = (form.querySelector('input[name="_token"]').value) || (document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    fetch(url, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    }).then(async res => {
+      let data;
+      try { data = await res.json(); } catch(_) { data = { success: res.ok }; }
+      if (data && data.success) {
+        if (row) row.remove();
+        const modalEl = document.getElementById('liraDetailsModal');
+        const instance = bootstrap.Modal.getInstance(modalEl);
+        if (instance) instance.hide();
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-success position-fixed end-0 m-4 shadow-sm';
+        alert.style.zIndex = 1050;
+        alert.textContent = data.message || 'Deleted';
+        document.body.appendChild(alert);
+        setTimeout(() => alert.remove(), 2200);
+      } else {
+        const msg = (data && data.message) || `Failed to delete (status ${res.status}). Attempting normal delete...`;
+        alert(msg);
+        form.submit();
+      }
+    }).catch(err => {
+      console.error(err);
+      alert('Failed to delete request via AJAX. Attempting normal delete...');
+      form.submit();
+    });
+  }
+
+  // Intercept tab clicks to load via AJAX
+  document.querySelectorAll('.nav-tabs a').forEach(a => {
+    a.addEventListener('click', onTabClick);
+  });
+
+  // Bind initial handlers for server-rendered list
+  bindRowHandlers(listContainer);
 
   rows.forEach(r => r.addEventListener('click', function(e){
     // prevent clicks on action buttons from triggering the modal open
@@ -151,8 +310,50 @@ document.addEventListener('DOMContentLoaded', function(){
     reasonField.disabled = !isPending;
   const notice = document.getElementById('decisionNotice');
   notice.textContent = isPending ? '' : 'This request has already been processed and can no longer be changed.';
+
+  // Response form availability: only for accepted; lock if already responded
     modal.show();
   }));
+
+  // Open Respond modal from row button
+  document.querySelectorAll('.lira-respond-btn').forEach(btn => {
+    btn.addEventListener('click', function(e){
+      e.stopPropagation();
+      let item;
+      try {
+        const raw = this.getAttribute('data-item') || '';
+        item = JSON.parse(atob(raw));
+      } catch(err) {
+        console.error('Failed to parse LiRA row data:', err);
+        return;
+      }
+      // Set form action
+      respondForm.action = '/lira/' + item.id + '/respond';
+      const subjectField = document.getElementById('response_subject');
+      const messageField = document.getElementById('response_message');
+      const respondNotice = document.getElementById('respondNotice');
+      const info = document.getElementById('liraRespondInfo');
+      // show a short summary in the modal
+      const parts = [];
+      parts.push(`<strong>${item.first_name} ${item.last_name}</strong> <span class="text-muted">(${item.email})</span>`);
+      if (item.for_borrow_scan) parts.push(`<div class="mt-1">${item.for_borrow_scan}</div>`);
+      if (item.titles_of) parts.push(`<div class="mt-1"><em>${item.titles_of}</em></div>`);
+      info.innerHTML = parts.join('');
+
+      const canRespond = (item.status === 'accepted') && !item.response_sent_at;
+      // Default subject/body without id and greeting
+      subjectField.value = 'Response to your LiRA request';
+      const submittedStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
+      messageField.value = `This is a response to your LiRA request submitted on ${submittedStr}.\n\n[Type your message here]\n\nBest regards,\nLC Learning Commons`;
+      // Enable/disable
+      const submitBtn = document.querySelector('#liraRespondModal button[type="submit"]');
+      submitBtn.disabled = !canRespond;
+      subjectField.disabled = !canRespond;
+      messageField.disabled = !canRespond;
+      respondNotice.textContent = canRespond ? '' : (item.response_sent_at ? ('A response was already sent on ' + item.response_sent_at + '.') : 'Responses can be sent only after accepting the request.');
+      respondModal.show();
+    });
+  });
 
   // Require reason when rejecting
   decisionForm.addEventListener('submit', function(e){

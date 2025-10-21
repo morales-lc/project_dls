@@ -10,6 +10,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\LibraryContentController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\MidesController;
 use App\Http\Controllers\MidesDashboardController;
@@ -43,7 +44,6 @@ Route::view('/about', 'about')->name('about');
 Route::get('/about/contact', [ContactController::class, 'index'])->name('about.contact');
 
 
-Route::view('/chart', 'chart')->name('chart');
 
 Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
 // Show login page or redirect logged-in staff to their dashboards
@@ -90,75 +90,60 @@ Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])-
 
 
 
-// Staff (Admin/Librarian) management handled by a separate controller
-Route::middleware(['auth'])->group(function () {
-    Route::group(['middleware' => function ($request, $next) {
-        if (!Auth::check() || Auth::user()->role !== 'admin') abort(403);
-        return $next($request);
-    }], function () {
-        Route::get('/staff-management', [\App\Http\Controllers\StaffUserController::class, 'index'])->name('staff.management');
-        Route::get('/staff-management/create', [\App\Http\Controllers\StaffUserController::class, 'create'])->name('staff.create');
-        Route::post('/staff-management/add', [\App\Http\Controllers\StaffUserController::class, 'add'])->name('staff.add');
-        Route::put('/staff-management/{id}', [\App\Http\Controllers\StaffUserController::class, 'update'])->name('staff.update');
-        Route::delete('/staff-management/{id}', [\App\Http\Controllers\StaffUserController::class, 'delete'])->name('staff.delete');
+// Consolidated admin-only and shared routes are defined below; removed legacy admin block to avoid duplication
 
 
-        Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
-        Route::get('/user-management/create', [UserManagementController::class, 'create'])->name('user.create');
-        Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
-        Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
-        Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
 
-        // Student/Faculty edit/update routes
-        Route::get('/student-faculty/{id}/edit', [\App\Http\Controllers\StudentFacultyController::class, 'edit'])->name('student_faculty.edit');
-        Route::put('/student-faculty/{id}', [\App\Http\Controllers\StudentFacultyController::class, 'update'])->name('student_faculty.update');
-    });
+
+// MIDES dashboard and search restricted to authenticated users (student/faculty/guest)
+Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
+    Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
+    Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
+    // AJAX endpoint for program dropdown
+    Route::get('/mides/programs', [\App\Http\Controllers\MidesDashboardController::class, 'getPrograms']);
 });
 
-
-
-
-Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
-Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
-// AJAX endpoint for program dropdown
-Route::get('/mides/programs', [\App\Http\Controllers\MidesDashboardController::class, 'getPrograms']);
-
 // Catalog routes
-Route::get('/catalogs', [\App\Http\Controllers\CatalogController::class, 'index'])->name('catalogs.index');
 Route::get('/catalogs/create', [\App\Http\Controllers\CatalogController::class, 'create'])->name('catalogs.create');
-Route::post('/catalogs', [\App\Http\Controllers\CatalogController::class, 'store'])->name('catalogs.store');
 // Ensure the {id} route only matches numeric ids so 'search' and other named routes are not captured
 Route::get('/catalogs/{id}', [\App\Http\Controllers\CatalogController::class, 'show'])->whereNumber('id')->name('catalogs.show');
 Route::get('/catalogs/search', [\App\Http\Controllers\CatalogController::class, 'search'])->name('catalogs.search');
 
 
+// Sidlak Journal routes
+use App\Http\Controllers\SidlakJournalController;
 
-// Undergraduate Baby Theses menu and program listing
-Route::get('/mides/undergrad', [MidesUndergradController::class, 'index'])->name('mides.undergrad');
-Route::get('/mides/undergrad/programs', [MidesUndergradController::class, 'programs'])->name('mides.undergrad.programs');
-Route::get('/mides/undergrad/{program}', [MidesUndergradController::class, 'program'])->name('mides.undergrad.program');
-// Undergraduate Thesis PDF Viewer (No download/print)
-Route::get('/mides/undergrad/viewer/{id}', [MidesUndergradController::class, 'viewer'])->name('mides.undergrad.viewer');
+// Sidlak and MIDES sections restricted to authenticated users (student/faculty/guest)
+Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
+    // Sidlak public views
+    Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
+    Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->name('sidlak.show');
+    // sidlak article downloads
+    Route::get('/sidlak/article/download/{id}', [SidlakJournalController::class, 'articleDownload'])->name('sidlak.article.download');
 
+    // Undergraduate Baby Theses menu and program listing
+    Route::get('/mides/undergrad', [MidesUndergradController::class, 'index'])->name('mides.undergrad');
+    Route::get('/mides/undergrad/programs', [MidesUndergradController::class, 'programs'])->name('mides.undergrad.programs');
+    Route::get('/mides/undergrad/{program}', [MidesUndergradController::class, 'program'])->name('mides.undergrad.program');
+    // Undergraduate Thesis PDF Viewer (No download/print)
+    Route::get('/mides/undergrad/viewer/{id}', [MidesUndergradController::class, 'viewer'])->name('mides.undergrad.viewer');
+    // Graduate Theses menu and category listing
+    Route::get('/mides/graduate', [MidesGraduateController::class, 'index'])->name('mides.graduate');
+    Route::get('/mides/graduate/categories', [MidesGraduateController::class, 'categories'])->name('mides.graduate.categories');
+    Route::get('/mides/graduate/{category}', [MidesGraduateController::class, 'category'])->name('mides.graduate.category');
+    // Graduate Thesis PDF Viewer (No download/print)
+    Route::get('/mides/viewer/{id}', [MidesGraduateController::class, 'viewer'])->name('mides.viewer');
+    // Search results PDF viewer 
+    Route::get('/mides/search/viewer/{id}', [MidesDashboardController::class, 'viewer'])->name('mides.search.viewer');
 
-// Graduate Theses menu and category listing
-Route::get('/mides/graduate', [MidesGraduateController::class, 'index'])->name('mides.graduate');
-Route::get('/mides/graduate/categories', [MidesGraduateController::class, 'categories'])->name('mides.graduate.categories');
-Route::get('/mides/graduate/{category}', [MidesGraduateController::class, 'category'])->name('mides.graduate.category');
-// Graduate Thesis PDF Viewer (No download/print)
-Route::get('/mides/viewer/{id}', [MidesGraduateController::class, 'viewer'])->name('mides.viewer');
+    // Faculty/Theses/Dissertations listing
+    Route::get('/mides/faculty-theses', [MidesDashboardController::class, 'facultyTheses'])->name('mides.faculty_theses');
 
-// Search results PDF viewer (use separate route to avoid layout/modal differences)
-Route::get('/mides/search/viewer/{id}', [MidesDashboardController::class, 'viewer'])->name('mides.search.viewer');
-
-// Faculty/Theses/Dissertations listing
-Route::get('/mides/faculty-theses', [MidesDashboardController::class, 'facultyTheses'])->name('mides.faculty_theses');
-
-// Senior High School Research Paper routes
-
-Route::get('/mides/seniorhigh/programs', [MidesSeniorHighController::class, 'programs'])->name('mides.seniorhigh.programs');
-Route::get('/mides/seniorhigh/{program}', [MidesSeniorHighController::class, 'program'])->name('mides.seniorhigh.program');
-Route::get('/mides/seniorhigh/viewer/{id}', [MidesSeniorHighController::class, 'viewer'])->name('mides.seniorhigh.viewer');
+    // Senior High School Research Paper routes
+    Route::get('/mides/seniorhigh/programs', [MidesSeniorHighController::class, 'programs'])->name('mides.seniorhigh.programs');
+    Route::get('/mides/seniorhigh/{program}', [MidesSeniorHighController::class, 'program'])->name('mides.seniorhigh.program');
+    Route::get('/mides/seniorhigh/viewer/{id}', [MidesSeniorHighController::class, 'viewer'])->name('mides.seniorhigh.viewer');
+});
 
 // Bookmarks (students/faculty)
 Route::middleware('auth')->group(function () {
@@ -211,7 +196,22 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'showForm'])->name('marc.import.form');
         Route::post('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'import'])->name('marc.import');
 
+        // User Management (admin-only)
         Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
+        Route::get('/user-management/create', [UserManagementController::class, 'create'])->name('user.create');
+        Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
+        Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
+        Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
+
+        // Student/Faculty edit/update routes
+        Route::get('/student-faculty/{id}/edit', [\App\Http\Controllers\StudentFacultyController::class, 'edit'])->name('student_faculty.edit');
+        Route::put('/student-faculty/{id}', [\App\Http\Controllers\StudentFacultyController::class, 'update'])->name('student_faculty.update');
+        // Staff account management (admin-only)
+        Route::get('/staff-management', [\App\Http\Controllers\StaffUserController::class, 'index'])->name('staff.management');
+        Route::get('/staff-management/create', [\App\Http\Controllers\StaffUserController::class, 'create'])->name('staff.create');
+        Route::post('/staff-management/add', [\App\Http\Controllers\StaffUserController::class, 'add'])->name('staff.add');
+        Route::put('/staff-management/{id}', [\App\Http\Controllers\StaffUserController::class, 'update'])->name('staff.update');
+        Route::delete('/staff-management/{id}', [\App\Http\Controllers\StaffUserController::class, 'delete'])->name('staff.delete');
         Route::get('/libraries/staff/manage', [LibraryStaffController::class, 'manage'])->name('libraries.staff.manage');
         // Library Staff CRUD (admin-only)
         Route::get('/libraries/staff/create', [LibraryStaffController::class, 'create'])->name('libraries.staff.create');
@@ -219,12 +219,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/libraries/staff/{id}/edit', [LibraryStaffController::class, 'edit'])->name('libraries.staff.edit');
         Route::put('/libraries/staff/{id}', [LibraryStaffController::class, 'update'])->name('libraries.staff.update');
         Route::delete('/libraries/staff/{id}', [LibraryStaffController::class, 'destroy'])->name('libraries.staff.destroy');
-        // Admin-only: keep categories panel and contact-info admin-only
-        Route::get('/mides-categories-panel', [MidesController::class, 'categoriesPanel'])->name('mides.categories.panel');
+        // Admin-only: keep feedback admin here (categories panel declared below in the dedicated section)
         Route::get('/admin/feedback', [App\Http\Controllers\FeedbackController::class, 'adminList'])->name('feedback.admin');
         Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'destroy'])->name('feedback.delete');
-        Route::get('/admin/contact-info', [ContactController::class, 'adminContactInfo'])->name('admin.contact-info');
-        Route::get('/alinet/manage', [AlinetAppointmentManageController::class, 'index'])->name('alinet.manage');
+        // contact-info GET declared above together with PUT; avoid duplicates
+        // ALINET manage is shared with librarians below; do not declare here
         // Admin Profile (My Profile)
         Route::get('/admin/profile', [\App\Http\Controllers\AdminProfileController::class, 'edit'])->name('admin.profile');
         Route::put('/admin/profile', [\App\Http\Controllers\AdminProfileController::class, 'update'])->name('admin.profile.update');
@@ -265,7 +264,7 @@ Route::middleware(['auth'])->group(function () {
         if (!in_array(Auth::user()->role, ['librarian', 'admin'])) abort(403);
         return $next($request);
     }], function () {
-        Route::get('/information-literacy/manage', [App\Http\Controllers\InformationLiteracyController::class, 'manage'])->name('information_literacy.manage');
+        // Information Literacy manage routes declared below (create/store/manage/edit/update/delete)
         // Librarian profile (view/edit own profile)
         Route::get('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'edit'])->name('librarian.profile');
         Route::put('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'update'])->name('librarian.profile.update');
@@ -278,6 +277,14 @@ Route::middleware(['auth'])->group(function () {
 
 
         Route::get('/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
+
+        // Library content (Library Hours GIF + Announcements)
+        Route::get('/library-content', [LibraryContentController::class, 'manage'])->name('library.content.manage');
+        Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif'])->name('library.content.gif');
+        Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement'])->name('library.content.announcements.store');
+        Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement'])->name('library.content.announcements.update');
+        Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement'])->name('library.content.announcements.delete');
+        Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements'])->name('library.content.announcements.reorder');
 
         // (Moved: sidlak article download route will be registered in public routes so downloads are available to all users)
         // Sidlak create/store for librarians/admins
@@ -345,14 +352,6 @@ Route::get('/posts/{id}/json', [App\Http\Controllers\PostController::class, 'sho
 
 
 
-// Sidlak Journal routes
-use App\Http\Controllers\SidlakJournalController;
-
-Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
-Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->name('sidlak.show');
-
-// Public route for recording sidlak article downloads (moved out of admin group)
-Route::get('/sidlak/article/download/{id}', [SidlakJournalController::class, 'articleDownload'])->name('sidlak.article.download');
 
 
 Route::get('/information-literacy', [InformationLiteracyController::class, 'index'])->name('information_literacy.index');
@@ -385,15 +384,17 @@ Route::get('/api/programs/{id}/courses', function ($id) {
 
 // LiRA Jotform
 use App\Http\Controllers\LiRAController;
+
 Route::get('/lira/form', [LiRAController::class, 'showForm'])->name('lira.form');
 Route::post('/lira/submit', [LiRAController::class, 'submit'])->name('lira.submit');
 // Backwards compatible route name used elsewhere (catalogs/show) - keep pointing to internal form
 Route::get('/lira/jotform', [App\Http\Controllers\LiRAController::class, 'showForm'])->name('lira.jotform');
 
 // Admin management for LiRA requests (librarian + admin)
-Route::middleware(['auth','role:librarian,admin'])->group(function(){
+Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
     Route::get('/lira/manage', [LiRAController::class, 'index'])->name('lira.manage');
     Route::post('/lira/{id}/decide', [LiRAController::class, 'decide'])->name('lira.decide');
+    Route::post('/lira/{id}/respond', [LiRAController::class, 'respond'])->name('lira.respond');
     Route::delete('/lira/{id}', [LiRAController::class, 'destroy'])->name('lira.destroy');
 });
 
@@ -426,6 +427,7 @@ Route::middleware('auth')->group(function () {
 
 // Online E-Libraries page (public)
 use App\Http\Controllers\ELibraryController;
+
 Route::get('/elibraries', [ELibraryController::class, 'index'])->name('elibraries');
 
 // E-Libraries management (admin/librarian)
@@ -456,13 +458,13 @@ Route::get('/scanning-services', [App\Http\Controllers\BookBorrowingController::
 Route::get('/netzone', [App\Http\Controllers\BookBorrowingController::class, 'netzone'])->name('netzone');
 
 // Guest role routes: limited-access dashboard and entry points
-Route::middleware(['auth','role:guest'])->group(function () {
+Route::middleware(['auth', 'role:guest'])->group(function () {
     Route::get('/guest/dashboard', function () {
         return view('guest.dashboard');
     })->name('guest.dashboard');
     // Within guest dashboard, they can navigate to:
-    // - MIDES search and sections (already public routes): mides.dashboard, mides.search, mides.undergrad, mides.graduate, etc.
-    // - SIDLAK (public): sidlak.index
+    // - MIDES search and sections (now auth-protected): mides.dashboard, mides.search, mides.undergrad, mides.graduate, etc.
+    // - SIDLAK (now auth-protected): sidlak.index
     // - E-Libraries (public): elibraries
     // - Catalog search (public): catalogs.search
 });

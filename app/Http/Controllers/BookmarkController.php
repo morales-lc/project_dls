@@ -47,6 +47,12 @@ class BookmarkController extends BaseController
         $user = Auth::user();
         $sf = $user->studentFaculty ?? null;
         if (! $sf) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Only students and faculty can bookmark items.'
+                ], 403);
+            }
             return back()->with('error', 'Only students and faculty can bookmark items.');
         }
 
@@ -66,12 +72,24 @@ class BookmarkController extends BaseController
         ];
 
         if (! isset($map[$type])) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Invalid bookmark type.'
+                ], 422);
+            }
             return back()->with('error', 'Invalid bookmark type.');
         }
 
         $modelClass = $map[$type];
         $item = $modelClass::find($id);
         if (! $item) {
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Item not found.'
+                ], 404);
+            }
             return back()->with('error', 'Item not found.');
         }
 
@@ -82,7 +100,7 @@ class BookmarkController extends BaseController
 
         if ($existing) {
             $existing->delete();
-            if ($request->expectsJson()) {
+            if ($request->ajax() || $request->wantsJson()) {
                 return response()->json(['status' => 'removed', 'message' => 'Removed bookmark.']);
             }
             return back()->with('success', 'Removed bookmark.');
@@ -94,7 +112,7 @@ class BookmarkController extends BaseController
             'bookmarkable_type' => $modelClass,
         ]);
 
-        if ($request->expectsJson()) {
+        if ($request->ajax() || $request->wantsJson()) {
             return response()->json(['status' => 'bookmarked', 'message' => 'Bookmarked.']);
         }
 
