@@ -35,6 +35,13 @@ use App\Http\Controllers\ContactController;
 
 use Illuminate\Support\Facades\Auth;
 
+// Online E-Libraries page 
+use App\Http\Controllers\ELibraryController;
+
+
+// LiRA Jotform
+use App\Http\Controllers\LiRAController;
+
 
 
 Route::view('/about', 'about')->name('about');
@@ -115,6 +122,8 @@ use App\Http\Controllers\SidlakJournalController;
 
 // Sidlak and MIDES sections restricted to authenticated users (student/faculty/guest)
 Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
+
+    Route::get('/elibraries', [ELibraryController::class, 'index'])->name('elibraries');
     // Sidlak public views
     Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
     Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->name('sidlak.show');
@@ -232,13 +241,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/backup', [\App\Http\Controllers\BackupController::class, 'index'])->name('admin.backup');
         Route::post('/admin/backup/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backup.run');
         Route::get('/admin/backup/download/{file}', [\App\Http\Controllers\BackupController::class, 'download'])->name('admin.backup.download');
-        // Sidlak create/store for admin (shared with librarian)
-        // Keep original route names so views using `sidlak.create` / `sidlak.store` still work
-        Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
-        Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store');
-        // Additional (shared) short paths
-        Route::get('/sidlak/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create.short');
-        Route::post('/sidlak', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store.short');
+        // // Sidlak create/store for admin (shared with librarian)
+        // // Keep original route names so views using `sidlak.create` / `sidlak.store` still work
+        // Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
+        // Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store');
+        // // Additional (shared) short paths
+        // Route::get('/sidlak/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create.short');
+        // Route::post('/sidlak', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store.short');
 
 
         // Alert Services create/store/edit/update/destroy (shared with librarian)
@@ -264,6 +273,23 @@ Route::middleware(['auth'])->group(function () {
         if (!in_array(Auth::user()->role, ['librarian', 'admin'])) abort(403);
         return $next($request);
     }], function () {
+        
+        // LiRA management routes
+        Route::get('/lira/manage', [LiRAController::class, 'index'])->name('lira.manage');
+        Route::get('/lira/export-xlsx', [LiRAController::class, 'exportXlsx'])->name('lira.export.xlsx');
+        Route::post('/lira/{id}/decide', [LiRAController::class, 'decide'])->name('lira.decide');
+        Route::post('/lira/{id}/respond', [LiRAController::class, 'respond'])->name('lira.respond');
+        Route::delete('/lira/{id}', [LiRAController::class, 'destroy'])->name('lira.destroy');
+
+        // Online E-Libraries management routes (create/store/manage/edit/update/delete)
+        Route::get('/e-libraries/manage', [ELibraryController::class, 'manage'])->name('e-libraries.manage');
+        Route::get('/e-libraries/create', [ELibraryController::class, 'create'])->name('e-libraries.create');
+        Route::post('/e-libraries', [ELibraryController::class, 'store'])->name('e-libraries.store');
+        Route::get('/e-libraries/{id}/edit', [ELibraryController::class, 'edit'])->name('e-libraries.edit');
+        Route::put('/e-libraries/{id}', [ELibraryController::class, 'update'])->name('e-libraries.update');
+        Route::delete('/e-libraries/{id}', [ELibraryController::class, 'destroy'])->name('e-libraries.destroy');
+
+
         // Information Literacy manage routes declared below (create/store/manage/edit/update/delete)
         // Librarian profile (view/edit own profile)
         Route::get('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'edit'])->name('librarian.profile');
@@ -382,8 +408,6 @@ Route::get('/api/programs/{id}/courses', function ($id) {
 })->name('api.programs.courses');
 
 
-// LiRA Jotform
-use App\Http\Controllers\LiRAController;
 
 Route::get('/lira/form', [LiRAController::class, 'showForm'])->name('lira.form');
 Route::post('/lira/submit', [LiRAController::class, 'submit'])->name('lira.submit');
@@ -391,12 +415,7 @@ Route::post('/lira/submit', [LiRAController::class, 'submit'])->name('lira.submi
 Route::get('/lira/jotform', [App\Http\Controllers\LiRAController::class, 'showForm'])->name('lira.jotform');
 
 // Admin management for LiRA requests (librarian + admin)
-Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
-    Route::get('/lira/manage', [LiRAController::class, 'index'])->name('lira.manage');
-    Route::post('/lira/{id}/decide', [LiRAController::class, 'decide'])->name('lira.decide');
-    Route::post('/lira/{id}/respond', [LiRAController::class, 'respond'])->name('lira.respond');
-    Route::delete('/lira/{id}', [LiRAController::class, 'destroy'])->name('lira.destroy');
-});
+Route::middleware(['auth', 'role:librarian,admin'])->group(function () {});
 
 
 
@@ -425,24 +444,16 @@ Route::middleware('auth')->group(function () {
     });
 });
 
-// Online E-Libraries page (public)
-use App\Http\Controllers\ELibraryController;
 
-Route::get('/elibraries', [ELibraryController::class, 'index'])->name('elibraries');
+
+
 
 // E-Libraries management (admin/librarian)
 Route::middleware(['auth'])->group(function () {
     Route::group(['middleware' => function ($request, $next) {
         if (!in_array(Auth::user()->role, ['librarian', 'admin'])) abort(403);
         return $next($request);
-    }], function () {
-        Route::get('/e-libraries/manage', [ELibraryController::class, 'manage'])->name('e-libraries.manage');
-        Route::get('/e-libraries/create', [ELibraryController::class, 'create'])->name('e-libraries.create');
-        Route::post('/e-libraries', [ELibraryController::class, 'store'])->name('e-libraries.store');
-        Route::get('/e-libraries/{id}/edit', [ELibraryController::class, 'edit'])->name('e-libraries.edit');
-        Route::put('/e-libraries/{id}', [ELibraryController::class, 'update'])->name('e-libraries.update');
-        Route::delete('/e-libraries/{id}', [ELibraryController::class, 'destroy'])->name('e-libraries.destroy');
-    });
+    }], function () {});
 });
 
 

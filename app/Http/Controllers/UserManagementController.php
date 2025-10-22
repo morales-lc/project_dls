@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\StudentFaculty;
 use App\Models\User;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Crypt;
 
 class UserManagementController extends Controller
 {
@@ -57,7 +58,7 @@ class UserManagementController extends Controller
             $sf->save();
 
             return redirect()->route('user.management')->with('success', 'Student/Faculty added successfully!');
-        } elseif (in_array($role, ['admin', 'librarian'])) {
+        } elseif (in_array($role, ['admin', 'librarian', 'guest'])) {
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email',
@@ -70,7 +71,7 @@ class UserManagementController extends Controller
                     'min:6',
                     'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'
                 ],
-                'role' => 'required|in:admin,librarian',
+                'role' => 'required|in:admin,librarian,guest',
             ]);
 
             $user = new \App\Models\User();
@@ -81,6 +82,10 @@ class UserManagementController extends Controller
             $user->address = $request->address;
             $user->password = bcrypt($request->password);
             $user->role = $role;
+            if ($role === 'guest') {
+                // Store encrypted plaintext for email purposes
+                $user->guest_plain_password = Crypt::encryptString($request->password);
+            }
             $user->save();
 
             return redirect()->route('user.management', ['type' => $role])->with('success', ucfirst($role) . ' added successfully!');
@@ -132,10 +137,11 @@ class UserManagementController extends Controller
                 $sf->user->save();
             }
 
-            return redirect()->route('user.management', ['type' => 'student_faculty'])->with('success', 'Student/Faculty updated successfully!');
+            // Redirect back to the previously relevant tab based on role (student or faculty)
+            return redirect()->route('user.management', ['type' => $sf->role])->with('success', 'Student/Faculty updated successfully!');
         }
 
-        // Otherwise, try to update a User (admin or librarian)
+    // Otherwise, try to update a User (admin, librarian, or guest)
         $user = User::findOrFail($id);
 
         $request->validate([
@@ -144,7 +150,7 @@ class UserManagementController extends Controller
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user->id)],
             'contact_number' => 'nullable|digits:11',
             'address' => 'nullable|string|max:255',
-            'role' => 'required|in:admin,librarian',
+            'role' => 'required|in:admin,librarian,guest',
             'password' => 'nullable|string|min:6',
         ]);
 
@@ -157,6 +163,15 @@ class UserManagementController extends Controller
 
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);
+            // If guest, keep encrypted plaintext for email purposes
+            if ($request->role === 'guest') {
+                $user->guest_plain_password = Crypt::encryptString($request->password);
+            }
+        }
+
+        // If role is changed away from guest, clear the encrypted guest password
+        if ($request->role !== 'guest') {
+            $user->guest_plain_password = null;
         }
 
         $user->save();
@@ -194,7 +209,7 @@ class UserManagementController extends Controller
 
     public function index(Request $request)
     {
-        $type = $request->query('type', 'student');
+    $type = $request->query('type', 'student');
         $search = $request->query('q');
         $schoolId = $request->query('school_id');
         $hasSearch = !empty($search);
@@ -217,7 +232,7 @@ class UserManagementController extends Controller
                 $usersQuery->where('school_id', 'like', "%{$sid}%");
             }
             $users = $usersQuery->get();
-        } elseif (in_array($type, ['admin', 'librarian'])) {
+        } elseif (in_array($type, ['admin', 'librarian', 'guest'])) {
             $usersQuery = \App\Models\User::where('role', $type);
             if ($hasSearch) {
                 $s = $search;
@@ -244,6 +259,8 @@ class UserManagementController extends Controller
             return view('users.create-admin');
         } elseif ($type === 'librarian') {
             return view('users.create-librarian');
+        } elseif ($type === 'guest') {
+            return view('users.create-guest');
         }
         abort(404);
     }

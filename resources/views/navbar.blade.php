@@ -380,7 +380,9 @@
                                 <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
                                 <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}" href="{{ route('libraries.college') }}">College Library</a></li>
                                 <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
+                                @auth
                                 <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online E-Libraries</a></li>
+                                @endauth
                             </ul>
                         </li>
 
@@ -390,8 +392,10 @@
                                 Services
                             </a>
                             <ul class="dropdown-menu {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show' : '' }}" aria-labelledby="servicesDropdown">
+                                @auth
                                 <li><a class="dropdown-item {{ request()->routeIs('lira.form') ? 'active' : '' }}" href="{{ route('lira.form') }}">LiRA</a></li>
                                 <li><a class="dropdown-item {{ request()->routeIs('alert-services.*') ? 'active' : '' }}" href="{{ route('alert-services.index') }}">Alert Services</a></li>
+                                @endauth
                                 <li><a class="dropdown-item {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a></li>
                                 <li><a class="dropdown-item {{ request()->routeIs('book.borrowing') ? 'active' : '' }}" href="{{ route('book.borrowing') }}">Book Borrowing</a></li>
                                 <li><a class="dropdown-item {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
@@ -419,58 +423,66 @@
                 <!-- Profile / Login -->
                 <div class="d-flex align-items-center justify-content-center justify-content-lg-end mt-3 mt-lg-0">
                     @if(session()->has('login') || Auth::check())
-                    @php
-                    $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
-                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                    $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
-                    $isGuest = Auth::check() && Auth::user()->role === 'guest';
-                    @endphp
-                    <ul class="navbar-nav mb-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}"
-                                    alt="Profile" class="rounded-circle profile-pic" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
-                                <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
-                                @unless($isGuest)
-                                    <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
-                                    @php
-                                    // Sidebar logic for bookmark count
-                                    $sf = Auth::user()->studentFaculty ?? null;
-                                    $bookmarkCount = 0;
-                                    if ($sf) {
-                                        try {
-                                            $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
-                                        } catch (\Throwable $e) {
-                                            $bookmarkCount = 0;
+                        @php
+                        $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
+                        $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                        $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
+                        $isGuest = Auth::check() && Auth::user()->role === 'guest';
+                        @endphp
+
+                        @if($isGuest)
+                            <!-- Guest: show only Logout button, no profile picture or dropdown -->
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-light ms-2">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        @else
+                            <ul class="navbar-nav mb-0">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}"
+                                            alt="Profile" class="rounded-circle profile-pic" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
+                                        <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
+                                        <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
+                                        @php
+                                        // Sidebar logic for bookmark count
+                                        $sf = Auth::user()->studentFaculty ?? null;
+                                        $bookmarkCount = 0;
+                                        if ($sf) {
+                                            try {
+                                                $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
+                                            } catch (\Throwable $e) {
+                                                $bookmarkCount = 0;
+                                            }
                                         }
-                                    }
-                                    @endphp
-                                    <li>
-                                        <a class="dropdown-item d-flex align-items-center" href="{{ route('bookmarks.index') }}">
-                                            <i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items
-                                            @if($bookmarkCount > 0)
-                                            <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $bookmarkCount }}</span>
-                                            @endif
-                                        </a>
-                                    </li>
-                                    <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
-                                @endunless
-                                <li>
-                                    <hr class="dropdown-divider">
-                                </li>
-                                <li>
-                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
-                                    </form>
+                                        @endphp
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center" href="{{ route('bookmarks.index') }}">
+                                                <i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items
+                                                @if($bookmarkCount > 0)
+                                                <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $bookmarkCount }}</span>
+                                                @endif
+                                            </a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="dropdown-item"><i class="bi bi-box-arrow-right me-2"></i>Logout</button>
+                                            </form>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
-                </div>
-                @else
-                <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>
-                @endif
+                        @endif
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>
+                    @endif
             </div>
         </div>
         </div>

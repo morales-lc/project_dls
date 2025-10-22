@@ -55,6 +55,8 @@ class StudentFacultyController extends Controller
             $user->save();
         }
 
-        return redirect()->route('user.management', ['type' => 'student_faculty'])->with('success', 'Student/Faculty updated successfully!');
+        // Redirect back to the appropriate tab based on the (possibly updated) role
+        $redirectType = $request->input('role_type', $sf->role);
+        return redirect()->route('user.management', ['type' => $redirectType])->with('success', 'Student/Faculty updated successfully!');
     }
 }

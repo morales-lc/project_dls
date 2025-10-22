@@ -4,14 +4,38 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<style>
+  /* Hover pop-out effect adapted from ALINET for LiRA list items */
+  .list-group .list-group-item.lira-item {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  .list-group .list-group-item.lira-item:hover {
+    background-color: #fff6f9; /* soft pink tint */
+    transform: scale(1.02); /* slight pop-out */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); /* floating look */
+    position: relative;
+    z-index: 5;
+  }
+  .lira-row { cursor: pointer; }
+
+  /* Optional: pink-themed title styling similar to ALINET */
+  .panel-title-pink {
+    letter-spacing: 1px;
+    color: #d81b60;
+    font-size: 1.75rem;
+  }
+</style>
 @endpush
 
 @section('title', 'Admin Dashboard')
 
 @section('content')
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-    <h3>LiRA Requests</h3>
+<div class="py-5 d-flex flex-column align-items-center justify-content-center">
+  <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1400px; background: #fff;">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
+      <h2 class="fw-bold mb-0 panel-title-pink">LiRA Requests Management</h2>
+    </div>
+
     @php
       $base = url()->current();
       $qs = request()->except(['status','page']);
@@ -20,24 +44,88 @@
         if ($status !== null && $status !== '') $q['status'] = $status;
         return $base . (count($q) ? ('?'.http_build_query($q)) : '');
       };
-      $active = request('status', 'all');
     @endphp
 
-    <ul class="nav nav-tabs mb-3">
-      <li class="nav-item"><a class="nav-link {{ request('status')=='' || is_null(request('status')) ? 'active' : '' }}" href="{{ $build(null) }}">All</a></li>
-      <li class="nav-item"><a class="nav-link {{ request('status')=='pending' ? 'active' : '' }}" href="{{ $build('pending') }}">Pending</a></li>
-      <li class="nav-item"><a class="nav-link {{ request('status')=='accepted' ? 'active' : '' }}" href="{{ $build('accepted') }}">Accepted</a></li>
-      <li class="nav-item"><a class="nav-link {{ request('status')=='rejected' ? 'active' : '' }}" href="{{ $build('rejected') }}">Rejected</a></li>
-      <li class="nav-item"><a class="nav-link {{ request('status')=='awaiting_response' ? 'active' : '' }}" href="{{ $build('awaiting_response') }}">Awaiting Response</a></li>
-    </ul>
-    <form class="d-flex mb-3" method="GET">
-      <input name="email" value="{{ request('email') }}" class="form-control me-2" placeholder="filter by email">
-      <button class="btn btn-outline-secondary">Filter</button>
-    </form>
+    <div class="card p-3 mb-3 shadow-sm rounded-3">
+      <ul class="nav nav-tabs mb-3">
+        <li class="nav-item"><a data-status="" class="nav-link {{ request('status')=='' || is_null(request('status')) ? 'active' : '' }}" href="{{ $build(null) }}">All</a></li>
+        <li class="nav-item"><a data-status="pending" class="nav-link {{ request('status')=='pending' ? 'active' : '' }}" href="{{ $build('pending') }}">Pending</a></li>
+        <li class="nav-item"><a data-status="accepted" class="nav-link {{ request('status')=='accepted' ? 'active' : '' }}" href="{{ $build('accepted') }}">Accepted</a></li>
+        <li class="nav-item"><a data-status="rejected" class="nav-link {{ request('status')=='rejected' ? 'active' : '' }}" href="{{ $build('rejected') }}">Rejected</a></li>
+        <li class="nav-item"><a data-status="awaiting_response" class="nav-link {{ request('status')=='awaiting_response' ? 'active' : '' }}" href="{{ $build('awaiting_response') }}">Awaiting Response</a></li>
+      </ul>
+      <form id="liraFilterForm" class="row g-2 align-items-end mb-0" method="GET">
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label mb-1">Email</label>
+          <input name="email" value="{{ request('email') }}" class="form-control" placeholder="filter by email">
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label mb-1">Date filter</label>
+          <select name="date_filter" id="date_filter" class="form-select">
+            @php $df = request('date_filter', ''); @endphp
+            <option value="" {{ $df=='' ? 'selected' : '' }}>All dates</option>
+            <option value="today" {{ $df=='today' ? 'selected' : '' }}>Today</option>
+            <option value="month" {{ $df=='month' ? 'selected' : '' }}>Month & Year</option>
+            <option value="range" {{ $df=='range' ? 'selected' : '' }}>Select date</option>
+          </select>
+        </div>
+        <!-- Month & Year: copy analytics behavior with separate Year and Month selects -->
+        <div class="col-sm-6 col-md-2 df-month" style="display:none;">
+          <label class="form-label mb-1">Year</label>
+          <select name="year" class="form-select">
+            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+              <option value="{{ $y }}" {{ (int)request('year', (int)date('Y')) === $y ? 'selected' : '' }}>{{ $y }}</option>
+            @endfor
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-2 df-month" style="display:none;">
+          <label class="form-label mb-1">Month</label>
+          <select name="month" class="form-select">
+            @for($m = 1; $m <= 12; $m++)
+              <option value="{{ $m }}" {{ (int)request('month', (int)date('n')) === $m ? 'selected' : '' }}>{{ DateTime::createFromFormat('!m', $m)->format('F') }}</option>
+            @endfor
+          </select>
+        </div>
+        <div class="col-sm-6 col-md-3 df-range" style="display:none;">
+          <label class="form-label mb-1">From</label>
+          <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
+        </div>
+        <div class="col-sm-6 col-md-3 df-range" style="display:none;">
+          <label class="form-label mb-1">To</label>
+          <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
+        </div>
+        <div class="col-12 col-md-auto">
+          <div class="d-flex gap-2">
+            <button class="btn btn-dark" type="submit">Filter</button>
+            <a href="{{ url()->current() }}" class="btn btn-pink" style="background:#fcb6d0; color:#d81b60; border-color:#fcb6d0;">Reset</a>
+          </div>
+        </div>
+      </form>
     </div>
 
-  <div id="liraListContainer">
-    @include('lira.partials.list', ['items' => $items])
+    <div class="card p-3 shadow-sm rounded-3">
+      @php
+        $exportBase = route('lira.export.xlsx');
+        $params = request()->all(); unset($params['page']);
+        $exportHref = $exportBase . (count($params) ? ('?'.http_build_query($params)) : '');
+      @endphp
+      <div class="d-flex justify-content-end mb-2">
+        <div class="btn-group">
+          <a id="exportXlsxLink" data-base="{{ route('lira.export.xlsx') }}" href="{{ $exportHref }}" class="btn btn-outline-secondary">
+            <i class="bi bi-file-earmark-excel"></i> Export current tab
+          </a>
+          <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+            <span class="visually-hidden">Toggle Dropdown</span>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a id="exportXlsxAllLink" class="dropdown-item" href="#">Export all tabs (5 sheets)</a></li>
+          </ul>
+        </div>
+      </div>
+      <div id="liraListContainer">
+        @include('lira.partials.list', ['items' => $items])
+      </div>
+    </div>
   </div>
 
     <!-- Details Modal -->
@@ -134,7 +222,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
   function onTabClick(e) {
     e.preventDefault();
+    // Update active tab styling immediately
+    document.querySelectorAll('.nav-tabs .nav-link').forEach(a => a.classList.remove('active'));
+    this.classList.add('active');
     const url = this.href;
+    // Ensure export links reflect the newly active tab immediately
+    if (typeof refreshExportLink === 'function') {
+      refreshExportLink();
+    }
     history.replaceState({}, '', url);
     loadList(url);
   }
@@ -143,6 +238,10 @@ document.addEventListener('DOMContentLoaded', function(){
     e.preventDefault();
     const url = this.href;
     history.replaceState({}, '', url);
+    // Keep export link in sync with current active tab + filters on pagination
+    if (typeof refreshExportLink === 'function') {
+      refreshExportLink();
+    }
     loadList(url);
   }
 
@@ -169,7 +268,8 @@ document.addEventListener('DOMContentLoaded', function(){
     show('For borrow/scan (details)', item.for_borrow_scan);
     show('For list', item.for_list);
     show('For videos', Array.isArray(item.for_videos) ? item.for_videos.join(', ') : (item.for_videos || ''));
-    show('Status', item.status);
+    const statusText = (item.status === 'accepted' && item.response_sent_at) ? 'Responded' : (item.status || '');
+    show('Status', statusText);
     show('Submitted', item.created_at);
     if (item.decision_reason) { show('Decision reason', item.decision_reason); }
     html += '</dl>';
@@ -268,90 +368,129 @@ document.addEventListener('DOMContentLoaded', function(){
   // Bind initial handlers for server-rendered list
   bindRowHandlers(listContainer);
 
-  rows.forEach(r => r.addEventListener('click', function(e){
-    // prevent clicks on action buttons from triggering the modal open
-    if (e.target.closest('form')) return;
-    let item;
-    try {
-      const raw = this.getAttribute('data-item') || '';
-      item = JSON.parse(atob(raw));
-    } catch(e) {
-      console.error('Failed to parse LiRA row data:', e);
-      return;
+  // Date filter UI toggling (show Year+Month or From/To when selected)
+  const filterForm = document.getElementById('liraFilterForm');
+  const dateFilterSel = document.getElementById('date_filter');
+  function applyDateFilterVisibility() {
+    const val = (dateFilterSel && dateFilterSel.value) || '';
+    const showMonth = (val === 'month');
+    const showRange = (val === 'range');
+    document.querySelectorAll('.df-month').forEach(el => {
+      el.style.display = showMonth ? '' : 'none';
+      el.querySelectorAll('select,input').forEach(ctrl => ctrl.disabled = !showMonth);
+    });
+    document.querySelectorAll('.df-range').forEach(el => {
+      el.style.display = showRange ? '' : 'none';
+      el.querySelectorAll('select,input').forEach(ctrl => ctrl.disabled = !showRange);
+    });
+  }
+  if (dateFilterSel) {
+    dateFilterSel.addEventListener('change', applyDateFilterVisibility);
+    // initialize on load
+    applyDateFilterVisibility();
+  }
+
+  // Build query string from current form values
+  function buildQueryFromForm(form) {
+    const params = new URLSearchParams();
+    if (!form) return params.toString();
+    Array.from(new FormData(form).entries()).forEach(([k, v]) => {
+      if (v !== null && v !== undefined && String(v).trim() !== '') params.append(k, v);
+    });
+    return params.toString();
+  }
+
+  // Keep tab links in sync with current filters
+  function refreshTabHrefs() {
+    const base = window.location.pathname;
+    const qs = filterForm ? buildQueryFromForm(filterForm) : '';
+    document.querySelectorAll('.nav-tabs a.nav-link').forEach(a => {
+      const status = a.getAttribute('data-status') || '';
+      const p = new URLSearchParams(qs);
+      if (status) p.set('status', status); else p.delete('status');
+      p.delete('page');
+      const qstr = p.toString();
+      a.href = base + (qstr ? ('?' + qstr) : '');
+    });
+    refreshExportLink();
+  }
+  refreshTabHrefs();
+
+  function refreshExportLink() {
+    const link = document.getElementById('exportXlsxLink');
+    const allLink = document.getElementById('exportXlsxAllLink');
+    if (!link) return;
+    const p = new URLSearchParams(filterForm ? buildQueryFromForm(filterForm) : '');
+    const activeTab = document.querySelector('.nav-tabs .nav-link.active');
+    if (activeTab) {
+      const st = activeTab.getAttribute('data-status') || '';
+      if (st) p.set('status', st); else p.delete('status');
     }
-    // build HTML
-    let html = '<dl class="row">';
-    const show = (k,l) => html += `<dt class="col-sm-4">${k}</dt><dd class="col-sm-8">${l??'-'}</dd>`;
-    show('Name', item.first_name + ' ' + (item.middle_name? (item.middle_name + ' ') : '') + item.last_name);
-    show('Email', item.email);
-    show('Designation', item.designation);
-    show('Department', item.department);
-    show('Action', item.action);
-  show('Assistance types', Array.isArray(item.assistance_types) ? item.assistance_types.join(', ') : (item.assistance_types || ''));
-  show('Resource types', Array.isArray(item.resource_types) ? item.resource_types.join(', ') : (item.resource_types || ''));
-    show('Titles of', item.titles_of);
-  show('For borrow/scan (details)', item.for_borrow_scan);
-    show('For list', item.for_list);
-  show('For videos', Array.isArray(item.for_videos) ? item.for_videos.join(', ') : (item.for_videos || ''));
-  // Catalog details moved into example_purposive field -- no separate catalog_* fields
-    show('Status', item.status);
-    show('Submitted', item.created_at);
-    if (item.decision_reason) { show('Decision reason', item.decision_reason); }
-    html += '</dl>';
-    details.innerHTML = html;
-  decisionForm.action = '/lira/' + item.id + '/decide';
-    // disable actions if not pending
-    const acceptBtn = decisionForm.querySelector('button[name="decision"][value="accepted"]');
-    const rejectBtn = decisionForm.querySelector('button[name="decision"][value="rejected"]');
-    const reasonField = document.getElementById('decision_reason');
-  const isPending = (item.status === 'pending' || !item.status);
-    acceptBtn.disabled = !isPending;
-    rejectBtn.disabled = !isPending;
-    reasonField.disabled = !isPending;
-  const notice = document.getElementById('decisionNotice');
-  notice.textContent = isPending ? '' : 'This request has already been processed and can no longer be changed.';
+    p.delete('page');
+    const base = link.getAttribute('data-base') || (link.href ? link.href.split('?')[0] : '');
+    link.href = base + (p.toString() ? ('?' + p.toString()) : '');
+    if (allLink) {
+      const p2 = new URLSearchParams(p.toString());
+      p2.set('all_tabs', '1');
+      allLink.href = base + (p2.toString() ? ('?' + p2.toString()) : '');
+    }
+  }
 
-  // Response form availability: only for accepted; lock if already responded
-    modal.show();
-  }));
+  // Centralized updater: build URL from form + active tab, update history, tabs, and list
+  function updateListFromForm() {
+    const base = window.location.pathname;
+    const qs = buildQueryFromForm(filterForm);
+    const activeTab = document.querySelector('.nav-tabs .nav-link.active');
+    const p = new URLSearchParams(qs);
+    if (activeTab) {
+      const st = activeTab.getAttribute('data-status') || '';
+      if (st) p.set('status', st); else p.delete('status');
+    }
+    p.delete('page');
+    const url = base + (p.toString() ? ('?' + p.toString()) : '');
+    history.replaceState({}, '', url);
+    refreshTabHrefs();
+    refreshExportLink();
+    loadList(url);
+  }
 
-  // Open Respond modal from row button
-  document.querySelectorAll('.lira-respond-btn').forEach(btn => {
-    btn.addEventListener('click', function(e){
-      e.stopPropagation();
-      let item;
-      try {
-        const raw = this.getAttribute('data-item') || '';
-        item = JSON.parse(atob(raw));
-      } catch(err) {
-        console.error('Failed to parse LiRA row data:', err);
-        return;
-      }
-      // Set form action
-      respondForm.action = '/lira/' + item.id + '/respond';
-      const subjectField = document.getElementById('response_subject');
-      const messageField = document.getElementById('response_message');
-      const respondNotice = document.getElementById('respondNotice');
-      const info = document.getElementById('liraRespondInfo');
-      // show a short summary in the modal
-      const parts = [];
-      parts.push(`<strong>${item.first_name} ${item.last_name}</strong> <span class="text-muted">(${item.email})</span>`);
-      if (item.for_borrow_scan) parts.push(`<div class="mt-1">${item.for_borrow_scan}</div>`);
-      if (item.titles_of) parts.push(`<div class="mt-1"><em>${item.titles_of}</em></div>`);
-      info.innerHTML = parts.join('');
+  // Intercept filter form submit to use AJAX and persist URL + tab hrefs
+  if (filterForm) {
+    filterForm.addEventListener('submit', function(e){
+      e.preventDefault();
+      updateListFromForm();
+    });
+  }
 
-      const canRespond = (item.status === 'accepted') && !item.response_sent_at;
-      // Default subject/body without id and greeting
-      subjectField.value = 'Response to your LiRA request';
-      const submittedStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
-      messageField.value = `This is a response to your LiRA request submitted on ${submittedStr}.\n\n[Type your message here]\n\nBest regards,\nLC Learning Commons`;
-      // Enable/disable
-      const submitBtn = document.querySelector('#liraRespondModal button[type="submit"]');
-      submitBtn.disabled = !canRespond;
-      subjectField.disabled = !canRespond;
-      messageField.disabled = !canRespond;
-      respondNotice.textContent = canRespond ? '' : (item.response_sent_at ? ('A response was already sent on ' + item.response_sent_at + '.') : 'Responses can be sent only after accepting the request.');
-      respondModal.show();
+  // Auto-apply: change listeners
+  const emailInput = filterForm ? filterForm.querySelector('input[name="email"]') : null;
+  function debounce(fn, delay = 500) {
+    let t; return function(...args){ clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
+  }
+  if (emailInput) {
+    emailInput.addEventListener('input', debounce(() => {
+      updateListFromForm();
+    }, 500));
+  }
+
+  if (dateFilterSel) {
+    dateFilterSel.addEventListener('change', function(){
+      applyDateFilterVisibility();
+      // Clear irrelevant fields by disabling them in visibility fn; then update
+      updateListFromForm();
+    });
+  }
+
+  // Year/Month selects auto-apply
+  document.querySelectorAll('.df-month select').forEach(sel => {
+    sel.addEventListener('change', function(){
+      if (dateFilterSel && dateFilterSel.value === 'month') updateListFromForm();
+    });
+  });
+  // Date range inputs auto-apply
+  document.querySelectorAll('.df-range input[type="date"]').forEach(inp => {
+    inp.addEventListener('change', function(){
+      if (dateFilterSel && dateFilterSel.value === 'range') updateListFromForm();
     });
   });
 
@@ -368,56 +507,7 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   });
 
-  // AJAX delete handler for inline buttons
-  document.querySelectorAll('.lira-delete-form').forEach(function(form){
-    form.addEventListener('submit', function(e){
-      e.preventDefault();
-      if (!confirm('Delete this LiRA request? This action cannot be undone.')) return;
-      const url = form.action;
-      const row = form.closest('[data-id]');
-      const token = (form.querySelector('input[name="_token"]').value) || (document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
-      fetch(url, {
-        method: 'DELETE',
-        headers: {
-          'X-CSRF-TOKEN': token,
-          'X-Requested-With': 'XMLHttpRequest',
-          'Accept': 'application/json'
-        },
-        credentials: 'same-origin'
-      }).then(async res => {
-        let data;
-        try {
-          data = await res.json();
-        } catch(_) {
-          // non-JSON response (e.g., 419/redirect). Construct a basic object.
-          data = { success: res.ok };
-        }
-        if (data && data.success) {
-          if (row) row.remove();
-          // hide modal if open
-          const modalEl = document.getElementById('liraDetailsModal');
-          const instance = bootstrap.Modal.getInstance(modalEl);
-          if (instance) instance.hide();
-          // toast
-          const alert = document.createElement('div');
-          alert.className = 'alert alert-success position-fixed end-0 m-4 shadow-sm';
-          alert.style.zIndex = 1050;
-          alert.textContent = data.message || 'Deleted';
-          document.body.appendChild(alert);
-          setTimeout(() => alert.remove(), 2200);
-        } else {
-          const msg = (data && data.message) || `Failed to delete (status ${res.status}). Attempting normal delete...`;
-          alert(msg);
-          // fallback to normal (non-AJAX) submission
-          form.submit();
-        }
-      }).catch(err => {
-        console.error(err);
-        alert('Failed to delete request via AJAX. Attempting normal delete...');
-        form.submit();
-      });
-    });
-  });
+  
 });
 </script>
 @endpush

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>New LiRA Request Submitted</title>
@@ -10,17 +11,18 @@
     <meta name="color-scheme" content="light">
     <meta name="supported-color-schemes" content="light">
 </head>
+
 <body style="font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background-color:#f8f9fa;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa; padding:20px 0;">
         <tr>
             <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-                    
+
                     <!-- Header with Logos -->
                     <tr>
-                                                <td align="center" style="padding:20px; background-color:#004080;">
-                                                        <img src="{{ asset('images/LCCDO.png') }}" alt="Institution" style="height:60px; margin-right:15px;">
-                                                        <img src="{{ asset('images/learningcommons.png') }}" alt="Learning Commons" style="height:60px;">
+                        <td align="center" style="padding:20px; background-color:#004080;">
+                            <img src="{{ $message->embed(public_path('images/lourdes_college.jpg')) }}" alt="Lourdes College" style="margin-right:15px;">
+                            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="Learning Commons">
                         </td>
                     </tr>
 
@@ -65,9 +67,9 @@
                                     <td style="color:#6b7280; padding:6px 0;">Assistance types</td>
                                     <td style="padding:6px 0;">
                                         @if(is_array($lira->assistance_types))
-                                            {{ implode(', ', $lira->assistance_types) }}
+                                        {{ implode(', ', $lira->assistance_types) }}
                                         @else
-                                            {{ $lira->assistance_types }}
+                                        {{ $lira->assistance_types }}
                                         @endif
                                     </td>
                                 </tr>
@@ -77,9 +79,9 @@
                                     <td style="color:#6b7280; padding:6px 0;">Resource types</td>
                                     <td style="padding:6px 0;">
                                         @if(is_array($lira->resource_types))
-                                            {{ implode(', ', $lira->resource_types) }}
+                                        {{ implode(', ', $lira->resource_types) }}
                                         @else
-                                            {{ $lira->resource_types }}
+                                        {{ $lira->resource_types }}
                                         @endif
                                     </td>
                                 </tr>
@@ -123,4 +125,5 @@
         </tr>
     </table>
 </body>
+
 </html>

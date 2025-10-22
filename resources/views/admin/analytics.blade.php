@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 @endpush
 
 @section('title', 'Admin Analytics')
@@ -19,50 +20,50 @@
     </div>
 
     <div class="mb-3 d-flex align-items-center gap-3">
-            <form method="GET" class="w-100">
-                <input type="hidden" name="type" value="{{ $documentType }}">
-                @if(request('action'))
-                    <input type="hidden" name="action" value="{{ request('action') }}">
-                @endif
+        <form method="GET" class="w-100">
+            <input type="hidden" name="type" value="{{ $documentType }}">
+            @if(request('action'))
+            <input type="hidden" name="action" value="{{ request('action') }}">
+            @endif
 
-                <div class="row g-2 align-items-end">
-                    <div class="col-12 col-md-3">
-                        <label class="form-label mb-1">Timeframe</label>
-                        <select name="mode" id="modeSelect" class="form-select form-select-sm">
-                            <option value="year" {{ $mode === 'year' ? 'selected' : '' }}>Year(Current Year)</option>
-                            <option value="month" {{ $mode === 'month' ? 'selected' : '' }}>Month & Year</option>
-                            <option value="semester" {{ $mode === 'semester' ? 'selected' : '' }}>Semester </option>
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-2 mode-year mode-month">
-                        <label class="form-label mb-1">Year</label>
-                        <select name="year" class="form-select form-select-sm">
-                            @for($y = date('Y'); $y >= date('Y') - 5; $y--)
-                                <option value="{{ $y }}" {{ (int)$year === $y ? 'selected' : '' }}>{{ $y }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-2 mode-month" id="monthWrap">
-                        <label class="form-label mb-1">Month</label>
-                        <select name="month" class="form-select form-select-sm">
-                            @for($m = 1; $m <= 12; $m++)
-                                <option value="{{ $m }}" {{ (int)($month ?? date('n')) === $m ? 'selected' : '' }}>{{ DateTime::createFromFormat('!m', $m)->format('F') }}</option>
-                            @endfor
-                        </select>
-                    </div>
-                    <div class="col-6 col-md-2 mode-semester" id="startWrap">
-                        <label class="form-label mb-1">Start date</label>
-                        <input type="date" name="start_date" value="{{ $startDateInput }}" class="form-control form-control-sm" />
-                    </div>
-                    <div class="col-6 col-md-2 mode-semester" id="endWrap">
-                        <label class="form-label mb-1">End date</label>
-                        <input type="date" name="end_date" value="{{ $endDateInput }}" class="form-control form-control-sm" />
-                    </div>
-                    <div class="col-12 col-md-2">
-                        <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
-                    </div>
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label mb-1">Timeframe</label>
+                    <select name="mode" id="modeSelect" class="form-select form-select-sm">
+                        <option value="year" {{ $mode === 'year' ? 'selected' : '' }}>Year(Current Year)</option>
+                        <option value="month" {{ $mode === 'month' ? 'selected' : '' }}>Month & Year</option>
+                        <option value="semester" {{ $mode === 'semester' ? 'selected' : '' }}>Semester </option>
+                    </select>
                 </div>
-            </form>
+                <div class="col-6 col-md-2 mode-year mode-month">
+                    <label class="form-label mb-1">Year</label>
+                    <select name="year" class="form-select form-select-sm">
+                        @for($y = date('Y'); $y >= date('Y') - 5; $y--)
+                        <option value="{{ $y }}" {{ (int)$year === $y ? 'selected' : '' }}>{{ $y }}</option>
+                        @endfor
+                    </select>
+                </div>
+                <div class="col-6 col-md-2 mode-month" id="monthWrap">
+                    <label class="form-label mb-1">Month</label>
+                    <select name="month" class="form-select form-select-sm">
+                        @for($m = 1; $m <= 12; $m++)
+                            <option value="{{ $m }}" {{ (int)($month ?? date('n')) === $m ? 'selected' : '' }}>{{ DateTime::createFromFormat('!m', $m)->format('F') }}</option>
+                            @endfor
+                    </select>
+                </div>
+                <div class="col-6 col-md-2 mode-semester" id="startWrap">
+                    <label class="form-label mb-1">Start date</label>
+                    <input type="date" name="start_date" value="{{ $startDateInput }}" class="form-control form-control-sm" />
+                </div>
+                <div class="col-6 col-md-2 mode-semester" id="endWrap">
+                    <label class="form-label mb-1">End date</label>
+                    <input type="date" name="end_date" value="{{ $endDateInput }}" class="form-control form-control-sm" />
+                </div>
+                <div class="col-12 col-md-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Apply</button>
+                </div>
+            </div>
+        </form>
     </div>
 
     <!-- MIDES / SIDLAK Tabs -->
@@ -181,47 +182,47 @@
                     </div>
 
                     @if($mode === 'year')
-                        <!-- Monthly breakdown -->
-                        <div class="mt-4">
-                            <h6 class="fw-semibold">Monthly breakdown ({{ $year }})</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm table-bordered">
-                                    <thead>
-                                        <tr>
-                                            @for($m = 1; $m <= 12; $m++)
-                                                <th class="text-center">{{ DateTime::createFromFormat('!m', $m)->format('M') }}</th>
+                    <!-- Monthly breakdown -->
+                    <div class="mt-4">
+                        <h6 class="fw-semibold">Monthly breakdown ({{ $year }})</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        @for($m = 1; $m <= 12; $m++)
+                                            <th class="text-center">{{ DateTime::createFromFormat('!m', $m)->format('M') }}</th>
                                             @endfor
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            @for($m = 1; $m <= 12; $m++)
-                                                <td class="text-center fw-semibold">{{ $monthlyCounts[$m] ?? 0 }}</td>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        @for($m = 1; $m <= 12; $m++)
+                                            <td class="text-center fw-semibold">{{ $monthlyCounts[$m] ?? 0 }}</td>
                                             @endfor
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
+                    </div>
 
-                        <!-- Semester totals -->
-                        <div class="mt-3">
-                            <h6 class="fw-semibold">Semester totals</h6>
-                            <div class="d-flex gap-3 mt-2">
-                                <div class="p-3 bg-light rounded-3">
-                                    <div class="text-muted">Jan – Jun</div>
-                                    <div class="fs-5 fw-bold">{{ $semester1 }}</div>
-                                </div>
-                                <div class="p-3 bg-light rounded-3">
-                                    <div class="text-muted">Jul – Dec</div>
-                                    <div class="fs-5 fw-bold">{{ $semester2 }}</div>
-                                </div>
+                    <!-- Semester totals -->
+                    <div class="mt-3">
+                        <h6 class="fw-semibold">Semester totals</h6>
+                        <div class="d-flex gap-3 mt-2">
+                            <div class="p-3 bg-light rounded-3">
+                                <div class="text-muted">Jan – Jun</div>
+                                <div class="fs-5 fw-bold">{{ $semester1 }}</div>
+                            </div>
+                            <div class="p-3 bg-light rounded-3">
+                                <div class="text-muted">Jul – Dec</div>
+                                <div class="fs-5 fw-bold">{{ $semester2 }}</div>
                             </div>
                         </div>
+                    </div>
                     @endif
-                        
-                    
-                    
+
+
+
                 </div>
             </div>
         </div>
@@ -262,7 +263,7 @@
                             <label class="mb-0 small text-muted" for="programSelect">Program:</label>
                             <select id="programSelect" class="form-select form-select-sm">
                                 @foreach($programs as $p)
-                                    <option value="{{ $p->name }}">{{ $p->name }}</option>
+                                <option value="{{ $p->name }}">{{ $p->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -281,45 +282,42 @@
 $chartLabels = $programs->pluck('name')->toArray();
 $chartTotals = [];
 foreach ($programs as $p) {
-    $group = isset($programCounts) ? $programCounts->get($p->name) : collect();
-    $chartTotals[] = $group ? $group->sum('total') : 0;
+$group = isset($programCounts) ? $programCounts->get($p->name) : collect();
+$chartTotals[] = $group ? $group->sum('total') : 0;
 }
 @endphp
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-            // Toggle timeframe fields
-            const modeSelect = document.getElementById('modeSelect');
-            function updateModeFields() {
-                const mode = modeSelect.value;
-                document.querySelectorAll('.mode-year').forEach(el => el.style.display = (mode === 'year') ? '' : 'none');
-                document.querySelectorAll('.mode-month').forEach(el => el.style.display = (mode === 'month') ? '' : 'none');
-                document.querySelectorAll('.mode-semester').forEach(el => el.style.display = (mode === 'semester') ? '' : 'none');
-            }
-            updateModeFields();
-            modeSelect.addEventListener('change', updateModeFields);
+        // Toggle timeframe fields
+        const modeSelect = document.getElementById('modeSelect');
 
-    const ctx = document.getElementById('programChart');
-    const chartLabels = <?php echo json_encode($chartLabels); ?>;
-    const chartData = <?php echo json_encode($chartTotals); ?>;
-    const isYearMode = <?php echo json_encode($mode === 'year'); ?>;
-    const monthlyByProgram = <?php echo json_encode($monthlyByProgram ?? []); ?>;
+        function updateModeFields() {
+            const mode = modeSelect.value;
+            document.querySelectorAll('.mode-year').forEach(el => el.style.display = (mode === 'year') ? '' : 'none');
+            document.querySelectorAll('.mode-month').forEach(el => el.style.display = (mode === 'month') ? '' : 'none');
+            document.querySelectorAll('.mode-semester').forEach(el => el.style.display = (mode === 'semester') ? '' : 'none');
+        }
+        updateModeFields();
+        modeSelect.addEventListener('change', updateModeFields);
 
-        // 🎨 Light pastel colors
-        const pastelColors = [
-            'rgba(255, 182, 193, 1)', // Light Pink
-            'rgba(173, 216, 230, 1)', // Light Blue
-            'rgba(144, 238, 144, 1)', // Light Green
-            'rgba(255, 255, 153, 1)', // Light Yellow
-            'rgba(221, 160, 221, 1)', // Plum
-            'rgba(255, 218, 185, 1)', // Peach Puff
-            'rgba(176, 224, 230, 1)', // Powder Blue
-            'rgba(240, 230, 140, 1)', // Khaki
-            'rgba(255, 222, 173, 1)', // Navajo White
-            'rgba(152, 251, 152, 1)' // Pale Green
+        const ctx = document.getElementById('programChart');
+        const chartLabels = <?php echo json_encode($chartLabels); ?>;
+        const chartData = <?php echo json_encode($chartTotals); ?>;
+        const isYearMode = <?php echo json_encode($mode === 'year'); ?>;
+        const monthlyByProgram = <?php echo json_encode($monthlyByProgram ?? []); ?>;
+
+        // 🌈 Rainbow basic colors
+        const rainbowColors = [
+            'rgba(255, 0, 0, 0.8)', // Red
+            'rgba(255, 127, 0, 0.8)', // Orange
+            'rgba(255, 255, 0, 0.8)', // Yellow
+            'rgba(0, 255, 0, 0.8)', // Green
+            'rgba(0, 0, 255, 0.8)', // Blue
+            'rgba(75, 0, 130, 0.8)', // Indigo
+            'rgba(148, 0, 211, 0.8)' // Violet
         ];
-
-        const backgroundColors = chartLabels.map((_, i) => pastelColors[i % pastelColors.length]);
+        const backgroundColors = chartLabels.map((_, i) => rainbowColors[i % rainbowColors.length]);
         const borderColors = backgroundColors.map(c => c.replace('0.8', '1'));
 
         // ⚙️ Chart configuration function
@@ -338,18 +336,33 @@ foreach ($programs as $p) {
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: false, // 🔥 allows chart to fill container height
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        display: type !== 'bar' && type !== 'line'
+                        display: true,
+                        position: 'bottom',
                     },
                     tooltip: {
                         mode: 'index',
                         intersect: false
+                    },
+                    // ✅ Add data labels plugin for pie/doughnut
+                    datalabels: {
+                        display: type === 'pie' || type === 'doughnut',
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 13
+                        },
+                        formatter: (value, ctx) => {
+                            const total = ctx.chart._metasets[0].total || ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1) + '%';
+                            return percentage;
+                        }
                     }
                 },
                 layout: {
-                    padding: 10
+                    padding: 20
                 },
                 elements: {
                     arc: {
@@ -368,7 +381,8 @@ foreach ($programs as $p) {
                         beginAtZero: true
                     }
                 } : {}
-            }
+            },
+            plugins: [ChartDataLabels] // 👈 important to activate labels
         });
         ctx.parentElement.classList.add('animate__animated', 'animate__fadeIn');
         // 📊 Create default chart
@@ -376,7 +390,8 @@ foreach ($programs as $p) {
 
         // If year mode, set up monthly chart and interactions
         let monthlyChart = null;
-        const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
         function buildMonthlyDataset(values) {
             return {
                 type: 'line',
@@ -395,8 +410,16 @@ foreach ($programs as $p) {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
                 }
             };
         }
@@ -425,7 +448,9 @@ foreach ($programs as $p) {
 
             // Click on main chart bar to drilldown
             ctx.onclick = function(evt) {
-                const points = chartInstance.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, false);
+                const points = chartInstance.getElementsAtEventForMode(evt, 'nearest', {
+                    intersect: true
+                }, false);
                 if (points.length > 0) {
                     const firstPoint = points[0];
                     const idx = firstPoint.index;
@@ -440,10 +465,11 @@ foreach ($programs as $p) {
         // 🎚️ Handle chart type switching
         document.getElementById('chartTypeSelect').addEventListener('change', function() {
             const selectedType = this.value;
-
-            // ✅ Set fixed size based on chart type (no endless resizing)
-            if (['pie', 'doughnut', 'polarArea'].includes(selectedType)) {
-                ctx.parentElement.style.height = '350px';
+            //size of pie, doughnut
+            if (selectedType === 'pie' || selectedType === 'doughnut') {
+                ctx.parentElement.style.height = '600px'; // Bigger size for pie & doughnut
+            } else if (selectedType === 'polarArea') {
+                ctx.parentElement.style.height = '450px';
             } else {
                 ctx.parentElement.style.height = '500px';
             }

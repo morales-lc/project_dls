@@ -5,6 +5,11 @@
     border: none !important;
 }
 
+.chart-container canvas {
+    width: 100% !important;
+    max-width: 700px; /* from 900px to 700px makes circle look centered */
+    height: 500px !important;
+}
 /* Chart Container */
 .chart-container {
     position: relative;

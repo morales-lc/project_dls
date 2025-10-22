@@ -27,8 +27,8 @@
                 <p>Mode: <strong>Online (Virtual)</strong></p>
                 <p>Please use the following guest account to access the resources:</p>
                 <div style="background:#f1f7ff; border:1px solid #cfe3ff; padding:12px 14px; border-radius:6px; margin:12px 0;">
-                    <div><strong>Email:</strong> example@example.com</div>
-                    <div><strong>Password:</strong> example</div>
+                    <div><strong>Email:</strong> {{ $guestEmail ?? config('services.alinet.guest_email', 'guest@example.com') }}</div>
+                    <div><strong>Password:</strong> {{ $guestPassword ?? config('services.alinet.guest_password', 'guest12345') }}</div>
                 </div>
                 <p>Requested assistance:</p>
                 <ul>

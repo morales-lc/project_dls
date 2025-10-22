@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>{{ $subjectLine }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
+
 <body style="font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background-color:#f8f9fa;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa; padding:20px 0;">
         <tr>
@@ -12,8 +14,8 @@
                 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
                     <tr>
                         <td align="center" style="padding:20px; background-color:#004080;">
-                            <img src="{{ asset('images/LCCDO.png') }}" alt="Institution" style="height:60px; margin-right:15px;">
-                            <img src="{{ asset('images/learningcommons.png') }}" alt="Learning Commons" style="height:60px;">
+                            <img src="{{ $message->embed(public_path('images/lourdes_college.jpg')) }}" alt="Lourdes College" style="margin-right:15px;">
+                            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="Learning Commons">
                         </td>
                     </tr>
                     <tr>
@@ -59,5 +61,6 @@
             </td>
         </tr>
     </table>
-    </body>
-    </html>
+</body>
+
+</html>

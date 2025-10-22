@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\LiraSubmitted;
 use App\Mail\LiraDecision;
 use Illuminate\Support\Facades\Config;
+use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\LiRAExport;
+use App\Exports\LiRAExportAllTabs;
 
 class LiRAController extends Controller
 {
@@ -172,12 +176,196 @@ class LiRAController extends Controller
             $q->where('email', 'like', '%'.$request->input('email').'%');
         }
 
+        // Date filtering
+        $dateFilter = $request->input('date_filter');
+        if ($dateFilter === 'today') {
+            $q->whereDate('created_at', Carbon::today());
+        } elseif ($dateFilter === 'month') {
+            // Support either month_year=YYYY-MM or year + month params
+            $monthYear = $request->input('month_year'); // legacy
+            $yearParam = $request->input('year');
+            $monthParam = $request->input('month');
+            try {
+                if ($monthYear) {
+                    [$y, $m] = explode('-', $monthYear);
+                    $start = Carbon::createFromDate((int)$y, (int)$m, 1)->startOfDay();
+                    $end = (clone $start)->endOfMonth()->endOfDay();
+                    $q->whereBetween('created_at', [$start, $end]);
+                } elseif ($yearParam && $monthParam) {
+                    $y = (int)$yearParam; $m = (int)$monthParam;
+                    $start = Carbon::createFromDate($y, $m, 1)->startOfDay();
+                    $end = (clone $start)->endOfMonth()->endOfDay();
+                    $q->whereBetween('created_at', [$start, $end]);
+                }
+            } catch (\Throwable $e) {
+                // ignore invalid month/year
+            }
+        } elseif ($dateFilter === 'range') {
+            $from = $request->input('date_from');
+            $to = $request->input('date_to');
+            try {
+                $fromC = $from ? Carbon::parse($from)->startOfDay() : null;
+                $toC = $to ? Carbon::parse($to)->endOfDay() : null;
+                if ($fromC && $toC) {
+                    $q->whereBetween('created_at', [$fromC, $toC]);
+                } elseif ($fromC) {
+                    $q->where('created_at', '>=', $fromC);
+                } elseif ($toC) {
+                    $q->where('created_at', '<=', $toC);
+                }
+            } catch (\Throwable $e) {
+                // ignore invalid dates
+            }
+        }
+
         $items = $q->orderBy('created_at', 'desc')->paginate(10)->withQueryString();
         if ($request->ajax()) {
             // Return only the list HTML for dynamic updates
             return response()->view('lira.partials.list', compact('items'));
         }
         return view('lira.manage', compact('items'));
+    }
+
+    public function exportXlsx(Request $request)
+    {
+        // Build base query with same filters as index()
+        $q = LiraRequest::query();
+
+        $status = $request->input('status');
+        if ($status !== null && $status !== '') {
+            if ($status === 'awaiting_response') {
+                $q->where('status', 'accepted')->whereNull('response_sent_at');
+            } else {
+                $q->where('status', $status);
+            }
+        }
+
+        $email = $request->input('email');
+        if (!empty($email)) {
+            $q->where('email', 'like', '%' . $email . '%');
+        }
+
+        // Date filtering (mirror index)
+        $dateFilter = $request->input('date_filter');
+        $timeframeLabel = 'All dates';
+        $start = null; $end = null;
+        if ($dateFilter === 'today') {
+            $q->whereDate('created_at', Carbon::today());
+            $timeframeLabel = Carbon::today()->format('M d, Y');
+            $start = Carbon::today()->startOfDay();
+            $end = Carbon::today()->endOfDay();
+        } elseif ($dateFilter === 'month') {
+            // Support either year+month params or legacy month_year
+            $year = (int) $request->input('year', (int) date('Y'));
+            $month = (int) $request->input('month', (int) date('n'));
+            if ($request->filled('month_year')) {
+                $parts = explode('-', $request->input('month_year'));
+                if (count($parts) === 2) { $year = (int)$parts[0]; $month = (int)$parts[1]; }
+            }
+            try {
+                $start = Carbon::create($year, $month, 1)->startOfMonth();
+                $end = (clone $start)->endOfMonth();
+                $q->whereBetween('created_at', [$start, $end]);
+                $timeframeLabel = $start->format('F Y');
+            } catch (\Throwable $e) {
+                // ignore invalid month/year
+            }
+        } elseif ($dateFilter === 'range') {
+            $from = $request->input('date_from');
+            $to = $request->input('date_to');
+            try {
+                if ($from) { $start = Carbon::parse($from)->startOfDay(); }
+                if ($to) { $end = Carbon::parse($to)->endOfDay(); }
+                if ($start && $end) {
+                    $q->whereBetween('created_at', [$start, $end]);
+                } elseif ($start) {
+                    $q->where('created_at', '>=', $start);
+                } elseif ($end) {
+                    $q->where('created_at', '<=', $end);
+                }
+                if ($start || $end) {
+                    $timeframeLabel = trim(($start? $start->format('M d, Y') : '') . ' – ' . ($end? $end->format('M d, Y') : ''));
+                }
+            } catch (\Throwable $e) {
+                // ignore invalid dates
+            }
+        }
+
+        $items = $q->orderBy('created_at', 'desc')->get();
+
+        // Helper to map model collection to array rows
+        $toRows = function ($collection) {
+            $rows = [];
+            foreach ($collection as $it) {
+                $assist = is_array($it->assistance_types) ? $it->assistance_types : (json_decode($it->assistance_types ?? '[]', true) ?: []);
+                $resTypes = is_array($it->resource_types) ? $it->resource_types : (json_decode($it->resource_types ?? '[]', true) ?: []);
+                $videos = is_array($it->for_videos) ? $it->for_videos : (json_decode($it->for_videos ?? '[]', true) ?: []);
+                $statusText = ($it->status === 'accepted' && !empty($it->response_sent_at)) ? 'Responded' : ($it->status ?? '');
+                $rows[] = [
+                    'created_at' => optional($it->created_at)->format('Y-m-d H:i:s'),
+                    'first_name' => $it->first_name,
+                    'middle_name' => $it->middle_name,
+                    'last_name' => $it->last_name,
+                    'email' => $it->email,
+                    'designation' => $it->designation,
+                    'department' => $it->department,
+                    'action' => $it->action,
+                    'assistance_types' => implode(', ', $assist),
+                    'resource_types' => implode(', ', $resTypes),
+                    'titles_of' => $it->titles_of,
+                    'for_borrow_scan' => $it->for_borrow_scan,
+                    'for_list' => $it->for_list,
+                    'for_videos' => implode(', ', $videos),
+                    'status' => $statusText,
+                    'processed_at' => $it->processed_at ? Carbon::parse($it->processed_at)->format('Y-m-d H:i:s') : '',
+                    'decision_reason' => $it->decision_reason,
+                    'response_sent_at' => $it->response_sent_at ? Carbon::parse($it->response_sent_at)->format('Y-m-d H:i:s') : '',
+                ];
+            }
+            return $rows;
+        };
+
+        $rows = $toRows($items);
+
+        // Build metadata
+        $meta = [
+            'status_label' => ($status === 'awaiting_response') ? 'Awaiting Response' : ucfirst((string)($status ?: 'All')),
+            'email' => $email,
+            'timeframe_label' => $timeframeLabel,
+            'start' => $start ? $start->format('M d, Y') : null,
+            'end' => $end ? $end->format('M d, Y') : null,
+            'generated_at' => Carbon::now()->format('M d, Y H:i'),
+        ];
+
+        // If all_tabs=1, generate a workbook with one sheet per status
+        if ($request->boolean('all_tabs')) {
+            $titles = [
+                'All' => null,
+                'Pending' => 'pending',
+                'Accepted' => 'accepted',
+                'Rejected' => 'rejected',
+                'Awaiting Response' => 'awaiting_response',
+            ];
+            $tabbed = [];
+            foreach ($titles as $label => $st) {
+                $qq = clone $q; // copy the base filtered (date/email) query
+                if ($st === 'awaiting_response') {
+                    $qq->where('status', 'accepted')->whereNull('response_sent_at');
+                } elseif ($st) {
+                    $qq->where('status', $st);
+                }
+                $tabbed[$label] = $toRows($qq->orderBy('created_at', 'desc')->get());
+            }
+            $filenameSafeLabel = preg_replace('/[^A-Za-z0-9_-]+/', '_', strtolower($timeframeLabel ?: 'all'));
+            $filename = sprintf('lira_all_tabs_%s.xlsx', $filenameSafeLabel);
+            return Excel::download(new LiRAExportAllTabs($meta, $tabbed), $filename);
+        }
+
+        $filenameSafeLabel = preg_replace('/[^A-Za-z0-9_-]+/', '_', strtolower($timeframeLabel ?: 'all'));
+        $statusSafe = preg_replace('/[^A-Za-z0-9_-]+/', '_', strtolower($meta['status_label']));
+        $filename = sprintf('lira_%s_%s.xlsx', $statusSafe, $filenameSafeLabel);
+
+        return Excel::download(new LiRAExport($meta, $rows), $filename);
     }
 
     // Accept or reject

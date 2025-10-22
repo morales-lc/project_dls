@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="UTF-8">
     <title>LiRA Request {{ ucfirst($decision) }}</title>
@@ -10,17 +11,18 @@
     <meta name="color-scheme" content="light">
     <meta name="supported-color-schemes" content="light">
 </head>
+
 <body style="font-family: Arial, Helvetica, sans-serif; margin:0; padding:0; background-color:#f8f9fa;">
     <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8f9fa; padding:20px 0;">
         <tr>
             <td align="center">
                 <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; overflow:hidden; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-                    
+
                     <!-- Header with Logos -->
                     <tr>
-                                                <td align="center" style="padding:20px; background-color:#004080;">
-                                                        <img src="{{ asset('images/LCCDO.png') }}" alt="Institution" style="height:60px; margin-right:15px;">
-                                                        <img src="{{ asset('images/learningcommons.png') }}" alt="Learning Commons" style="height:60px;">
+                        <td align="center" style="padding:20px; background-color:#004080;">
+                            <img src="{{ $message->embed(public_path('images/lourdes_college.jpg')) }}" alt="Lourdes College" style="margin-right:15px;">
+                            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="Learning Commons">
                         </td>
                     </tr>
 
@@ -30,16 +32,16 @@
                             <p>Dear <strong>{{ $lira->first_name }}</strong>,</p>
 
                             @if($decision === 'accepted')
-                                <p>Your <strong>LiRA request</strong> has been <span style="color:green; font-weight:bold;">accepted</span>. We will process it shortly.</p>
-                                <p style="color:#374151; margin-top:6px;">Expect a response within <strong>3 to 5 working days</strong>.</p>
+                            <p>Your <strong>LiRA request</strong> has been <span style="color:green; font-weight:bold;">accepted</span>. We will process it shortly.</p>
+                            <p style="color:#374151; margin-top:6px;">Expect a response within <strong>3 to 5 working days</strong>.</p>
                             @else
-                                <p>We’re sorry to inform you that your <strong>LiRA request</strong> has been <span style="color:#c1121f; font-weight:bold;">rejected</span>.</p>
-                                @if(!empty($reason))
-                                    <p style="background:#fff1f2; border:1px solid #fecdd3; padding:12px 14px; border-radius:6px; color:#9f1239;">
-                                        <strong>Reason:</strong> {{ $reason }}
-                                    </p>
-                                @endif
-                                <p style="color:#6b7280;">If you have questions or need assistance, feel free to reply to this email or contact the LC Learning Commons.</p>
+                            <p>We’re sorry to inform you that your <strong>LiRA request</strong> has been <span style="color:#c1121f; font-weight:bold;">rejected</span>.</p>
+                            @if(!empty($reason))
+                            <p style="background:#fff1f2; border:1px solid #fecdd3; padding:12px 14px; border-radius:6px; color:#9f1239;">
+                                <strong>Reason:</strong> {{ $reason }}
+                            </p>
+                            @endif
+                            <p style="color:#6b7280;">If you have questions or need assistance, feel free to reply to this email or contact the LC Learning Commons.</p>
                             @endif
 
                             <!-- Request details -->
@@ -92,4 +94,5 @@
         </tr>
     </table>
 </body>
+
 </html>

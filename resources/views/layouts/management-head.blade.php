@@ -44,4 +44,8 @@
             #managementMain { margin-left: 0; }
             .sidebar, #sidebar, #librarianSidebar { transform: translateX(-100%); }
         }
+
+        /* Ensure Bootstrap modal and backdrop overlay above fixed sidebars/top elements */
+        .modal-backdrop.show { z-index: 2050 !important; }
+        .modal { z-index: 2060 !important; }
     </style>
