@@ -39,15 +39,22 @@ class MarcController extends Controller
         // Python script path
         $pythonScript = base_path('scripts/import_marc.py');
 
-        // Allow overriding python exe via env; fall back to common names
-        $pythonExe = env('PYTHON_EXE');
-        if (empty($pythonExe)) {
-            // prefer explicit Windows install path if present, else try system python
-            $defaultWin = 'C:\\Users\\LENOVO\\AppData\\Local\\Programs\\Python\\Python310\\python.exe';
-            $pythonExe = file_exists($defaultWin) ? $defaultWin : (file_exists('/usr/bin/python3') ? '/usr/bin/python3' : 'python');
+        // Prefer the Windows Python Launcher `py` by default; allow override via env
+        $pythonSpec = env('PYTHON_EXE'); // e.g., "py -3.10" or "C:\\Path\\to\\python.exe"
+        $cmd = [];
+        if (!empty($pythonSpec)) {
+            // Split on whitespace to support simple "py -3" specs
+            $cmd = preg_split('/\s+/', trim($pythonSpec));
+        } else {
+            // Use Python launcher targeting Python 3
+            $cmd = ['py', '-3'];
         }
 
-        $process = new Process([$pythonExe, $pythonScript, $fullPath]);
+        // Append script and argument
+        $cmd[] = $pythonScript;
+        $cmd[] = $fullPath;
+
+        $process = new Process($cmd);
 
         // Provide environment variables
         $env = array_merge($_ENV, getenv() ?: [], [

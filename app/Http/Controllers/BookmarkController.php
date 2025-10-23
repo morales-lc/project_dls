@@ -69,6 +69,8 @@ class BookmarkController extends BaseController
             'information_literacy' => \App\Models\InformationLiteracyPost::class,
             // Catalog items
             'catalog' => \App\Models\Catalog::class,
+            // Alert Service books
+            'alert_book' => \App\Models\AlertBook::class,
         ];
 
         if (! isset($map[$type])) {

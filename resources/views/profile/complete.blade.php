@@ -1,215 +1,381 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Complete Your Profile</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ asset('css/app.css') }}" rel="stylesheet">
-    <style>
-        body { background: #fff; min-height: 100vh; }
-        .profile-title { font-size: 1.7rem; font-weight: 700; margin-top: 60px; text-align: center; color: #6c63ff; }
-        .profile-box { max-width: 450px; margin: 40px auto 0 auto; border: 2px solid #6c63ff; border-radius: 10px; padding: 2.5rem 2rem 2rem 2rem; background: #fff; }
-        .profile-box label { font-weight: 500; }
-        .profile-box .form-control { background: #f8f9fa; }
-        .profile-box .btn { background: #111; color: #fff; border-radius: 6px; font-weight: 600; }
-        .profile-box .btn:hover { background: #333; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Profile</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: linear-gradient(135deg, #ffe6f2 0%, #ffb6c1 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .profile-box {
+      background: #fff;
+      border-radius: 20px;
+      padding: 2.5rem;
+      width: 100%;
+      max-width: 950px;
+      box-shadow: 0 10px 35px rgba(214, 51, 132, 0.25);
+      animation: fadeInUp 1s ease;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .profile-box:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(214, 51, 132, 0.3);
+    }
+
+    .profile-title {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #d63384;
+      margin-bottom: 1.5rem;
+      animation: fadeInDown 0.8s ease;
+    }
+
+    label {
+      color: #d63384;
+      font-weight: 500;
+    }
+
+    .form-control, .form-select {
+      border-radius: 10px;
+      border: 1.5px solid #f3c1d8;
+      background-color: #fff8fb;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: #d63384;
+      box-shadow: 0 0 0 0.2rem rgba(214, 51, 132, 0.25);
+    }
+
+    .btn {
+      background: linear-gradient(135deg, #ff66a3, #d63384);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background: linear-gradient(135deg, #d63384, #b82b73);
+      transform: scale(1.03);
+    }
+
+    .alert {
+      border-radius: 10px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    .rounded-circle {
+      border: 3px solid #ffb6c1;
+      transition: transform 0.3s ease;
+    }
+
+    .rounded-circle:hover {
+      transform: scale(1.08);
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInDown {
+      from { opacity: 0; transform: translateY(-30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @media (max-width: 768px) {
+      .profile-box {
+        padding: 2rem 1.5rem;
+      }
+    }
+  </style>
 </head>
+
 <body>
+  <div class="container px-3">
     <div class="profile-title">Complete Your Profile</div>
-    <div class="profile-box shadow-sm">
-        <h3 class="fw-bold text-center mb-4">Profile Details</h3>
-        @if (session('error'))
-            <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                <strong>Heads up:</strong> {{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                {{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-        @if ($errors->any())
-            <div class="alert alert-danger">
-                <ul class="mb-0">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-    <form method="POST" action="{{ url('/profile/complete') }}" enctype="multipart/form-data">
-            @csrf
-            <div class="mb-3">
-                <label for="user_id" class="form-label">Student/Faculty ID</label>
-                    <input type="text" name="school_id" id="school_id" class="form-control" value="{{ old('school_id', Auth::user()->studentFaculty->school_id ?? '') }}" required pattern="[A-Z]{1,2}[0-9]{2}-[0-9]{4}" placeholder="C22-0171">
-                <div class="form-text">Format: C22-0171</div>
-            </div>
-            <div class="mb-3">
-                <label for="first_name" class="form-label">First Name</label>
-                <input type="text" name="first_name" id="first_name" class="form-control" value="{{ old('first_name', Auth::user()->studentFaculty->first_name ?? (Auth::user()->name ? explode(' ', Auth::user()->name)[0] : '')) }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="last_name" class="form-label">Last Name</label>
-                <input type="text" name="last_name" id="last_name" class="form-control" value="{{ old('last_name', Auth::user()->studentFaculty->last_name ?? (Auth::user()->name ? (count(explode(' ', Auth::user()->name)) > 1 ? explode(' ', Auth::user()->name)[1] : '') : '')) }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" id="email" class="form-control" value="{{ old('email', Auth::user()->email) }}" readonly>
-            </div>
-            <div class="mb-3">
-                <label for="username" class="form-label">Username</label>
-                <input type="text" name="username" id="username" class="form-control" value="{{ old('username', Auth::user()->username ?? (Auth::user()->studentFaculty->username ?? '')) }}" required>
-            </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" name="password" id="password" class="form-control" value="" placeholder="Enter new password if you want to change it">
-            </div>
-            <div class="mb-3">
-                <label for="password_confirmation" class="form-label">Confirm Password</label>
-                <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" value="" placeholder="Re-enter the password">
-            </div>
-            <div class="mb-3">
-                <label for="role" class="form-label">Role</label>
-                <select name="role" id="role" class="form-select" required onchange="toggleRoleFields()">
-                    <option value="">-- Select Role --</option>
-                    <option value="student" {{ old('role', Auth::user()->studentFaculty->role ?? '') == 'student' ? 'selected' : '' }}>Student</option>
-                    <option value="faculty" {{ old('role', Auth::user()->studentFaculty->role ?? '') == 'faculty' ? 'selected' : '' }}>Faculty</option>
-                </select>
-            </div>
-            <div id="studentFields" style="display: none;">
-                <div class="mb-3">
-                    <label for="program" class="form-label">Program</label>
-                    <select id="program" class="form-select">
-                        <option value="">-- Select Program --</option>
-                        {{-- populated via JS --}}
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="course" class="form-label">Course</label>
-                    <select name="course" id="course" data-current-course="{{ old('course', Auth::user()->studentFaculty->course ?? '') }}" class="form-select">
-                        <option value="">-- Select Course --</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="yrlvl" class="form-label">Year Level</label>
-                    <select name="yrlvl" id="yrlvl" class="form-select">
-                        <option value="">-- Select Year Level --</option>
-                        <option value="1" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '1st Year' ? 'selected' : '' }}>1st Year</option>
-                        <option value="2" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '2nd Year' ? 'selected' : '' }}>2nd Year</option>
-                        <option value="3" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '3rd Year' ? 'selected' : '' }}>3rd Year</option>
-                        <option value="4" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == '4th Year' ? 'selected' : '' }}>4th Year</option>
-                        <option value="Other" {{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') == 'Other' ? 'selected' : '' }}>Other</option>
-                    </select>
-                </div>
-            </div>
-            <div id="facultyFields" style="display: none;">
-                <div class="mb-3">
-                    <label for="program_faculty" class="form-label">Program</label>
-                    <select id="program_faculty" class="form-select">
-                        <option value="">-- Select Program --</option>
-                        {{-- populated via JS --}}
-                    </select>
-                </div>
-            </div>
-            {{-- hidden input to hold selected program id for form submit --}}
-            <input type="hidden" name="program_id" id="program_id_hidden" value="{{ old('program_id', Auth::user()->studentFaculty->program_id ?? '') }}">
-            <div class="mb-3">
-                <label for="birthdate" class="form-label">Birthdate</label>
-                <input type="date" name="birthdate" id="birthdate" class="form-control" value="{{ old('birthdate', Auth::user()->studentFaculty->birthdate ?? '') }}" required>
-            </div>
-            <div class="mb-4 text-center">
-                @php
-                    $profilePic = Auth::user()->studentFaculty->profile_picture;
-                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                @endphp
-                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name)) }}" alt="Profile Picture" class="rounded-circle" width="80" height="80">
-                <div class="mt-2">
-                    <label for="profile_picture" class="form-label">Upload New Profile Picture</label>
-                    <input type="file" name="profile_picture" id="profile_picture" class="form-control">
-                </div>
-            </div>
-            <button type="submit" class="btn w-100">Save</button>
-        </form>
-        <script>
-            function toggleRoleFields() {
-                var role = document.getElementById('role').value;
-                document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
-                document.getElementById('facultyFields').style.display = role === 'faculty' ? 'block' : 'none';
-                // disable course input when faculty
-                var course = document.getElementById('course');
-                if (course) {
-                    if (role === 'faculty') course.setAttribute('disabled', 'disabled'); else course.removeAttribute('disabled');
-                }
-            }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                toggleRoleFields();
+  <div class="profile-box mx-auto">
+      <h4 class="fw-bold text-center mb-4 text-pink">Profile Details</h4>
 
-                const programsEndpoint = "{{ route('api.programs') }}";
-                const programSelect = document.getElementById('program');
-                const programFacultySelect = document.getElementById('program_faculty');
-                const hiddenProgram = document.getElementById('program_id_hidden');
-                const currentProgram = hiddenProgram ? hiddenProgram.value : '';
+      {{-- Alerts --}}
+      @if (session('error'))
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+          <strong>Heads up:</strong> {{ session('error') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      @endif
 
-                function populatePrograms() {
-                    fetch(programsEndpoint).then(r => r.json()).then(programs => {
-                        programs.forEach(p => {
-                            const o = document.createElement('option');
-                            o.value = p.id;
-                            o.textContent = p.name;
-                            if (String(p.id) === String(currentProgram)) o.selected = true;
-                            if (programSelect) programSelect.appendChild(o.cloneNode(true));
-                            if (programFacultySelect) programFacultySelect.appendChild(o.cloneNode(true));
-                        });
-                        if (currentProgram) loadCourses(currentProgram);
-                    }).catch(err => console.error('Failed to load programs', err));
-                }
+      @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ session('success') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+      @endif
 
-                function loadCourses(programId) {
-                    if (!programId) return;
-                    const url = '/api/programs/' + programId + '/courses';
-                    fetch(url).then(r => r.json()).then(courses => {
-                        const courseSel = document.getElementById('course');
-                        if (!courseSel) return;
-                        courseSel.innerHTML = '<option value="">-- Select Course --</option>';
-                        const currentCourse = document.getElementById('course') ? document.getElementById('course').dataset.currentCourse : '';
-                        courses.forEach(c => {
-                            const o = document.createElement('option');
-                            o.value = c.name;
-                            o.textContent = c.name;
-                            if (String(c.name) === String(currentCourse)) o.selected = true;
-                            courseSel.appendChild(o);
-                        });
-                    }).catch(err => console.error('Failed to load courses', err));
-                }
+      @if ($errors->any())
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
 
-                // When student program is changed
-                if (programSelect) {
-                    programSelect.addEventListener('change', function() {
-                        const id = this.value;
-                        // set hidden input for form submission
-                        if (hiddenProgram) hiddenProgram.value = id;
-                        // load courses
-                        loadCourses(id);
-                    });
-                }
+      <form method="POST" action="{{ url('/profile/complete') }}" enctype="multipart/form-data">
+        @csrf
 
-                // When faculty program select changed, mirror to hidden input
-                if (programFacultySelect) {
-                    programFacultySelect.addEventListener('change', function() {
-                        if (hiddenProgram) hiddenProgram.value = this.value;
-                    });
-                }
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label for="school_id" class="form-label">Student/Faculty ID</label>
+            <input type="text" name="school_id" id="school_id" class="form-control"
+              value="{{ old('school_id', Auth::user()->studentFaculty->school_id ?? '') }}"
+              required pattern="[A-Z]{1,2}[0-9]{2}-[0-9]{4}" placeholder="C##-####">
+            <div class="form-text">Format: C00-0000</div>
+          </div>
 
-                populatePrograms();
-            });
-        </script>
+          <div class="col-12 col-md-6">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-control"
+              value="{{ Auth::user()->email }}" disabled>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="first_name" class="form-label">First Name</label>
+            <input type="text" name="first_name" id="first_name" class="form-control"
+              value="{{ old('first_name', Auth::user()->studentFaculty->first_name ?? '') }}" required>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="last_name" class="form-label">Last Name</label>
+            <input type="text" name="last_name" id="last_name" class="form-control"
+              value="{{ old('last_name', Auth::user()->studentFaculty->last_name ?? '') }}" required>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" name="username" id="username" class="form-control"
+              value="{{ old('username', Auth::user()->username ?? '') }}" required>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="birthdate" class="form-label">Birthdate</label>
+            <input type="date" name="birthdate" id="birthdate" class="form-control"
+              value="{{ old('birthdate', Auth::user()->studentFaculty->birthdate ?? '') }}" required>
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" name="password" id="password" class="form-control" required
+              placeholder="Enter your password (min 6 characters)">
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="password_confirmation" class="form-label">Confirm Password</label>
+            <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" required
+              placeholder="Re-enter your password">
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label for="role" class="form-label">Role</label>
+            <select name="role" id="role" class="form-select" required onchange="toggleRoleFields()">
+              <option value="">-- Select Role --</option>
+              <option value="student" {{ old('role', Auth::user()->studentFaculty->role ?? '') == 'student' ? 'selected' : '' }}>Student</option>
+              <option value="faculty" {{ old('role', Auth::user()->studentFaculty->role ?? '') == 'faculty' ? 'selected' : '' }}>Faculty</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-6 mx-md-auto" id="studentFields" style="display: none;">
+            <label for="program" class="form-label">Program</label>
+            <select id="program" class="form-select">
+              <option value="">-- Select Program --</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-6 mx-md-auto" id="courseField" style="display: none;">
+            <label for="course" class="form-label">Course</label>
+            <select name="course" id="course" class="form-select">
+              <option value="">-- Select Course --</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-6 mx-md-auto" id="yearField" style="display: none;">
+            <label for="yrlvl" class="form-label">Year Level</label>
+            <select name="yrlvl" id="yrlvl" class="form-select">
+              <option value="">-- Select Year Level --</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-6 mx-md-auto" id="facultyFields" style="display: none;">
+            <label for="program_faculty" class="form-label">Program</label>
+            <select id="program_faculty" class="form-select">
+              <option value="">-- Select Program --</option>
+            </select>
+          </div>
+
+          <input type="hidden" name="program_id" id="program_id_hidden">
+
+          <div class="col-12 text-center mt-4">
+            @php
+              $profilePic = Auth::user()->studentFaculty->profile_picture;
+              $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+            @endphp
+            <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode(Auth::user()->name)) }}" 
+                 alt="Profile Picture" class="rounded-circle mb-3" width="90" height="90">
+            <div>
+              <label class="form-label">Upload New Profile Picture</label>
+              <input type="file" name="profile_picture" id="profile_picture" class="form-control">
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <button type="submit" class="btn w-100 shadow">Save Changes</button>
+        </div>
+      </form>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </div>
+
+  <script>
+    function toggleRoleFields() {
+      var role = document.getElementById('role').value;
+      document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
+      document.getElementById('courseField').style.display = role === 'student' ? 'block' : 'none';
+      document.getElementById('yearField').style.display = role === 'student' ? 'block' : 'none';
+      document.getElementById('facultyFields').style.display = role === 'faculty' ? 'block' : 'none';
+
+      // Keep hidden program_id in sync with visible program select
+      const programHidden = document.getElementById('program_id_hidden');
+      if (role === 'student') {
+        programHidden.value = document.getElementById('program').value || '';
+      } else if (role === 'faculty') {
+        programHidden.value = document.getElementById('program_faculty').value || '';
+      } else {
+        programHidden.value = '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const programsEndpoint = "{{ route('api.programs') }}";
+      const courseEndpointBase = '/api/programs/';
+
+      const roleSelect = document.getElementById('role');
+      const progStudent = document.getElementById('program');
+      const progFaculty = document.getElementById('program_faculty');
+      const courseSelect = document.getElementById('course');
+      const programHidden = document.getElementById('program_id_hidden');
+
+      const initialRole = roleSelect.value || '';
+      const initialProgramId = "{{ old('program_id', Auth::user()->studentFaculty->program_id ?? '') }}";
+      const initialCourse = "{{ old('course', Auth::user()->studentFaculty->course ?? '') }}";
+      const initialYr = "{{ old('yrlvl', Auth::user()->studentFaculty->yrlvl ?? '') }}";
+
+      function populatePrograms(selectEl, selectedId) {
+        if (!selectEl) return;
+        // clear
+        selectEl.innerHTML = '<option value="">-- Select Program --</option>';
+        fetch(programsEndpoint)
+          .then(r => r.json())
+          .then(list => {
+            list.forEach(p => {
+              const opt = document.createElement('option');
+              opt.value = p.id;
+              opt.textContent = p.name;
+              if (String(p.id) === String(selectedId)) opt.selected = true;
+              selectEl.appendChild(opt);
+            });
+            // Update hidden after population
+            if (selectEl === progStudent && roleSelect.value === 'student') {
+              programHidden.value = selectEl.value || '';
+            } else if (selectEl === progFaculty && roleSelect.value === 'faculty') {
+              programHidden.value = selectEl.value || '';
+            }
+          });
+      }
+
+      function loadCourses(programId, selectedCourse = '') {
+        if (!courseSelect) return;
+        if (!programId) {
+          courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+          return;
+        }
+        const url = courseEndpointBase + programId + '/courses';
+        fetch(url)
+          .then(r => r.json())
+          .then(courses => {
+            courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+            courses.forEach(c => {
+              const opt = document.createElement('option');
+              opt.value = c.name;
+              opt.textContent = c.name;
+              if (String(c.name) === String(selectedCourse)) opt.selected = true;
+              courseSelect.appendChild(opt);
+            });
+          });
+      }
+
+      // Populate both program selects so switching roles keeps data ready
+      populatePrograms(progStudent, initialRole === 'student' ? initialProgramId : '');
+      populatePrograms(progFaculty, initialRole === 'faculty' ? initialProgramId : '');
+
+      // If initial role is student, load courses
+      if (initialRole === 'student' && initialProgramId) {
+        loadCourses(initialProgramId, initialCourse);
+      }
+
+      // Year level pre-select (just set the value; options already exist)
+      if (initialYr) {
+        const yrSel = document.getElementById('yrlvl');
+        if (yrSel) yrSel.value = initialYr;
+      }
+
+      // Keep hidden program_id in sync
+      roleSelect.addEventListener('change', function() {
+        toggleRoleFields();
+      });
+      if (progStudent) progStudent.addEventListener('change', function() {
+        if (roleSelect.value === 'student') {
+          programHidden.value = this.value || '';
+          loadCourses(this.value);
+        }
+      });
+      if (progFaculty) progFaculty.addEventListener('change', function() {
+        if (roleSelect.value === 'faculty') {
+          programHidden.value = this.value || '';
+        }
+      });
+
+      // Initialize visibility and hidden field
+      toggleRoleFields();
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

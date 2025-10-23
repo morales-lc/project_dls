@@ -17,7 +17,23 @@ class AlertServiceController extends Controller
             : collect();
         $displayName = $decodedName;
         $displayMonth = \DateTime::createFromFormat('!m', $month)->format('F');
-        return view('alert-services.group', compact('books', 'displayName', 'displayMonth', 'year'));
+        // Collect bookmarked AlertBook IDs for the authenticated Student/Faculty user
+        $bookmarkedIds = [];
+        try {
+            if (\Illuminate\Support\Facades\Auth::check()) {
+                $user = \Illuminate\Support\Facades\Auth::user();
+                $sf = $user->studentFaculty ?? null;
+                if ($sf) {
+                    $bookmarkedIds = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                        ->where('bookmarkable_type', AlertBook::class)
+                        ->pluck('bookmarkable_id')
+                        ->toArray();
+                }
+            }
+        } catch (\Throwable $e) {
+            $bookmarkedIds = [];
+        }
+        return view('alert-services.group', compact('books', 'displayName', 'displayMonth', 'year', 'bookmarkedIds'));
     }
 
     public function manage(Request $request)

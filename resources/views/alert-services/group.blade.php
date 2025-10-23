@@ -154,6 +154,7 @@
             margin-bottom: 0.8rem;
             line-height: 1.2em;
             display: -webkit-box;
+            line-clamp: 2;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
@@ -199,6 +200,21 @@
                 text-align: center;
             }
         }
+
+        /* Bookmark button variations */
+        .btn-bookmark {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            border-radius: 1.2em;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 0.45em 1.2em;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-bookmark:hover { background: rgba(255, 255, 255, 0.2); }
+        .btn-bookmarked { background: #28a745; border-color: #28a745; color: #fff; }
     </style>
 </head>
 
@@ -224,11 +240,26 @@
                 <div class="book-overlay">
                     <div class="book-title">{{ $book->title ?? 'Untitled' }}</div>
                     @auth
-                    <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
-                        target="_blank" rel="noopener noreferrer" class="btn-pink">
-                        <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
-                    </a>
+                    <div class="d-flex flex-column gap-2 w-100">
+                        <form action="{{ route('bookmarks.toggle') }}" method="POST" class="bookmark-toggle-alert d-flex justify-content-center">
+                            @csrf
+                            <input type="hidden" name="id" value="{{ $book->id }}">
+                            <input type="hidden" name="type" value="alert_book">
+                            @php $isBookmarked = isset($bookmarkedIds) && in_array($book->id, $bookmarkedIds); @endphp
+                            <button type="submit" class="btn-bookmark {{ $isBookmarked ? 'btn-bookmarked' : '' }}">
+                                <i class="bi {{ $isBookmarked ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus' }} me-1"></i>
+                                <span class="label">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
+                            </button>
+                        </form>
+                        <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
+                            target="_blank" rel="noopener noreferrer" class="btn-pink text-center">
+                            <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
+                        </a>
+                    </div>
                     @else
+                    <a href="{{ route('login') }}" onclick="alert('Please log in to bookmark and request via LiRA.');" class="btn-bookmark text-center">
+                        <i class="bi bi-box-arrow-in-right"></i> Log in to bookmark
+                    </a>
                     <a href="{{ route('login') }}" onclick="alert('Please log in to request via LiRA.');" class="btn-pink">
                         <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                     </a>
@@ -252,6 +283,65 @@
     </div>
 
     @include('footer')
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.bookmark-toggle-alert').forEach(function(form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        var btn = form.querySelector('button');
+                        if (!btn) return;
+                        var label = btn.querySelector('.label');
+                        var icon = btn.querySelector('i');
+                        var originalHTML = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing';
+
+                        var formData = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        }).then(function(res) {
+                            // handle 403 separately to show message
+                            if (!res.ok && res.status === 403) return res.json().then(function(data){ throw new Error(data.message || 'Forbidden'); });
+                            return res.json();
+                        }).then(function(data) {
+                            if (!data || !data.status) return;
+                            if (data.status === 'bookmarked') {
+                                btn.classList.add('btn-bookmarked');
+                                if (icon) { icon.className = 'bi bi-bookmark-check-fill me-1'; }
+                                if (label) { label.textContent = 'Bookmarked'; }
+                            } else if (data.status === 'removed') {
+                                btn.classList.remove('btn-bookmarked');
+                                if (icon) { icon.className = 'bi bi-bookmark-plus me-1'; }
+                                if (label) { label.textContent = 'Bookmark'; }
+                            }
+                        }).catch(function(err) {
+                            console.error(err);
+                            alert(err && err.message ? err.message : 'Failed to update bookmark.');
+                        }).finally(function() {
+                            btn.disabled = false;
+                            // Restore button contents to reflect updated state (icon/label already set)
+                            if (label) {
+                                btn.innerHTML = '';
+                                var i = document.createElement('i');
+                                i.className = icon ? icon.className : 'bi bi-bookmark-plus me-1';
+                                var span = document.createElement('span');
+                                span.className = 'label';
+                                span.textContent = label ? label.textContent : 'Bookmark';
+                                btn.appendChild(i);
+                                btn.appendChild(span);
+                            } else {
+                                btn.innerHTML = originalHTML;
+                            }
+                        });
+                    });
+                });
+            });
+        </script>
 </body>
 
 </html>

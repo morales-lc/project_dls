@@ -16,6 +16,7 @@
                 $alinetPendingCount = \App\Models\AlinetAppointment::where('status', 'pending')->count();
                 $feedbackCount = \App\Models\Feedback::count();
                 $libraryStaffCount = \App\Models\LibraryStaff::count();
+                
             @endphp
 
             <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">

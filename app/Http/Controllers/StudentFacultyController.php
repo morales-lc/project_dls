@@ -27,11 +27,13 @@ class StudentFacultyController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user ? $user->id : null)],
+            'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user ? $user->id : null)],
             'role_type' => 'required|in:student,faculty',
             'program_id' => 'required|exists:programs,id',
             'course' => 'nullable|string|max:255',
             'yrlvl' => 'nullable|string|max:255',
             'birthdate' => 'nullable|date',
+            'password' => 'nullable|string|min:6',
         ]);
 
         $sf->school_id = $request->school_id;
@@ -47,12 +49,15 @@ class StudentFacultyController extends Controller
             $sf->yrlvl = null;
         }
         $sf->birthdate = $request->birthdate;
-        // No longer manage username/password here; done on users elsewhere
         $sf->save();
 
         if ($user) {
             $user->email = $request->email;
             $user->name = $request->first_name . ' ' . $request->last_name;
+            $user->username = $request->username;
+            if ($request->filled('password')) {
+                $user->password = bcrypt($request->password);
+            }
             $user->save();
         }
 

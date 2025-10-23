@@ -37,6 +37,34 @@ CREATE TABLE IF NOT EXISTS catalogs (
 )
 """)
 
+# === ENSURE FULLTEXT INDEX EXISTS (idempotent) ===
+try:
+    cursor.execute(
+        """
+        SELECT COUNT(1) FROM information_schema.STATISTICS 
+        WHERE TABLE_SCHEMA = DATABASE() 
+          AND TABLE_NAME = 'catalogs' 
+          AND INDEX_TYPE = 'FULLTEXT'
+        """
+    )
+    ft_count = cursor.fetchone()[0]
+    if ft_count == 0:
+        try:
+            cursor.execute(
+                """
+                ALTER TABLE catalogs 
+                ADD FULLTEXT fulltext_catalog_search 
+                (title, subjects, additional_details, author, publisher)
+                """
+            )
+            conn.commit()
+            print("ℹ️ Added FULLTEXT index 'fulltext_catalog_search' on catalogs.")
+        except Exception as e:
+            print(f"⚠️ Could not add FULLTEXT index automatically: {e}")
+except Exception as e:
+    # If information_schema is unavailable or permissions restricted, proceed without failing
+    print(f"⚠️ Skipping FULLTEXT index check: {e}")
+
 # === FORMATTER FUNCTIONS ===
 def format_lccn(value):
     if not value:

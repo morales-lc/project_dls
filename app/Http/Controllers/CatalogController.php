@@ -139,18 +139,111 @@ class CatalogController extends Controller
 
         $query = Catalog::query();
 
+        // Initialize tokens list for relevance scoring later
+        $tokens = [];
+        $mode = strtolower($request->input('mode', 'or')) === 'and' ? 'and' : 'or';
         if ($normalizedQ) {
-            $query->where(function ($sub) use ($normalizedQ) {
-                // normalize both sides in SQL
-                $sub->whereRaw("LOWER(REGEXP_REPLACE(title, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(REGEXP_REPLACE(author, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(REGEXP_REPLACE(publisher, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(REGEXP_REPLACE(call_number, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(REGEXP_REPLACE(subjects, '[[:punct:]]+', '')) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(isbn) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(issn) LIKE ?", ["%{$normalizedQ}%"])
-                    ->orWhereRaw("LOWER(lccn) LIKE ?", ["%{$normalizedQ}%"]);
-            });
+            // Prepare LIKE for the full normalized query
+            $likeFull = "%{$normalizedQ}%";
+            // Tokenize and remove common stopwords to improve matching
+            $rawTokens = preg_split('/\s+/', $normalizedQ) ?: [];
+            $stop = ['and','or','the','a','an','of','on','for','to','in','with','by','from','at','as','is','are','was','were','be','been','it','this','that'];
+            $tokens = array_values(array_filter($rawTokens, function($t) use ($stop) {
+                $t = trim($t);
+                if ($t === '') return false;
+                if (in_array($t, $stop, true)) return false;
+                // keep tokens length >= 2 or special cases like c, c++ handled below
+                return mb_strlen($t) >= 2 || in_array($t, ['c','c++','c#','r'], true);
+            }));
+
+            // Try to use FULLTEXT on MySQL for speed and relevance
+            $usedFulltext = false;
+            try {
+                $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+                if ($driver === 'mysql') {
+                    // Ensure the FULLTEXT index exists before using MATCH ... AGAINST
+                    $ftCount = collect(\Illuminate\Support\Facades\DB::select(
+                        "SELECT COUNT(1) as cnt FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_TYPE = 'FULLTEXT'",
+                        ['catalogs']
+                    ))->first();
+                    $hasFulltext = $ftCount && (int)($ftCount->cnt ?? 0) > 0;
+                    
+                    if ($hasFulltext) {
+                    // Build boolean query for WHERE using tokens
+                    $tokensFT = $tokens;
+                    // Use original words for phrase boosting in ORDER BY
+                    $boolean = '';
+                    if ($mode === 'and') {
+                        // require all tokens, allow prefix matches
+                        $boolean = implode(' ', array_map(function($t){ return '+'.str_replace('"','', $t).'*'; }, $tokensFT));
+                    } else {
+                        $boolean = implode(' ', array_map(function($t){ return str_replace('"','', $t).'*'; }, $tokensFT));
+                    }
+                    if (trim($boolean) !== '') {
+                        $query->whereRaw(
+                            "MATCH (title, subjects, additional_details, author, publisher) AGAINST (? IN BOOLEAN MODE)",
+                            [$boolean]
+                        );
+                        // Order by natural language relevance as secondary sorter
+                        $query->orderByRaw(
+                            "MATCH (title, subjects, additional_details, author, publisher) AGAINST (? IN NATURAL LANGUAGE MODE) DESC",
+                            [$normalizedQ]
+                        );
+                        $usedFulltext = true;
+                    }
+                    }
+                }
+            } catch (\Throwable $e) {
+                $usedFulltext = false; // fallback below
+            }
+
+            if (!$usedFulltext && $mode === 'and' && count($tokens) > 0) {
+                // AND mode: every token must appear in at least one of the key fields
+                $query->where(function($must) use ($tokens) {
+                    foreach ($tokens as $t) {
+                        $like = '%'.str_replace('%','\\%',$t).'%';
+                        $must->where(function($qq) use ($like) {
+                            $qq->whereRaw("LOWER(title) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(subjects) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(additional_details) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(author) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(publisher) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(call_number) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(isbn) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(issn) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(lccn) LIKE ?", [$like]);
+                        });
+                    }
+                });
+            } elseif (!$usedFulltext) {
+                // OR mode (default): phrase across key text fields + token-level OR across broader set
+                $query->where(function ($sub) use ($likeFull, $tokens) {
+                    // Phrase across the most relevant large text fields only (faster)
+                    $sub->whereRaw("LOWER(REGEXP_REPLACE(title, '[[:punct:]]+', '')) LIKE ?", [$likeFull])
+                        ->orWhereRaw("LOWER(REGEXP_REPLACE(subjects, '[[:punct:]]+', '')) LIKE ?", [$likeFull])
+                        ->orWhereRaw("LOWER(REGEXP_REPLACE(additional_details, '[[:punct:]]+', '')) LIKE ?", [$likeFull]);
+
+                    // Token-level matches: for each token, match across many fields
+                    foreach ($tokens as $t) {
+                        $like = '%'.str_replace('%','\\%',$t).'%';
+                        $sub->orWhere(function($qq) use ($like) {
+                            $qq->whereRaw("LOWER(title) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(subjects) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(additional_details) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(author) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(publisher) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(format) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(content_type) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(media_type) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(carrier_type) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(isbn) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(issn) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(lccn) LIKE ?", [$like])
+                               ->orWhereRaw("LOWER(call_number) LIKE ?", [$like]);
+                        });
+                    }
+                });
+            }
         }
 
         // Filters
@@ -161,14 +254,36 @@ class CatalogController extends Controller
             $query->where('format', $request->input('format'));
         }
 
-        // Order by relevance: Title matches first
-        $query->orderByRaw("
-        CASE
-            WHEN LOWER(title) LIKE ? THEN 1
-            WHEN LOWER(author) LIKE ? THEN 2
-            ELSE 3
-        END
-    ", ["%{$normalizedQ}%", "%{$normalizedQ}%"]);
+        // Order by relevance only for fallback path; for FULLTEXT path we already applied ORDER BY MATCH
+        if (empty($usedFulltext)) {
+            // Order by relevance: prioritize title/subjects/additional_details then author, then others
+            $bindings = [];
+            $relevanceSql = [];
+
+            // Heavier weight for exact-phrase (normalized) matches
+            $bindings[] = "%{$normalizedQ}%"; $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(title, '[[:punct:]]+', '')) LIKE ? THEN 8 ELSE 0 END)";
+            $bindings[] = "%{$normalizedQ}%"; $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(subjects, '[[:punct:]]+', '')) LIKE ? THEN 6 ELSE 0 END)";
+            $bindings[] = "%{$normalizedQ}%"; $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(additional_details, '[[:punct:]]+', '')) LIKE ? THEN 5 ELSE 0 END)";
+            $bindings[] = "%{$normalizedQ}%"; $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(author, '[[:punct:]]+', '')) LIKE ? THEN 4 ELSE 0 END)";
+            $bindings[] = "%{$normalizedQ}%"; $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(publisher, '[[:punct:]]+', '')) LIKE ? THEN 2 ELSE 0 END)";
+
+            // Token-level contributions
+            $tokenList = $tokens ?? [];
+            foreach ($tokenList as $t) {
+                $like = '%'.str_replace('%','\\%',$t).'%';
+                $bindings[] = $like; $relevanceSql[] = "(CASE WHEN LOWER(title) LIKE ? THEN 4 ELSE 0 END)";
+                $bindings[] = $like; $relevanceSql[] = "(CASE WHEN LOWER(subjects) LIKE ? THEN 3 ELSE 0 END)";
+                $bindings[] = $like; $relevanceSql[] = "(CASE WHEN LOWER(additional_details) LIKE ? THEN 2 ELSE 0 END)";
+                $bindings[] = $like; $relevanceSql[] = "(CASE WHEN LOWER(author) LIKE ? THEN 2 ELSE 0 END)";
+            }
+
+            $orderExpr = '('.implode(' + ', $relevanceSql).') DESC, title ASC';
+            if (!empty($relevanceSql)) {
+                $query->orderByRaw($orderExpr, $bindings);
+            } else {
+                $query->orderBy('title');
+            }
+        }
 
         $catalogs = $query->paginate(12)->appends($request->except('page'));
 

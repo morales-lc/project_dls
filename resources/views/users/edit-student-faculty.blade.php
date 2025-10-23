@@ -67,8 +67,8 @@
             <h5 class="fw-bold mt-4 mb-3 text-secondary">Account Information</h5>
             <div class="row g-3">
                 <div class="col-md-4">
-                    <label class="form-label">Username (managed on user)</label>
-                    <input type="text" class="form-control" value="{{ $sf->user?->username }}" disabled>
+                    <label class="form-label">Username</label>
+                    <input type="text" name="username" class="form-control" value="{{ old('username', $sf->user?->username) }}" required>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label">Role</label>
@@ -79,8 +79,9 @@
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Password</label>
-                    <input type="password" class="form-control" placeholder="Managed on user" disabled>
+                    <label class="form-label">New Password (optional)</label>
+                    <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current" autocomplete="new-password">
+                    <div class="form-text">Min 6 characters.</div>
                 </div>
             </div>
 

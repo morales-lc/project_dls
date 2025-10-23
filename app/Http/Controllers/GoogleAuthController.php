@@ -19,18 +19,55 @@ class GoogleAuthController extends Controller
         $googleUser = Socialite::driver('google')->user();
 
         // Restrict to @lccdo.edu.ph emails
-        if (!str_ends_with($googleUser->getEmail(), '@lccdo.edu.ph')) {
+        $googleEmail = strtolower($googleUser->getEmail());
+        if (!str_ends_with($googleEmail, '@lccdo.edu.ph')) {
             return redirect('/')->with('error', 'Only @lccdo emails are allowed.');
         }
 
-        // Create or get user
-        $user = User::firstOrCreate(
-            ['email' => $googleUser->getEmail()],
-            ['name' => $googleUser->getName(), 'password' => bcrypt(str()->random(16))]
-        );
+        // Helper: normalize local-part for alias matching (remove dots and plus tag) for our domain
+        $normalizeLocal = function (string $email): array {
+            $email = strtolower($email);
+            [$local, $domain] = explode('@', $email, 2);
+            if ($domain === 'lccdo.edu.ph') {
+                // Remove dot aliases and plus addressing
+                $local = str_replace('.', '', $local);
+                $local = preg_replace('/\+.*/', '', $local);
+            }
+            return [$local, $domain];
+        };
+
+        // Try exact match first
+        $user = User::whereRaw('LOWER(email) = ?', [$googleEmail])->first();
+        $createdNow = false;
+
+        // If not found, try alias-equivalent match within domain by normalized local-part
+        if (!$user) {
+            [$gLocal, $gDomain] = $normalizeLocal($googleEmail);
+            $candidates = User::whereRaw('LOWER(email) LIKE ?', ['%@' . $gDomain])->get();
+            foreach ($candidates as $cand) {
+                [$cLocal, $cDomain] = $normalizeLocal($cand->email);
+                if ($cLocal === $gLocal && $cDomain === $gDomain) {
+                    $user = $cand;
+                    break;
+                }
+            }
+        }
+
+        // If still not found, create the user now (Google-first account)
+        if (!$user) {
+            $user = new User();
+            $user->email = $googleEmail;
+            $user->name = $googleUser->getName();
+            // Optional: set username to normalized local-part if vacant
+            [$localPart] = $normalizeLocal($googleEmail);
+            $user->username = $localPart;
+            $user->password = bcrypt(str()->random(16));
+            $user->save();
+            $createdNow = true;
+        }
 
         // Derive first and last name from email
-        $email = $googleUser->getEmail();
+        $email = $googleEmail;
         $localPart = explode('@', $email)[0];
         $nameParts = explode('.', $localPart);
         $firstName = isset($nameParts[0]) ? ucfirst($nameParts[0]) : '';
@@ -57,9 +94,12 @@ class GoogleAuthController extends Controller
 
         Auth::login($user);
 
-        // If profile incomplete → go to profile completion form
-        if (!$user->studentFaculty->course || !$user->studentFaculty->birthdate) {
-            return redirect()->route('profile.complete');
+        // Only prompt profile completion for brand-new Google-created accounts
+        if ($createdNow) {
+            $sf = $user->studentFaculty; // just created above if missing
+            if (!$sf || !$sf->course || !$sf->birthdate) {
+                return redirect()->route('profile.complete');
+            }
         }
 
         return redirect('/');

@@ -344,6 +344,11 @@
             onmouseout="this.style.backgroundColor='#e83e8c';">
             Search
         </button>
+        <div class="form-check ms-2" title="Require all words to match">
+            <input class="form-check-input" type="checkbox" value="and" id="modeAnd"
+                   name="mode" {{ request('mode') === 'and' ? 'checked' : '' }}>
+            <label class="form-check-label small" for="modeAnd">Match all words</label>
+        </div>
     </form>
 
     @if($catalogs->total() > 0)

@@ -112,6 +112,9 @@
               <button class="nav-link" id="catalogs-tab" data-bs-toggle="tab" data-bs-target="#tab-catalogs" type="button" role="tab" aria-controls="tab-catalogs" aria-selected="false">Catalogs</button>
             </li>
             <li class="nav-item" role="presentation">
+              <button class="nav-link" id="alert-tab" data-bs-toggle="tab" data-bs-target="#tab-alert" type="button" role="tab" aria-controls="tab-alert" aria-selected="false">Alert Service</button>
+            </li>
+            <li class="nav-item" role="presentation">
               <button class="nav-link" id="mides-tab" data-bs-toggle="tab" data-bs-target="#tab-mides" type="button" role="tab" aria-controls="tab-mides" aria-selected="false">Mides</button>
             </li>
             <li class="nav-item" role="presentation">
@@ -129,6 +132,7 @@
             @php
               // Prepare filtered collections for each tab
               $catalogBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\Catalog::class);
+              $alertBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\AlertBook::class);
               $midesBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\MidesDocument::class);
               $sidlakBookmarks = $bookmarks->filter(fn($b) => in_array($b->bookmarkable_type, [\App\Models\SidlakArticle::class, \App\Models\SidlakJournal::class]));
               $postBookmarks = $bookmarks->filter(fn($b) => $b->bookmarkable_type === \App\Models\Post::class);
@@ -150,6 +154,9 @@
                     if ($bm->bookmarkable_type === \App\Models\MidesDocument::class) {
                       $route = route('mides.viewer', $item->id);
                       $typeValue = 'mides';
+                    } elseif ($bm->bookmarkable_type === \App\Models\AlertBook::class) {
+                      $route = $item->pdf_path ? asset('storage/' . $item->pdf_path) : null;
+                      $typeValue = 'alert_book';
                     } elseif ($bm->bookmarkable_type === \App\Models\SidlakArticle::class) {
                       $route = $item->pdf_file ? asset('storage/' . $item->pdf_file) : null;
                       $typeValue = 'sidlak';
@@ -199,6 +206,14 @@
                       echo '<div class="il-image">'.($info->image ? asset('storage/' . $info->image) : '').'</div>';
                       echo '<div class="il-description">'.nl2br(e($info->description)).'</div>';
                       echo '</div>';
+                    } elseif ($bm->bookmarkable_type === \App\Models\AlertBook::class) {
+                      // For Alert Service bookmarks, provide LiRA request like in alert-services/group.blade.php
+                      $lira = route('lira.jotform', [
+                        'title' => $item->title ?? '',
+                        'author' => $item->author ?? '',
+                        'call_number' => $item->call_number ?? '',
+                      ]);
+                      echo '<a href="'.$lira.'" class="btn btn-sm btn-outline-pink shadow-sm px-3" target="_blank" rel="noopener noreferrer"><i class="bi bi-journal-bookmark-fill"></i> Request via LiRA</a>';
                     } else {
                       if ($route) {
                         echo '<a href="'.$route.'" class="btn btn-sm btn-outline-pink shadow-sm px-3" target="_blank"><i class="bi bi-box-arrow-up-right"></i> Open</a>';
@@ -233,6 +248,31 @@
                     </thead>
                     <tbody>
                       @php renderBookmarkRows($bookmarks); @endphp
+                    </tbody>
+                  </table>
+                </div>
+              @endif
+            </div>
+
+            {{-- Alert Service tab --}}
+            <div class="tab-pane fade" id="tab-alert" role="tabpanel" aria-labelledby="alert-tab">
+              @if($alertBookmarks->isEmpty())
+                <div class="alert alert-info mb-0 rounded-3 shadow-sm text-center py-4 fs-5" style="background: #fff8f9; color: #d81b60; border: 1.5px solid #ffd1e3;">
+                  <i class="bi bi-bookmark-x fs-2 me-2"></i> You have no Alert Service bookmarks yet.
+                </div>
+              @else
+                <div class="table-responsive table-responsive-mobile">
+                  <table class="table table-hover table-striped align-middle mb-0" style="border-radius: 1rem; overflow: hidden;">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="fw-bold text-center" style="width: 110px;">Type</th>
+                        <th class="fw-bold">Title / Info</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Added</th>
+                        <th class="fw-bold text-center" style="width: 120px;">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @php renderBookmarkRows($alertBookmarks); @endphp
                     </tbody>
                   </table>
                 </div>

@@ -41,8 +41,10 @@
                 <div class="footer-header mb-3 text-md-start text-start" style="font-size:1.5rem; font-weight:700; letter-spacing:0.5px; text-shadow:0 2px 8px rgba(232,62,140,0.08);">Services</div>
                 <div class="d-flex flex-column justify-content-start align-items-md-start align-items-start">
                     <ul class="footer-services-list list-unstyled mb-0" style="font-size:1.08rem;">
+                        @auth
                         <li class="mb-1"><a href="#" class="footer-link">LiRA</a></li>
                         <li class="mb-1"><a href="{{ route('alert-services.index') }}" class="footer-link">Alert Services</a></li>
+                        @endauth
                         <li class="mb-1"><a href="{{ route('alinet.form') }}" class="footer-link">ALINET</a></li>
                         <li class="mb-1"><a href="#" class="footer-link">Book Borrowing</a></li>
                         <li class="mb-1"><a href="#" class="footer-link">Information Literacy Alert Schedule</a></li>

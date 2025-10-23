@@ -23,8 +23,7 @@ class ProfileController extends Controller
         'first_name' => ['required', 'string', 'max:255'],
         'last_name' => ['required', 'string', 'max:255'],
         'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $userId],
-        'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $userId],
-        'password' => ['nullable', 'string', 'min:6', 'confirmed'],
+    'password' => ['required', 'string', 'min:6', 'confirmed'],
         'course' => ['nullable', 'string', 'max:255'],
         'yrlvl' => ['nullable', 'string', 'max:10'],
         'program_id' => ['nullable', 'exists:programs,id'],
@@ -33,11 +32,15 @@ class ProfileController extends Controller
         'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
     ];
 
-    // If role is student, require these fields
-    if ($request->input('role') === 'student') {
+    // Backend role-based validation
+    if (in_array($request->input('role'), ['student', 'faculty'])) {
+        // Program is required for both students and faculty
         $rules['program_id'][] = 'required';
+    }
+    if ($request->input('role') === 'student') {
+        // Students must also provide course and year level
         $rules['course'][] = 'required';
-        $rules['yrlvl'][] = 'required'; // ✅ Added this line
+        $rules['yrlvl'][] = 'required';
     }
 
     $messages = [
@@ -46,10 +49,8 @@ class ProfileController extends Controller
         'first_name.required' => 'First name is required.',
         'last_name.required' => 'Last name is required.',
         'username.required' => 'Username is required.',
-        'email.required' => 'Email is required.',
-        'email.email' => 'Email must be a valid email address.',
-        'email.unique' => 'The provided email is already in use.',
-        'password.min' => 'Password must be at least 6 characters.',
+    'password.required' => 'Password is required.',
+    'password.min' => 'Password must be at least 6 characters.',
         'password.confirmed' => 'Password confirmation does not match.',
         'program_id.required' => 'Please select a program.',
         'course.required' => 'Please select a course.',
@@ -61,9 +62,8 @@ class ProfileController extends Controller
 
     $user = User::find(Auth::id());
 
-    // Update user table
+    // Update user table (email is not editable here)
     $user->name = $request->first_name . ' ' . $request->last_name;
-    $user->email = $request->email;
     $user->username = $request->username;
     if ($request->filled('password')) {
         $user->password = bcrypt($request->password);
@@ -78,6 +78,11 @@ class ProfileController extends Controller
         $file->storeAs('profile_pictures', $profilePic, 'public');
     }
 
+    // Normalize fields based on role
+    $role = $request->role;
+    $courseVal = $role === 'student' ? $request->course : null;
+    $yrLvlVal = $role === 'student' ? $request->yrlvl : null;
+
     // Update student_faculty table
     $user->studentFaculty->update([
         'school_id' => $request->school_id,
@@ -85,11 +90,11 @@ class ProfileController extends Controller
         'last_name' => $request->last_name,
         // keep username in student_faculty only for display if you still need it later
         'username' => $request->username,
-        'course' => $request->course,
-        'yrlvl' => $request->yrlvl,
+        'course' => $courseVal,
+        'yrlvl' => $yrLvlVal,
         'program_id' => $request->program_id ?? null,
         'birthdate' => $request->birthdate,
-        'role' => $request->role,
+        'role' => $role,
         'profile_picture' => $profilePic,
     ]);
 

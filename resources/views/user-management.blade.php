@@ -39,12 +39,28 @@
         transform: scale(0.95);
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
     }
+
     /* Clickable row styles */
-    .clickable-row { cursor: pointer; }
-    .table-hover .clickable-row:hover { background-color: #fef4f8; }
+    .clickable-row {
+        cursor: pointer;
+    }
+
+    .table-hover .clickable-row:hover {
+        background-color: #fef4f8;
+    }
+
     /* Modal detail labels */
-    .detail-label { color: #6c757d; font-size: 0.9rem; }
-    .avatar-lg { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; }
+    .detail-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .avatar-lg {
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
 </style>
 
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
@@ -126,21 +142,21 @@
                     <thead class="table-pink">
                         <tr>
                             @if ($type === 'student')
-                                <th>School ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Course & Year</th>
+                            <th>School ID</th>
+                            <th>Name</th>
+
+                            <th>Course & Year</th>
                             @elseif ($type === 'faculty')
-                                <th>School ID</th>
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Program</th>
+                            <th>School ID</th>
+                            <th>Name</th>
+
+                            <th>Program</th>
                             @else
-                                <th>Name</th>
-                                <th>Email</th>
-                                <th>Username</th>
-                                <th>Contact Number</th>
-                                <th>Address</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Contact Number</th>
+                            <th>Address</th>
                             @endif
                             <th>Actions</th>
                         </tr>
@@ -149,21 +165,21 @@
                         @foreach ($users as $user)
                         <tr class="clickable-row" data-target-id="viewUserModal{{ $user->id }}">
                             @if ($type === 'student')
-                                <td>{{ $user->school_id }}</td>
-                                <td>{{ $user->first_name }} {{ $user->last_name }}</td>
-                                <td>{{ $user->user->email ?? '' }}</td>
-                                <td>{{ $user->course }}{{ $user->yrlvl ? ' - Yr ' . $user->yrlvl : '' }}</td>
+                            <td>{{ $user->school_id }}</td>
+                            <td>{{ $user->first_name }} {{ $user->last_name }}</td>
+
+                            <td>{{ $user->course }}{{ $user->yrlvl ? ' - Yr ' . $user->yrlvl : '' }}</td>
                             @elseif ($type === 'faculty')
-                                <td>{{ $user->school_id }}</td>
-                                <td>{{ $user->first_name }} {{ $user->last_name }}</td>
-                                <td>{{ $user->user->email ?? '' }}</td>
-                                <td>{{ $user->program ? $user->program->name : '' }}</td>
+                            <td>{{ $user->school_id }}</td>
+                            <td>{{ $user->first_name }} {{ $user->last_name }}</td>
+
+                            <td>{{ $user->program ? $user->program->name : '' }}</td>
                             @else
-                                <td>{{ $user->name }}</td>
-                                <td>{{ $user->email }}</td>
-                                <td>{{ $user->username }}</td>
-                                <td>{{ $user->contact_number }}</td>
-                                <td>{{ $user->address }}</td>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td>{{ $user->username }}</td>
+                            <td>{{ $user->contact_number }}</td>
+                            <td>{{ $user->address }}</td>
                             @endif
                             <td>
                                 <div class="d-flex gap-2 justify-content-center">
@@ -173,17 +189,25 @@
                                             <i class="bi bi-pencil-square me-1"></i> Update
                                         </a>
                                     @else
-                                        <button class="btn btn-warning btn-sm px-3 btn-animated"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editUserModal{{ $user->id }}">
-                                            <i class="bi bi-pencil-square me-1"></i> Update
-                                        </button>
+                                        @if ($type === 'guest')
+                                            <button class="btn btn-warning btn-sm px-3 btn-animated"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editGuestModal{{ $user->id }}">
+                                                <i class="bi bi-pencil-square me-1"></i> Update
+                                            </button>
+                                        @else
+                                            <button class="btn btn-warning btn-sm px-3 btn-animated"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#editUserModal{{ $user->id }}">
+                                                <i class="bi bi-pencil-square me-1"></i> Update
+                                            </button>
+                                        @endif
                                     @endif
 
                                     <!-- Delete button -->
                                     @if (!($type === 'admin' && auth()->check() && auth()->user()->id == $user->id))
                                     <form method="POST"
-                                        action="{{ ($type === 'student' || $type === 'faculty') ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}"
+                                        action="{{ in_array($type, ['student','faculty','guest']) ? route('user.delete', $user->id) : route('staff.delete', $user->id) }}"
                                         onsubmit="return confirm('Delete this user?');">
                                         @csrf
                                         @method('DELETE')
@@ -201,11 +225,11 @@
                                             <div class="modal-header">
                                                 <h5 class="modal-title d-flex align-items-center gap-2" id="viewUserLabel{{ $user->id }}">
                                                     @if ($type === 'student' || $type === 'faculty')
-                                                        {{ $user->first_name }} {{ $user->last_name }}
-                                                        <span class="badge text-uppercase" style="background:#ff4d84;">{{ $type }}</span>
+                                                    {{ $user->first_name }} {{ $user->last_name }}
+                                                    <span class="badge text-uppercase" style="background:#ff4d84;">{{ $type }}</span>
                                                     @else
-                                                        {{ $user->name }}
-                                                        <span class="badge text-uppercase" style="background:#ff4d84;">{{ $user->role }}</span>
+                                                    {{ $user->name }}
+                                                    <span class="badge text-uppercase" style="background:#ff4d84;">{{ $user->role }}</span>
                                                     @endif
                                                 </h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -214,43 +238,88 @@
                                                 <div class="row g-3 align-items-start">
                                                     <div class="col-auto">
                                                         @if ($type === 'student' || $type === 'faculty')
-                                                            @php
-                                                                $profilePic = $user->profile_picture;
-                                                                $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                                                                $avatar = $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($user->first_name . ' ' . $user->last_name));
-                                                            @endphp
-                                                            <img src="{{ $avatar }}" alt="Avatar" class="avatar-lg shadow-sm">
+                                                        @php
+                                                        $profilePic = $user->profile_picture;
+                                                        $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                                                        $avatar = $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($user->first_name . ' ' . $user->last_name));
+                                                        @endphp
+                                                        <img src="{{ $avatar }}" alt="Avatar" class="avatar-lg shadow-sm">
                                                         @else
-                                                            <div class="avatar-lg d-flex align-items-center justify-content-center bg-light border">
-                                                                <i class="bi bi-person fs-1 text-secondary"></i>
-                                                            </div>
+                                                        <div class="avatar-lg d-flex align-items-center justify-content-center bg-light border">
+                                                            <i class="bi bi-person fs-1 text-secondary"></i>
+                                                        </div>
                                                         @endif
                                                     </div>
                                                     <div class="col">
                                                         @if ($type === 'student')
-                                                            <div class="row g-3">
-                                                                <div class="col-md-6"><div class="detail-label">School ID</div><div>{{ $user->school_id }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Email</div><div>{{ $user->user->email ?? '' }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Program</div><div>{{ $user->program ? $user->program->name : '' }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Course</div><div>{{ $user->course }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Year Level</div><div>{{ $user->yrlvl }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Birthdate</div><div>{{ $user->birthdate }}</div></div>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">School ID</div>
+                                                                <div>{{ $user->school_id }}</div>
                                                             </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Email</div>
+                                                                <div>{{ $user->user->email ?? '' }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Program</div>
+                                                                <div>{{ $user->program ? $user->program->name : '' }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Course</div>
+                                                                <div>{{ $user->course }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Year Level</div>
+                                                                <div>{{ $user->yrlvl }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Birthdate</div>
+                                                                <div>{{ $user->birthdate }}</div>
+                                                            </div>
+                                                        </div>
                                                         @elseif ($type === 'faculty')
-                                                            <div class="row g-3">
-                                                                <div class="col-md-6"><div class="detail-label">School ID</div><div>{{ $user->school_id }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Email</div><div>{{ $user->user->email ?? '' }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Program</div><div>{{ $user->program ? $user->program->name : '' }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Birthdate</div><div>{{ $user->birthdate }}</div></div>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">School ID</div>
+                                                                <div>{{ $user->school_id }}</div>
                                                             </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Email</div>
+                                                                <div>{{ $user->user->email ?? '' }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Program</div>
+                                                                <div>{{ $user->program ? $user->program->name : '' }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Birthdate</div>
+                                                                <div>{{ $user->birthdate }}</div>
+                                                            </div>
+                                                        </div>
                                                         @else
-                                                            <div class="row g-3">
-                                                                <div class="col-md-6"><div class="detail-label">Email</div><div>{{ $user->email }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Username</div><div>{{ $user->username }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Contact Number</div><div>{{ $user->contact_number }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Address</div><div>{{ $user->address }}</div></div>
-                                                                <div class="col-md-6"><div class="detail-label">Role</div><div>{{ $user->role }}</div></div>
+                                                        <div class="row g-3">
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Email</div>
+                                                                <div>{{ $user->email }}</div>
                                                             </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Username</div>
+                                                                <div>{{ $user->username }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Contact Number</div>
+                                                                <div>{{ $user->contact_number }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Address</div>
+                                                                <div>{{ $user->address }}</div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Role</div>
+                                                                <div>{{ $user->role }}</div>
+                                                            </div>
+                                                        </div>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -319,6 +388,61 @@
                                 </div>
                                 <!-- End Edit Modal -->
                                 @endif
+
+                                @if ($type === 'guest')
+                                <!-- Edit Modal for guest accounts -->
+                                <div class="modal fade" id="editGuestModal{{ $user->id }}" tabindex="-1" aria-labelledby="editGuestLabel{{ $user->id }}" aria-hidden="true">
+                                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editGuestLabel{{ $user->id }}">Update Guest - {{ $user->name ?? $user->username }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="POST" action="{{ route('user.update', $user->id) }}">
+                                                @csrf
+                                                @method('PUT')
+                                                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                                                <input type="hidden" name="role" value="guest">
+                                                <div class="modal-body">
+                                                    <div class="row g-2">
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Name</label>
+                                                            <input type="text" name="name" class="form-control" value="{{ $user->name }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Username</label>
+                                                            <input type="text" name="username" class="form-control" value="{{ $user->username }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Email</label>
+                                                            <input type="email" name="email" class="form-control" value="{{ $user->email }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Contact Number</label>
+                                                            <input type="text" name="contact_number" class="form-control" value="{{ $user->contact_number }}">
+                                                        </div>
+                                                        <div class="col-12">
+                                                            <label class="form-label">Address</label>
+                                                            <input type="text" name="address" class="form-control" value="{{ $user->address }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Password (leave blank to keep current)</label>
+                                                            <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-pink">Save changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Guest Edit Modal -->
+                                @endif
+
+                                
                             </td>
                         </tr>
                         @endforeach
@@ -404,6 +528,7 @@
                 }
             });
         });
+
         function loadCourses(programId, courseSel, currentCourse = '') {
             if (!programId) return;
             fetch('/api/programs/' + programId + '/courses').then(r => r.json()).then(courses => {

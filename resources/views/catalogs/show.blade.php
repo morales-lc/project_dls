@@ -572,7 +572,7 @@
                         <input type="hidden" name="type" value="catalog">
                         <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-dark' }} btn-animated w-100 bookmark-btn">
                             <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill' : 'bi-plus-circle' }} me-1"></i>
-                            <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Add to list' }}</span>
+                            <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
                         </button>
                     </form>
                     @else

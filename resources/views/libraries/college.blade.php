@@ -75,55 +75,67 @@
         <div class="divider mx-auto mb-5"></div>
 
         <div class="row g-4 justify-content-center">
-            {{-- First Row: Library Coordinator --}}
+            {{-- First Row: Library Coordinator (always reserved; placeholder if none) --}}
             @php
                 $coordinator = $staff->firstWhere('role', 'Library Coordinator');
             @endphp
-            @if($coordinator)
-                <div class="col-12 col-lg-10">
-                    <div class="card staff-card shadow rounded-4 text-center">
-                        <div class="card-body">
-                            <img src="{{ $coordinator->photo ? asset('storage/' . $coordinator->photo) : asset('images/placeholder.jpg') }}"
-                                 class="rounded-circle staff-photo mb-3">
-                            <h4 class="fw-bold mb-1">
+            <div class="col-12 col-lg-10">
+                <div class="card staff-card shadow rounded-4 text-center">
+                    <div class="card-body">
+                        <img src="{{ ($coordinator && $coordinator->photo) ? asset('storage/' . $coordinator->photo) : asset('images/placeholder.jpg') }}"
+                             class="rounded-circle staff-photo mb-3" alt="{{ $coordinator ? 'Library Coordinator Photo' : 'Placeholder' }}">
+                        <h4 class="fw-bold mb-1">
+                            @if($coordinator)
                                 {{ $coordinator->prefix }} {{ $coordinator->first_name }} {{ $coordinator->middlename ? $coordinator->middlename . ' ' : '' }}{{ $coordinator->last_name }}
-                            </h4>
-                            <div class="text-muted mb-2">{{ $coordinator->role }}</div>
-                            <div class="mb-2">
+                            @else
+                                Position Vacant
+                            @endif
+                        </h4>
+                        <div class="text-muted mb-2">Library Coordinator</div>
+                        <div class="mb-2">
+                            @if($coordinator && $coordinator->email)
                                 <a href="mailto:{{ $coordinator->email }}" class="text-pink">{{ $coordinator->email }}</a>
-                            </div>
-                            <div class="small text-secondary">{{ $coordinator->description }}</div>
+                            @else
+                                <span class="text-secondary">N/A</span>
+                            @endif
                         </div>
+                        <div class="small text-secondary">{{ $coordinator ? ($coordinator->description ?: '—') : '—' }}</div>
                     </div>
                 </div>
-            @endif
+            </div>
 
-            {{-- Second Row: Collections & Processing Librarian --}}
+            {{-- Second Row: Collections & Processing Librarian (always reserved; placeholder if none) --}}
             @php
                 $collections = $staff->firstWhere('role', 'Collections & Processing Librarian');
             @endphp
-            @if($collections)
-                <div class="col-12 col-lg-10">
-                    <div class="card staff-card shadow rounded-4 text-center">
-                        <div class="card-body">
-                            <img src="{{ $collections->photo ? asset('storage/' . $collections->photo) : asset('images/placeholder.jpg') }}"
-                                 class="rounded-circle staff-photo mb-3">
-                            <h4 class="fw-bold mb-1">
+            <div class="col-12 col-lg-10">
+                <div class="card staff-card shadow rounded-4 text-center">
+                    <div class="card-body">
+                        <img src="{{ ($collections && $collections->photo) ? asset('storage/' . $collections->photo) : asset('images/placeholder.jpg') }}"
+                             class="rounded-circle staff-photo mb-3" alt="{{ $collections ? 'Collections & Processing Librarian Photo' : 'Placeholder' }}">
+                        <h4 class="fw-bold mb-1">
+                            @if($collections)
                                 {{ $collections->prefix }} {{ $collections->first_name }} {{ $collections->middlename ? $collections->middlename . ' ' : '' }}{{ $collections->last_name }}
-                            </h4>
-                            <div class="text-muted mb-2">{{ $collections->role }}</div>
-                            <div class="mb-2">
+                            @else
+                                Position Vacant
+                            @endif
+                        </h4>
+                        <div class="text-muted mb-2">Collections & Processing Librarian</div>
+                        <div class="mb-2">
+                            @if($collections && $collections->email)
                                 <a href="mailto:{{ $collections->email }}" class="text-pink">{{ $collections->email }}</a>
-                            </div>
-                            <div class="small text-secondary">{{ $collections->description }}</div>
+                            @else
+                                <span class="text-secondary">N/A</span>
+                            @endif
                         </div>
+                        <div class="small text-secondary">{{ $collections ? ($collections->description ?: '—') : '—' }}</div>
                     </div>
                 </div>
-            @endif
+            </div>
 
-            {{-- Remaining staff (excluding the two above) --}}
-            @foreach($staff->where('id', '!=', optional($coordinator)->id)
-                         ->where('id', '!=', optional($collections)->id) as $s)
+            {{-- Remaining staff (exclude first two roles; 3 columns per row) --}}
+            @foreach($staff->where('role', '!=', 'Library Coordinator')
+                         ->where('role', '!=', 'Collections & Processing Librarian') as $s)
                 <div class="col-md-6 col-lg-4">
                     <div class="card staff-card shadow rounded-4 text-center h-100">
                         <div class="card-body">
