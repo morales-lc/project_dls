@@ -9,14 +9,17 @@
 @section('title','Add Sidlak Journal')
 
 @section('content')
-<div style="min-height: 100vh; background: linear-gradient(135deg, #f8fafc 0%, #e9ecef 100%);">
-    <div class="container py-5">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h2 class="fw-bold mb-0 text-primary" style="letter-spacing:1px;">Add Sidlak Journal</h2>
-            <div class="d-none d-md-flex align-items-center gap-2">
+<div class="py-5 d-flex flex-column align-items-center justify-content-center">
+    <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <a href="{{ request('return', route('sidlak.manage')) }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Manage</a>
+            <div class="d-flex align-items-center gap-2">
                 <button type="submit" form="sidlak-create-form" class="btn btn-success px-4 shadow-sm">Save</button>
+                <a href="{{ request('return', route('sidlak.manage')) }}" class="btn btn-outline-secondary px-4 shadow-sm">Cancel</a>
             </div>
         </div>
+
+        <h2 class="fw-bold mb-3 text-pink" style="letter-spacing: 1px; font-size: 2rem;">Add Sidlak Journal</h2>
 
         {{-- ✅ Display Success or Error Messages --}}
         @if (session('success'))
@@ -45,8 +48,9 @@
         </div>
         @endif
 
-        <form id="sidlak-create-form" method="POST" action="{{ route('sidlak.store') }}" enctype="multipart/form-data" class="card border-0 shadow-lg p-4 mb-5 bg-white rounded-4">
+        <form id="sidlak-create-form" method="POST" action="{{ route('sidlak.store') }}" enctype="multipart/form-data" class="card border-0 shadow-lg p-4 mb-4 bg-white rounded-4">
             @csrf
+            <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
             <div class="row g-4 mb-3">
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Journal Title</label>
@@ -94,10 +98,20 @@
 @endsection
 
 @push('management-scripts')
+<div id="sidlak-old-data"
+     data-editors='@json(old('editors', []))'
+     data-reviewers='@json(old('peer_reviewers', []))'
+     data-articles='@json(old('articles', []))'>
+</div>
 <script>
-    window.oldEditors = {!! json_encode(old('editors', [])) !!};
-    window.oldReviewers = {!! json_encode(old('peer_reviewers', [])) !!};
-    window.oldArticles = {!! json_encode(old('articles', [])) !!};
+    (function() {
+        var el = document.getElementById('sidlak-old-data');
+        if (!el) return;
+        try { window.oldEditors = JSON.parse(el.dataset.editors || '[]'); } catch (e) { window.oldEditors = []; }
+        try { window.oldReviewers = JSON.parse(el.dataset.reviewers || '[]'); } catch (e) { window.oldReviewers = []; }
+        try { window.oldArticles = JSON.parse(el.dataset.articles || '[]'); } catch (e) { window.oldArticles = []; }
+    })();
+    
 </script>
 <script src="{{ asset('js/sidlak-create.js') }}"></script>
 @endpush

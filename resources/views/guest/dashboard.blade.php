@@ -19,17 +19,8 @@
 @include('guest.navbar')
 <div class="container py-5">
     <h2 class="fw-bold mb-3">Welcome, Guest</h2>
-    <p class="text-muted mb-4">You have limited access. You can browse MIDES Repository, SIDLAK Journals, E-Libraries, and search the catalog.</p>
+    <p class="text-muted mb-4">You have limited access. You can browse MIDES Repository, SIDLAK Journals, E-Libraries</p>
 
-    <div class="mb-4">
-        <form class="d-flex flex-nowrap align-items-center gap-2 flex-wrap" method="GET" action="{{ route('catalogs.search') }}" style="max-width: 1200px;">
-            <div class="input-group flex-grow-1" style="min-width: 250px;">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input type="text" name="q" class="form-control" value="{{ request('q') }}" placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
-            </div>
-            <button type="submit" class="btn btn-pink">Search</button>
-        </form>
-    </div>
 
     <div class="row g-4">
         <div class="col-md-4">

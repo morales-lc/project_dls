@@ -126,7 +126,7 @@ Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
     Route::get('/elibraries', [ELibraryController::class, 'index'])->name('elibraries');
     // Sidlak public views
     Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
-    Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->name('sidlak.show');
+    Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->whereNumber('id')->name('sidlak.show');
     // sidlak article downloads
     Route::get('/sidlak/article/download/{id}', [SidlakJournalController::class, 'articleDownload'])->name('sidlak.article.download');
 
@@ -152,6 +152,16 @@ Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
     Route::get('/mides/seniorhigh/programs', [MidesSeniorHighController::class, 'programs'])->name('mides.seniorhigh.programs');
     Route::get('/mides/seniorhigh/{program}', [MidesSeniorHighController::class, 'program'])->name('mides.seniorhigh.program');
     Route::get('/mides/seniorhigh/viewer/{id}', [MidesSeniorHighController::class, 'viewer'])->name('mides.seniorhigh.viewer');
+});
+
+// Sidlak management (create/edit/delete) for librarian and admin
+Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
+    Route::get('/sidlak-journals/manage', [SidlakJournalController::class, 'manage'])->name('sidlak.manage');
+    Route::get('/sidlak-journals/create', [SidlakJournalController::class, 'create'])->name('sidlak.create');
+    Route::post('/sidlak-journals', [SidlakJournalController::class, 'store'])->name('sidlak.store');
+    Route::get('/sidlak-journals/{id}/edit', [SidlakJournalController::class, 'edit'])->whereNumber('id')->name('sidlak.edit');
+    Route::put('/sidlak-journals/{id}', [SidlakJournalController::class, 'update'])->whereNumber('id')->name('sidlak.update');
+    Route::delete('/sidlak-journals/{id}', [SidlakJournalController::class, 'destroy'])->whereNumber('id')->name('sidlak.destroy');
 });
 
 // Bookmarks (students/faculty)

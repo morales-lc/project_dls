@@ -392,6 +392,11 @@ class LiRAController extends Controller
         // notify requester
         Mail::to($lira->email)->send(new LiraDecision($lira, $lira->status, $lira->decision_reason));
 
+        // Redirect back to the filtered/paginated page if provided
+        $returnUrl = $request->input('return_url');
+        if ($returnUrl) {
+            return redirect($returnUrl)->with('status', 'Decision recorded.');
+        }
         return redirect()->back()->with('status', 'Decision recorded.');
     }
 
@@ -428,6 +433,11 @@ class LiRAController extends Controller
         $lira->responded_by = Auth::id();
         $lira->save();
 
+        // Redirect back to the filtered/paginated page if provided
+        $returnUrl = $request->input('return_url');
+        if ($returnUrl) {
+            return redirect($returnUrl)->with('status', 'Response sent to requester.');
+        }
         return redirect()->back()->with('status', 'Response sent to requester.');
     }
 

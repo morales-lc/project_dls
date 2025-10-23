@@ -94,8 +94,10 @@ class PostController extends Controller
             'website_link' => $request->website_link,
             'og_image' => $ogImage,
         ]);
-
-        return redirect()->route('post.management')->with('success', 'Post created successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Post created successfully!')
+            : redirect()->route('post.management')->with('success', 'Post created successfully!');
     }
 
     public function adminManagement()
@@ -164,18 +166,23 @@ class PostController extends Controller
             'website_link' => $request->website_link,
             'og_image' => $ogImage,
         ]);
-
-        return redirect()->route('post.management')->with('success', 'Post updated successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Post updated successfully!')
+            : redirect()->route('post.management')->with('success', 'Post updated successfully!');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $post = Post::findOrFail($id);
         if ($post->photo) {
             Storage::disk('public')->delete($post->photo);
         }
         $post->delete();
-        return redirect()->route('post.management')->with('success', 'Post deleted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Post deleted successfully!')
+            : redirect()->back()->with('success', 'Post deleted successfully!');
     }
 
     public function postManagement(Request $request)

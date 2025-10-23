@@ -142,6 +142,7 @@
           <div class="modal-footer">
             <form id="decisionForm" method="POST" action="" class="w-100">
                 @csrf
+                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                 <div class="mb-2">
                   <label for="decision_reason" class="form-label">Reason for rejection (optional unless rejecting)</label>
                   <textarea id="decision_reason" name="decision_reason" class="form-control" rows="2" placeholder="Provide a short reason if rejecting..."></textarea>
@@ -172,6 +173,7 @@
             <div id="liraRespondInfo" class="mb-3 text-muted small"></div>
             <form id="respondForm" method="POST" action="">
               @csrf
+              <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
               <div class="mb-2">
                 <label for="response_subject" class="form-label">Email subject</label>
                 <input id="response_subject" name="response_subject" class="form-control" placeholder="Response to your LiRA request" maxlength="255">
@@ -275,6 +277,9 @@ document.addEventListener('DOMContentLoaded', function(){
     html += '</dl>';
     details.innerHTML = html;
     decisionForm.action = '/lira/' + item.id + '/decide';
+    // Ensure we return to the current filtered/paginated URL
+    const retInput = decisionForm.querySelector('input[name="return_url"]');
+    if (retInput) retInput.value = window.location.href;
     const acceptBtn = decisionForm.querySelector('button[name="decision"][value="accepted"]');
     const rejectBtn = decisionForm.querySelector('button[name="decision"][value="rejected"]');
     const reasonField = document.getElementById('decision_reason');
@@ -298,6 +303,9 @@ document.addEventListener('DOMContentLoaded', function(){
       return;
     }
     respondForm.action = '/lira/' + item.id + '/respond';
+    // Ensure we return to the current filtered/paginated URL
+    const retInput = respondForm.querySelector('input[name="return_url"]');
+    if (retInput) retInput.value = window.location.href;
     const subjectField = document.getElementById('response_subject');
     const messageField = document.getElementById('response_message');
     const respondNotice = document.getElementById('respondNotice');

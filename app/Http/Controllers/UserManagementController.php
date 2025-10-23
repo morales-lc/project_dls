@@ -13,6 +13,7 @@ class UserManagementController extends Controller
 {
     public function add(Request $request)
     {
+        $returnUrl = $request->input('return_url');
         $role = $request->input('role');
         if ($role === 'student_faculty') {
             $request->validate([
@@ -57,7 +58,9 @@ class UserManagementController extends Controller
             $sf->birthdate = $request->birthdate;
             $sf->save();
 
-            return redirect()->route('user.management')->with('success', 'Student/Faculty added successfully!');
+            return $returnUrl
+                ? redirect($returnUrl)->with('success', 'Student/Faculty added successfully!')
+                : redirect()->route('user.management')->with('success', 'Student/Faculty added successfully!');
         } elseif (in_array($role, ['admin', 'librarian', 'guest'])) {
             $request->validate([
                 'name' => 'required|string|max:255',
@@ -88,7 +91,9 @@ class UserManagementController extends Controller
             }
             $user->save();
 
-            return redirect()->route('user.management', ['type' => $role])->with('success', ucfirst($role) . ' added successfully!');
+            return $returnUrl
+                ? redirect($returnUrl)->with('success', ucfirst($role) . ' added successfully!')
+                : redirect()->route('user.management', ['type' => $role])->with('success', ucfirst($role) . ' added successfully!');
         } else {
             return redirect()->route('user.management')->with('error', 'Invalid user type.');
         }
@@ -96,6 +101,7 @@ class UserManagementController extends Controller
 
     public function update(Request $request, $id)
     {
+        $returnUrl = $request->input('return_url');
         // Determine whether the id belongs to a student_faculty or a user (admin/librarian)
         $sf = StudentFaculty::find($id);
 
@@ -137,8 +143,10 @@ class UserManagementController extends Controller
                 $sf->user->save();
             }
 
-            // Redirect back to the previously relevant tab based on role (student or faculty)
-            return redirect()->route('user.management', ['type' => $sf->role])->with('success', 'Student/Faculty updated successfully!');
+            // Redirect back to previous page if provided
+            return $returnUrl
+                ? redirect($returnUrl)->with('success', 'Student/Faculty updated successfully!')
+                : redirect()->back()->with('success', 'Student/Faculty updated successfully!');
         }
 
     // Otherwise, try to update a User (admin, librarian, or guest)
@@ -176,10 +184,12 @@ class UserManagementController extends Controller
 
         $user->save();
 
-        return redirect()->route('user.management', ['type' => $user->role])->with('success', ucfirst($user->role) . ' updated successfully!');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', ucfirst($user->role) . ' updated successfully!')
+            : redirect()->back()->with('success', ucfirst($user->role) . ' updated successfully!');
     }
 
-    public function delete($id)
+    public function delete(Request $request, $id)
     {
         Log::info('UserManagementController@delete called for id: ' . $id);
         $sf = \App\Models\StudentFaculty::find($id);
@@ -190,7 +200,10 @@ class UserManagementController extends Controller
             }
             $sf->delete();
             Log::info('Deleted student_faculty record with id: ' . $id);
-            return redirect()->route('user.management')->with('success', 'User deleted successfully!');
+            $returnUrl = $request->input('return_url');
+            return $returnUrl
+                ? redirect($returnUrl)->with('success', 'User deleted successfully!')
+                : redirect()->back()->with('success', 'User deleted successfully!');
         }
 
         $user = \App\Models\User::findOrFail($id);
@@ -204,7 +217,10 @@ class UserManagementController extends Controller
             }
         }
         $user->delete();
-        return redirect()->route('user.management', ['type' => $user->role])->with('success', ucfirst($user->role) . ' deleted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', ucfirst($user->role) . ' deleted successfully!')
+            : redirect()->back()->with('success', ucfirst($user->role) . ' deleted successfully!');
     }
 
     public function index(Request $request)

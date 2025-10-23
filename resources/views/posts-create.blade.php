@@ -6,16 +6,21 @@
 @section('title','Add New Post')
 
 @section('content')
-    <div class="py-5">
-        <div class="container">
+    <div class="py-5 d-flex flex-column align-items-center justify-content-center">
+        <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <a href="{{ request('return', route('post.management')) }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Post Management</a>
+                <span></span>
+            </div>
             <h2 class="fw-bold mb-4 text-pink">Add New Post / Announcement</h2>
-            <div class="card mb-5 shadow rounded-4 border-0" style="max-width:1200px;margin:auto;">
+            <div class="card mb-2 shadow rounded-4 border-0">
                 <div class="card-header bg-white border-bottom-0 pb-0">
                     <h4 class="fw-bold mb-0">Create Post / Announcement</h4>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ route('dashboard.post.store') }}" enctype="multipart/form-data">
                         @csrf
+                        <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
                         <div class="row g-4">
                             <div class="col-md-3">
                                 <label class="form-label fw-semibold">Type</label>
@@ -63,7 +68,8 @@
                             </div>
                         </div>
                         <div class="row mt-4">
-                            <div class="col text-end">
+                            <div class="col d-flex justify-content-end gap-2">
+                                <a href="{{ request('return', route('post.management')) }}" class="btn btn-secondary px-4">Cancel</a>
                                 <button type="submit" class="btn btn-primary px-4">Post</button>
                             </div>
                         </div>

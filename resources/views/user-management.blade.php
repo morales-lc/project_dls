@@ -75,25 +75,25 @@
         <!-- Add Buttons (Fade-in/out) -->
         <div class="mb-4 text-start">
             <div id="addStudentFaculty" class="add-btn-wrapper {{ in_array($type, ['student_faculty','student','faculty']) ? 'show' : '' }}">
-                <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'student_faculty']) }}">
+                <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'student_faculty', 'return' => request()->fullUrl()]) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Student/Faculty
                 </a>
             </div>
 
             <div id="addAdmin" class="add-btn-wrapper {{ $type === 'admin' ? 'show' : '' }}">
-                <a class="btn btn-pink px-4" href="{{ $type === 'admin' ? route('staff.create', ['type' => 'admin']) : route('user.create', ['type' => 'admin']) }}">
+                <a class="btn btn-pink px-4" href="{{ $type === 'admin' ? route('staff.create', ['type' => 'admin', 'return' => request()->fullUrl()]) : route('user.create', ['type' => 'admin', 'return' => request()->fullUrl()]) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Admin
                 </a>
             </div>
 
             <div id="addLibrarian" class="add-btn-wrapper {{ $type === 'librarian' ? 'show' : '' }}">
-                <a class="btn btn-pink px-4" href="{{ $type === 'librarian' ? route('staff.create', ['type' => 'librarian']) : route('user.create', ['type' => 'librarian']) }}">
+                <a class="btn btn-pink px-4" href="{{ $type === 'librarian' ? route('staff.create', ['type' => 'librarian', 'return' => request()->fullUrl()]) : route('user.create', ['type' => 'librarian', 'return' => request()->fullUrl()]) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Librarian
                 </a>
             </div>
 
             <div id="addGuest" class="add-btn-wrapper {{ $type === 'guest' ? 'show' : '' }}">
-                <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'guest']) }}">
+                <a class="btn btn-pink px-4" href="{{ route('user.create', ['type' => 'guest', 'return' => request()->fullUrl()]) }}">
                     <i class="bi bi-person-plus me-1"></i> Add Guest
                 </a>
             </div>

@@ -28,7 +28,10 @@ class MidesController extends Controller
             'type' => $request->type,
             'name' => $request->name,
         ]);
-        return redirect()->route('mides.categories.panel')->with('success', 'Category added successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Category added successfully!')
+            : redirect()->route('mides.categories.panel')->with('success', 'Category added successfully!');
     }
 
     public function updateCategory(Request $request, $id)
@@ -37,14 +40,20 @@ class MidesController extends Controller
         $cat->type = $request->type;
         $cat->name = $request->name;
         $cat->save();
-        return redirect()->route('mides.categories.panel')->with('success', 'Category updated successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Category updated successfully!')
+            : redirect()->route('mides.categories.panel')->with('success', 'Category updated successfully!');
     }
 
-    public function deleteCategory($id)
+    public function deleteCategory(Request $request, $id)
     {
         $cat = \App\Models\MidesCategory::findOrFail($id);
         $cat->delete();
-        return redirect()->route('mides.categories.panel')->with('success', 'Category deleted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Category deleted successfully!')
+            : redirect()->route('mides.categories.panel')->with('success', 'Category deleted successfully!');
     }
     public function update(Request $request, $id)
     {
@@ -91,14 +100,20 @@ class MidesController extends Controller
             $doc->pdf_path = $pdfPath;
         }
         $doc->save();
-        return redirect()->route('mides.management')->with('success', 'Document updated successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Document updated successfully!')
+            : redirect()->route('mides.management')->with('success', 'Document updated successfully!');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $doc = MidesDocument::findOrFail($id);
         $doc->delete();
-        return redirect()->route('mides.management')->with('success', 'Document deleted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Document deleted successfully!')
+            : redirect()->back()->with('success', 'Document deleted successfully!');
     }
     public function index()
     {
@@ -208,7 +223,9 @@ class MidesController extends Controller
             'title' => $request->title,
             'pdf_path' => $pdfPath,
         ]);
-
-        return redirect()->route('mides.management')->with('success', 'Document uploaded successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Document uploaded successfully!')
+            : redirect()->route('mides.management')->with('success', 'Document uploaded successfully!');
     }
 }

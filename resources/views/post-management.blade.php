@@ -25,16 +25,24 @@
             <h4 class="fw-bold mb-0">Add New Post / Announcement</h4>
 
         </div>
-        <a href="{{ route('post.create') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.05rem;"><i class="bi bi-plus-lg"></i> Add New Post</a>
+    <a href="{{ route('post.create', ['return' => request()->fullUrl()]) }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.05rem;"><i class="bi bi-plus-lg"></i> Add New Post</a>
         <div style="height: 12px;"></div>
-        @php
-        $types = ['Announcement', 'Event', 'Update', 'Post'];
-        @endphp
+    @php
+    $types = ['Announcement', 'Event', 'Update', 'Post'];
+    $requestedTab = request('tab');
+    $pageKeys = array_map(function($t){ return strtolower($t) . '_page'; }, $types);
+    $anyPage = false;
+    foreach ($pageKeys as $pk) { if (request()->has($pk)) { $anyPage = true; break; } }
+    @endphp
         <!-- Tabs -->
         <ul class="nav nav-tabs mb-4" id="postTypeTabs" role="tablist">
             @foreach($types as $i => $type)
             <li class="nav-item" role="presentation">
-                <button class="nav-link @if($i === 0) active @endif" id="tab-{{ strtolower($type) }}" data-bs-toggle="tab" data-bs-target="#pane-{{ strtolower($type) }}" type="button" role="tab" aria-controls="pane-{{ strtolower($type) }}" aria-selected="{{ $i === 0 ? 'true' : 'false' }}">
+                @php
+                    $tabKey = strtolower($type);
+                    $isActive = ($requestedTab === $tabKey) || (!$requestedTab && $anyPage && request()->has($tabKey . '_page')) || (!$requestedTab && !$anyPage && $i === 0);
+                @endphp
+                <button class="nav-link {{ $isActive ? 'active' : '' }}" id="tab-{{ $tabKey }}" data-bs-toggle="tab" data-bs-target="#pane-{{ $tabKey }}" type="button" role="tab" aria-controls="pane-{{ $tabKey }}" aria-selected="{{ $isActive ? 'true' : 'false' }}">
                     {{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}
                 </button>
             </li>
@@ -46,9 +54,13 @@
                 @php
                 $posts = $paginatedPosts[$type];
                 @endphp
-                <div class="tab-pane fade @if($i === 0) show active @endif"
-                    id="pane-{{ strtolower($type) }}" role="tabpanel"
-                    aria-labelledby="tab-{{ strtolower($type) }}">
+                @php
+                    $tabKey = strtolower($type);
+                    $isActive = ($requestedTab === $tabKey) || (!$requestedTab && $anyPage && request()->has($tabKey . '_page')) || (!$requestedTab && !$anyPage && $i === 0);
+                @endphp
+                <div class="tab-pane fade {{ $isActive ? 'show active' : '' }}"
+                    id="pane-{{ $tabKey }}" role="tabpanel"
+                    aria-labelledby="tab-{{ $tabKey }}">
                     <div class="card shadow rounded-4 border-0 mb-5">
                         <div class="card-header bg-white border-bottom-0">
                             <h5 class="mb-0">{{ $type == 'Post' ? 'Latest Posts' : $type . 's' }}</h5>
@@ -104,10 +116,11 @@
                                                 <p class="text-muted mb-0">{{ $post->description }}</p>
                                             </div>
                                             <div class="d-flex gap-2 justify-content-end align-items-end mt-2">
-                                                <a href="{{ route('post.edit', $post->id) }}" class="btn btn-sm btn-warning">Edit</a>
+                                                <a href="{{ route('post.edit', [$post->id, 'return' => request()->fullUrl() . (request()->getQueryString() ? '&' : '?') . 'tab=' . strtolower($post->type)]) }}" class="btn btn-sm btn-warning">Edit</a>
                                                 <form method="POST" action="{{ route('post.delete', $post->id) }}">
                                                     @csrf
                                                     @method('DELETE')
+                                                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() . (request()->getQueryString() ? '&' : '?') . 'tab=' . strtolower($post->type) }}">
                                                     <button type="submit" class="btn btn-sm btn-danger"
                                                         onclick="return confirm('Delete this post?')">Delete</button>
                                                 </form>

@@ -59,6 +59,9 @@ class AlinetAppointmentManageController extends Controller
             Mail::to($appointment->email)->send(new AlinetAppointmentRejected($appointment, $request->input('reason')));
         }
 
-        return redirect()->route('alinet.manage')->with('success', 'Appointment status updated and email sent.');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Appointment status updated and email sent.')
+            : redirect()->back()->with('success', 'Appointment status updated and email sent.');
     }
 }

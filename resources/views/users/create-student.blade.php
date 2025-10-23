@@ -11,7 +11,7 @@
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 850px; background: #fff;">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="{{ route('user.management') }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Management</a>
+            <a href="{{ request('return', route('user.management', ['type' => 'student'])) }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Management</a>
             <span></span>
         </div>
 
@@ -33,6 +33,7 @@
         <form method="POST" action="{{ route('user.add') }}" class="row g-4">
             @csrf
             <input type="hidden" name="role" value="student_faculty">
+            <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
 
             {{-- Basic Information --}}
             <div class="col-12">

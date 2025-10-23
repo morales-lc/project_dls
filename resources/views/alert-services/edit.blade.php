@@ -11,8 +11,8 @@
     <div class="py-5 d-flex flex-column align-items-center justify-content-center">
         <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 800px; background: #fff;">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <a href="{{ route('alert-services.manage') }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Manage</a>
-                <a href="{{ route('alert-services.create') }}" class="btn btn-outline-primary px-4 py-2">+ Add New Book</a>
+                <a href="{{ request('return', route('alert-services.manage')) }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Manage</a>
+                <a href="{{ route('alert-services.create', ['return' => request('return', route('alert-services.manage'))]) }}" class="btn btn-outline-primary px-4 py-2">+ Add New Book</a>
             </div>
 
             <h2 class="fw-bold mb-4 text-center" style="letter-spacing: 1px; color: #1976d2; font-size: 2rem;">Edit Alert Book</h2>
@@ -24,6 +24,7 @@
             <form method="POST" action="{{ route('alert-services.update', $book->id) }}" enctype="multipart/form-data" class="row g-4">
                 @csrf
                 @method('PUT')
+                <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
 
                 <div class="col-12 d-flex flex-column align-items-center mb-2">
                     @if($book->cover_image)
@@ -94,7 +95,7 @@
                         style="font-size:1.1rem; font-weight:600; background:#1976d2; color:#fff; border:none; border-radius:2em;">
                         Update Book
                     </button>
-                    <a href="{{ route('alert-services.manage') }}" class="btn btn-lg px-4 py-2"
+                    <a href="{{ request('return', route('alert-services.manage')) }}" class="btn btn-lg px-4 py-2"
                         style="background:#bdbdbd; color:#222; border:none; border-radius:2em; font-weight:600;">
                         Cancel
                     </a>

@@ -155,6 +155,7 @@
                                 <form method="POST" action="{{ route('alinet.status', $a->id) }}" class="d-inline">
                                     @csrf
                                     <input type="hidden" name="status" value="accepted">
+                                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                     <button class="btn btn-success btn-sm mb-1 no-row-modal" data-no-row-click="true" type="submit">Accept</button>
                                 </form>
                                 <button class="btn btn-danger btn-sm mb-1 no-row-modal" data-no-row-click="true" type="button" data-bs-toggle="modal" data-bs-target="#rejectModal" data-action="{{ route('alinet.status', $a->id) }}" data-name="{{ $a->firstname }} {{ $a->lastname }}">Reject</button>
@@ -195,6 +196,7 @@
             <form method="POST" id="rejectModalForm">
                 @csrf
                 <input type="hidden" name="status" value="rejected">
+                <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                 <div class="modal-body">
                     <div class="mb-2 text-muted" id="rejectModalName"></div>
                     <label class="form-label">Reason (optional)</label>

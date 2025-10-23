@@ -8,11 +8,15 @@
 @section('title', 'Edit Post / Announcement')
 
 @section('content')
-<div class="py-5">
-    <div class="container">
+<div class="py-5 d-flex flex-column align-items-center justify-content-center">
+    <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background:#fff;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{{ request('return', route('post.management')) }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to Post Management</a>
+            <span></span>
+        </div>
         <h2 class="fw-bold mb-4 text-pink">Edit Post / Announcement</h2>
 
-        <div class="card shadow rounded-4 border-0" style="max-width:1200px; margin:auto;">
+        <div class="card shadow rounded-4 border-0">
             <div class="card-header bg-white border-bottom-0 pb-0">
                 <h4 class="fw-bold mb-0">Update Post Details</h4>
             </div>
@@ -55,6 +59,7 @@
                 <form method="POST" action="/post-management/{{ $post->id }}" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+                    <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
 
                     <div class="row g-4">
                         <div class="col-md-3">
@@ -114,7 +119,7 @@
 
                     <div class="row mt-4">
                         <div class="col d-flex justify-content-end gap-2">
-                            <a href="{{ route('post.management') }}" class="btn btn-secondary px-4">Cancel</a>
+                            <a href="{{ request('return', route('post.management')) }}" class="btn btn-secondary px-4">Cancel</a>
                             <button type="submit" class="btn btn-primary px-4">Save Changes</button>
                         </div>
                     </div>

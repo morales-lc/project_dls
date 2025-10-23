@@ -156,14 +156,20 @@ class SidlakJournalController extends Controller
             }
         }
 
-        return redirect()->route('sidlak.manage')->with('success', 'Journal updated successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Journal updated successfully!')
+            : redirect()->back()->with('success', 'Journal updated successfully!');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $journal = SidlakJournal::findOrFail($id);
         $journal->delete();
-        return redirect()->route('sidlak.manage')->with('success', 'Journal deleted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Journal deleted successfully!')
+            : redirect()->back()->with('success', 'Journal deleted successfully!');
     }
     public function index()
     {
@@ -284,7 +290,10 @@ class SidlakJournalController extends Controller
                 }
             }
 
-            return redirect()->route('sidlak.manage')->with('success', 'Journal, editors, peer reviewers, and articles added successfully!');
+            $returnUrl = $request->input('return_url');
+            return $returnUrl
+                ? redirect($returnUrl)->with('success', 'Journal, editors, peer reviewers, and articles added successfully!')
+                : redirect()->route('sidlak.manage')->with('success', 'Journal, editors, peer reviewers, and articles added successfully!');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Laravel handles redirect with errors automatically
             throw $e;

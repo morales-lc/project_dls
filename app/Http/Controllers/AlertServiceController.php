@@ -84,14 +84,20 @@ class AlertServiceController extends Controller
         $book->month = $request->input('month');
         $book->year = $request->input('year');
         $book->save();
-        return redirect()->route('alert-services.manage')->with('success', 'Book updated successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Book updated successfully!')
+            : redirect()->route('alert-services.manage')->with('success', 'Book updated successfully!');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         $book = AlertBook::findOrFail($id);
         $book->delete();
-        return redirect()->route('alert-services.manage')->with('success', 'Book deleted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Book deleted successfully!')
+            : redirect()->back()->with('success', 'Book deleted successfully!');
     }
     public function index(Request $request)
     {
@@ -135,6 +141,9 @@ class AlertServiceController extends Controller
             'month' => $request->input('month'),
             'year' => $request->input('year'),
         ]);
-        return redirect()->route('alert-services.manage')->with('success', 'Book posted successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Book posted successfully!')
+            : redirect()->route('alert-services.manage')->with('success', 'Book posted successfully!');
     }
 }

@@ -17,7 +17,7 @@
         @endif
         <div class="d-flex">
 
-            <a href="{{ route('sidlak.create') }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.1rem;"><i class="bi bi-plus-lg"></i> Add Journal</a>
+            <a href="{{ route('sidlak.create', ['return' => request()->fullUrl()]) }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.1rem;"><i class="bi bi-plus-lg"></i> Add Journal</a>
 
         </div>
         <div style="height: 30px;"></div>
@@ -81,10 +81,11 @@
                             <td>{{ $journal->year }}</td>
                             <td>{{ $journal->print_issn }}</td>
                             <td class="text-center">
-                                <a href="{{ route('sidlak.edit', $journal->id) }}" class="btn btn-sm btn-warning me-1"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <a href="{{ route('sidlak.edit', [$journal->id, 'return' => request()->fullUrl()]) }}" class="btn btn-sm btn-warning me-1"><i class="bi bi-pencil-square"></i> Edit</a>
                                 <form method="POST" action="{{ route('sidlak.destroy', $journal->id) }}" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this journal? This action cannot be undone.');">
                                     @csrf
                                     @method('DELETE')
+                                    <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                     <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i> Delete</button>
                                 </form>
                             </td>

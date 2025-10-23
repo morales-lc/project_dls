@@ -16,7 +16,7 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="fw-bold mb-0 text-pink">Category Control Panel</h2>
                 <div>
-                    <a href="{{ route('mides.management') }}" class="btn btn-secondary">
+                    <a href="{{ request('return', route('mides.management')) }}" class="btn btn-secondary">
                         <i class="bi bi-back-lg"></i> Go Back
                     </a>
                     <a href="#" class="btn btn-pink" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
@@ -35,6 +35,7 @@
                     <div class="modal-content">
                         <form method="POST" action="{{ route('mides.categories.add') }}">
                             @csrf
+                            <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -86,6 +87,7 @@
                                     <form method="POST" action="{{ route('mides.categories.update', $cat->id) }}">
                                         @csrf
                                         @method('PUT')
+                                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                         <td>
                                             <input type="text" name="name" class="form-control form-control-sm" value="{{ $cat->name }}">
                                         </td>
@@ -95,6 +97,7 @@
                                     <form method="POST" action="{{ route('mides.categories.delete', $cat->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this category?');">
                                         @csrf
                                         @method('DELETE')
+                                        <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
                                         <button type="submit" class="btn btn-sm btn-danger">Delete</button>
                                     </form>
                                         </td>
@@ -108,7 +111,7 @@
             </div>
 
             <div class="mt-4 text-center">
-                <a href="{{ route('mides.management') }}" class="btn btn-outline-secondary">&larr; Back to Repository Management</a>
+                <a href="{{ request('return', route('mides.management')) }}" class="btn btn-outline-secondary">&larr; Back to Repository Management</a>
             </div>
         </div>
     </div>

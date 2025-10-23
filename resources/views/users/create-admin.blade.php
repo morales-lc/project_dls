@@ -45,11 +45,16 @@
 
 @section('content')
 <div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ request('return', route('user.management', ['type' => 'admin'])) }}" class="btn btn-outline-secondary px-4 py-2">&larr; Back to User Management</a>
+        <span></span>
+    </div>
     <h2 class="fw-bold mb-4">Add Admin</h2>
     <div class="card p-4 shadow rounded-4" style="max-width: 700px; margin:auto;">
     <form method="POST" action="{{ route('staff.add') }}">
             @csrf
             <input type="hidden" name="role" value="admin">
+            <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
 
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -89,7 +94,7 @@
             </div>
 
             <div class="mt-4 d-flex justify-content-between">
-                <a href="{{ route('user.management') }}" class="btn btn-outline-secondary">Cancel</a>
+                <a href="{{ request('return', route('user.management', ['type' => 'admin'])) }}" class="btn btn-outline-secondary">Cancel</a>
                 <button type="submit" class="btn btn-warning">Add Admin</button>
             </div>
         </form>

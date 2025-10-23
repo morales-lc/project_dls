@@ -20,6 +20,7 @@ class StudentFacultyController extends Controller
     {
         $sf = StudentFaculty::findOrFail($id);
         $user = $sf->user;
+        $returnUrl = $request->input('return_url');
 
         $request->validate([
             'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
@@ -55,8 +56,10 @@ class StudentFacultyController extends Controller
             $user->save();
         }
 
-        // Redirect back to the appropriate tab based on the (possibly updated) role
+        // Redirect back to the previous page if provided, else to appropriate tab
         $redirectType = $request->input('role_type', $sf->role);
-        return redirect()->route('user.management', ['type' => $redirectType])->with('success', 'Student/Faculty updated successfully!');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Student/Faculty updated successfully!')
+            : redirect()->route('user.management', ['type' => $redirectType])->with('success', 'Student/Faculty updated successfully!');
     }
 }
