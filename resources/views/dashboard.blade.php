@@ -31,6 +31,40 @@
             }
         }
 
+        /* Catalog search - make it larger and obvious */
+        .catalog-search .input-group-text,
+        .catalog-search .form-control,
+        .catalog-search .btn {
+            height: 54px;
+            font-size: 1.05rem;
+        }
+
+        .catalog-search .form-control {
+            padding: .85rem 1rem;
+        }
+
+        .catalog-search .catalog-chip {
+            background: #d81b60;
+            color: #fff;
+            font-weight: 700;
+            border: none;
+        }
+
+        .catalog-search .input-group-text {
+            background: #fff;
+            border-color: #ffd1e3;
+            color: #d81b60;
+        }
+
+        .catalog-search .form-control {
+            border-color: #ffd1e3;
+        }
+
+        .catalog-search .form-control:focus {
+            border-color: #d81b60;
+            box-shadow: 0 0 0 .2rem rgba(216, 27, 96, 0.15);
+        }
+
         .card-clickable {
             cursor: pointer;
             transition: box-shadow .2s, transform .2s;
@@ -121,7 +155,7 @@
             height: auto;
             max-height: 1200px;
             /* Bigger modal image */
-            object-fit:scale-down;
+            object-fit: scale-down;
             /* Keeps full image visible */
             border-top-left-radius: 1.5rem;
             border-top-right-radius: 1.5rem;
@@ -487,6 +521,7 @@
             color: #fff;
             box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3);
         }
+
     </style>
 </head>
 
@@ -501,15 +536,24 @@
     <div class="container mt-5 mb-5">
 
         <h2 class="fw-bold mb-4">Welcome to LC MIDES Digital Library!</h2>
+        <div style="height: 10px;"></div>
         <div class="mb-5">
-            <form class="search-bar d-flex flex-nowrap align-items-center gap-2 flex-wrap"
+            <!-- Clear label so users know this searches the catalog -->
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-pink text-white" style="font-size:0.95rem; padding:.45rem .7rem; border-radius:.65rem;"><i class="bi bi-collection me-1"></i> Catalog Search</span>
+                <span class="text-muted">Search the LC MIDES library catalog</span>
+            </div>
+
+
+            <form class="search-bar catalog-search d-flex flex-nowrap align-items-center gap-2 flex-wrap"
                 method="GET"
                 action="{{ route('catalogs.search') }}"
                 style="max-width: 1600px;">
                 <div class="input-group flex-grow-1" style="min-width: 250px;">
+
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" class="form-control" value="{{ request('q') }}"
-                        placeholder="Search by keyword, title, author, ISBN, ISSN, or LCCN...">
+                        placeholder="Search the Library Catalog by keyword, title, author, ISBN, ISSN, or LCCN..." aria-label="Search the library catalog">
                 </div>
                 <button type="submit"
                     class="btn btn-pink"
@@ -524,7 +568,7 @@
         "
                     onmouseover="this.style.backgroundColor='#d63384';"
                     onmouseout="this.style.backgroundColor='#e83e8c';">
-                    Search
+                    Search Catalog
                 </button>
             </form>
 
@@ -608,11 +652,11 @@
                     <h3 class="fw-bold mb-3 text-pink">Library Announcements</h3>
                     <ul class="list-group list-group-flush">
                         @if(isset($libraryAnnouncements) && $libraryAnnouncements->count())
-                            @foreach($libraryAnnouncements as $ann)
-                                <li class="list-group-item bg-transparent">{{ $ann->text }}</li>
-                            @endforeach
+                        @foreach($libraryAnnouncements as $ann)
+                        <li class="list-group-item bg-transparent">{{ $ann->text }}</li>
+                        @endforeach
                         @else
-                            <li class="list-group-item bg-transparent text-muted">No announcements at the moment.</li>
+                        <li class="list-group-item bg-transparent text-muted">No announcements at the moment.</li>
                         @endif
                     </ul>
                 </section>
@@ -621,9 +665,9 @@
                 <div class="section-white rounded-4 shadow-sm p-4 w-100 d-flex flex-column align-items-center justify-content-center">
                     <h3 class="fw-bold mb-3">Library Hours</h3>
                     @if(isset($librarySettings) && $librarySettings->library_hours_gif)
-                        <img src="{{ asset('storage/' . $librarySettings->library_hours_gif) }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    <img src="{{ asset('storage/' . $librarySettings->library_hours_gif) }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
                     @else
-                        <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
                     @endif
                 </div>
             </div>

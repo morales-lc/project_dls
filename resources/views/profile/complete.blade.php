@@ -150,9 +150,7 @@
           <div class="col-12 col-md-6">
             <label for="school_id" class="form-label">Student/Faculty ID</label>
             <input type="text" name="school_id" id="school_id" class="form-control"
-              value="{{ old('school_id', Auth::user()->studentFaculty->school_id ?? '') }}"
-              required placeholder="C##-####">
-            <div class="form-text">Format: C00-0000</div>
+              required placeholder="Enter your School ID here">
           </div>
 
           <div class="col-12 col-md-6">
@@ -290,6 +288,9 @@
       const progFaculty = document.getElementById('program_faculty');
       const courseSelect = document.getElementById('course');
       const programHidden = document.getElementById('program_id_hidden');
+  // Map of program id -> name for dynamic year-level rules
+  var programNamesById = {};
+  window.programNamesById = programNamesById;
 
       const initialRole = roleSelect.value || '';
       const initialProgramId = "{{ old('program_id', Auth::user()->studentFaculty->program_id ?? '') }}";
@@ -309,10 +310,13 @@
               opt.textContent = p.name;
               if (String(p.id) === String(selectedId)) opt.selected = true;
               selectEl.appendChild(opt);
+              programNamesById[String(p.id)] = p.name;
             });
             // Update hidden after population
             if (selectEl === progStudent && roleSelect.value === 'student') {
               programHidden.value = selectEl.value || '';
+              // Ensure year options reflect current student program
+              updateYearOptions(selectEl.value, initialYr);
             } else if (selectEl === progFaculty && roleSelect.value === 'faculty') {
               programHidden.value = selectEl.value || '';
             }
@@ -347,6 +351,8 @@
       // If initial role is student, load courses
       if (initialRole === 'student' && initialProgramId) {
         loadCourses(initialProgramId, initialCourse);
+        // Set initial year options for the selected program
+        updateYearOptions(initialProgramId, initialYr);
       }
 
       // Year level pre-select (just set the value; options already exist)
@@ -363,6 +369,7 @@
         if (roleSelect.value === 'student') {
           programHidden.value = this.value || '';
           loadCourses(this.value);
+          updateYearOptions(this.value);
         }
       });
       if (progFaculty) progFaculty.addEventListener('change', function() {
@@ -374,6 +381,39 @@
       // Initialize visibility and hidden field
       toggleRoleFields();
     });
+    // Update Year Level options based on selected program
+    function updateYearOptions(programId, selectedValue = '') {
+      const yrSel = document.getElementById('yrlvl');
+      if (!yrSel) return;
+      const programName = (programId && typeof programId !== 'undefined') ? (window.programNamesById ? window.programNamesById[String(programId)] : null) : null;
+      // Access the local map if in closure
+      let name = programName;
+      if (!name && typeof programNamesById !== 'undefined') {
+        name = programNamesById[String(programId)] || '';
+      }
+
+      // Build options
+      const buildOpt = (val, label) => `<option value="${val}">${label}</option>`;
+      let html = '<option value="">-- Select Year Level --</option>';
+      if (name === 'Senior High School') {
+        html += buildOpt('Junior High', 'Junior High');
+        html += buildOpt('Senior High', 'Senior High');
+      } else {
+        html += buildOpt('1', '1st Year');
+        html += buildOpt('2', '2nd Year');
+        html += buildOpt('3', '3rd Year');
+        html += buildOpt('4', '4th Year');
+        html += buildOpt('Other', 'Other');
+      }
+      yrSel.innerHTML = html;
+      if (selectedValue) {
+        yrSel.value = selectedValue;
+        // If the selectedValue doesn't exist in new options, reset to empty
+        if (yrSel.value !== selectedValue) {
+          yrSel.value = '';
+        }
+      }
+    }
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

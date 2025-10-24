@@ -29,10 +29,10 @@
             <div class="col-md-4 mb-3 mb-md-0">
                 <div class="footer-header mb-3 text-md-start text-start" style="font-size:1.5rem; font-weight:700; letter-spacing:0.5px; text-shadow:0 2px 8px rgba(232,62,140,0.08);">Lourdes College</div>
                 <div class="d-flex flex-column justify-content-start align-items-md-start align-items-center">
-                    <div class="footer-brand mb-2" style="font-size:1.35rem; font-weight:700; letter-spacing:0.5px; display:flex; align-items:center; gap:0.5rem;">
-                        <i class="bi bi-journal-bookmark-fill" style="color:#fff; font-size:1.7rem;"></i>
+                    <a class="footer-brand mb-2 nav-logo-animate" href="{{ (Auth::check() && Auth::user()->role === 'guest') ? route('guest.dashboard') : route('dashboard') }}" style="font-size:1.35rem; font-weight:700; letter-spacing:0.5px; display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none; color:inherit;">
+                        <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38" class="rounded" style="background:#fff; padding:2px;">
                         <span>LC MIDES Digital Library</span>
-                    </div>
+                    </a>
                     <div class="footer-motto" style="font-size:1.08rem; color:#ffe3f1; font-weight:400; letter-spacing:0.2px;">Empowering Research &amp; Learning</div>
                 </div>
             </div>
@@ -104,6 +104,31 @@
             box-shadow: 0 2px 8px rgba(232,62,140,0.12);
             transform: scale(1.13) rotate(-6deg);
             text-decoration: none;
+        }
+        /* Footer brand hover animation (match navbar behavior) */
+        .footer-brand {
+            transition: transform 0.35s cubic-bezier(.68, -0.55, .27, 1.55), text-shadow 0.35s ease;
+            display: inline-flex; align-items: center; gap: .5rem;
+        }
+
+        .footer-brand:hover {
+            transform: scale(1.08) translateY(-3px);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+        }
+
+        .footer-brand img { transition: box-shadow 0.35s ease; }
+        .footer-brand:hover img { box-shadow: 0 0 15px rgba(255, 255, 255, 0.5); }
+
+        /* Footer item hover animation */
+        .footer-link, .footer-services-list li a {
+            transition: transform 0.18s ease, box-shadow 0.18s ease, color 0.18s ease;
+            display: inline-block;
+        }
+
+        .footer-link:hover, .footer-services-list li a:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            color: #ffd1e3;
         }
         .footer-link {
             color: #fff;

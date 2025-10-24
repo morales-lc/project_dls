@@ -266,3 +266,41 @@ body {
     .card-header span { font-size:1rem; }
     .btn { font-size:13px; padding:6px 10px; }
 }
+
+/* ======================================
+   🎨 Distinguishable Card Accent Styling
+   ====================================== */
+.mides-card--grad .mides-card-hover {
+    border-color: rgba(13,110,253,0.45); /* blue tone */
+    background-color: #f5f8ff; /* light blue tint */
+}
+
+.mides-card--undergrad .mides-card-hover {
+    border-color: rgba(220,53,69,0.45); /* red/pink tone */
+    background-color: #fff5f7; /* soft pink tint */
+}
+
+.mides-card--faculty .mides-card-hover {
+    border-color: rgba(13,202,240,0.45); /* sky blue tone */
+    background-color: #f0fbfd; /* faint cyan tint */
+}
+
+.mides-card--shs .mides-card-hover {
+    border-color: rgba(25,135,84,0.45); /* green tone */
+    background-color: #f3fdf6; /* mint tint */
+}
+
+/* Hover enhancement per category */
+.mides-card--grad .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(33, 121, 252, 0.5);
+}
+.mides-card--undergrad .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(220,53,69,0.25);
+}
+.mides-card--faculty .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(13,202,240,0.25);
+}
+.mides-card--shs .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(25,135,84,0.25);
+}
+

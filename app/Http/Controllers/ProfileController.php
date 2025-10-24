@@ -28,7 +28,7 @@ class ProfileController extends Controller
         // Password is required on the complete profile page, but optional when editing
         'password' => [$isEdit ? 'nullable' : 'required', 'string', 'min:6', 'confirmed'],
         'course' => ['nullable', 'string', 'max:255'],
-        'yrlvl' => ['nullable', 'string', 'max:10'],
+        'yrlvl' => ['nullable', 'string'],
         'program_id' => ['nullable', 'exists:programs,id'],
         'birthdate' => ['required', 'date'],
         'role' => ['required', 'in:student,faculty'],

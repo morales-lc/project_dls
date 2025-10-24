@@ -28,11 +28,18 @@ class LiRAController extends Controller
         $middle = $sf->middle_name ?? '';
         $last = $sf->last_name ?? '';
         $email = $user->email ?? '';
-        $department = $sf->department ?? '';
-        $course = $sf->course ?? '';
-        $yrlvl = $sf->yrlvl ?? '';
-        $programStrandGradeLevel = trim($course . ($yrlvl ? '-' . $yrlvl : '')) ?: 'BSSW-4';
-        $designationRaw = $sf->role ?? 'Faculty';
+    // Department removed from Student/Faculty profile; use Program + Course + Year Level
+    $department = '';
+    $programName = $sf?->program?->name ?? '';
+    $course = $sf->course ?? '';
+    $yrlvl = $sf->yrlvl ?? '';
+    // Build: Program + Course (if any) + Year Level (if any), separated by " - "
+    $psglParts = [];
+    if (!empty($programName)) $psglParts[] = $programName;
+    if (!empty($course)) $psglParts[] = $course;
+    if (!empty($yrlvl)) $psglParts[] = $yrlvl;
+    $programStrandGradeLevel = implode(' - ', $psglParts);
+        $designationRaw = $sf->role ?? '';
         $designation = ucfirst(strtolower($designationRaw));
 
         // Get catalog info from query parameters
@@ -153,7 +160,8 @@ class LiRAController extends Controller
         // Send notification to librarian/staff
         $librarian = env('ALINET_LIBRARIAN_EMAIL', null);
         if ($librarian) {
-            Mail::to($librarian)->send(new LiraSubmitted($lira));
+            // Queue the email to avoid blocking the request
+            Mail::to($librarian)->queue(new LiraSubmitted($lira));
         }
 
         return redirect()->route('lira.form')->with('status', 'Your request was submitted. Thank you!');
@@ -390,7 +398,8 @@ class LiRAController extends Controller
         $lira->save();
 
         // notify requester
-        Mail::to($lira->email)->send(new LiraDecision($lira, $lira->status, $lira->decision_reason));
+    // Queue the decision email
+    Mail::to($lira->email)->queue(new LiraDecision($lira, $lira->status, $lira->decision_reason));
 
         // Redirect back to the filtered/paginated page if provided
         $returnUrl = $request->input('return_url');
@@ -421,7 +430,8 @@ class LiRAController extends Controller
 
         // Send email to requester
         try {
-            Mail::to($lira->email)->send(new \App\Mail\LiraResponse($lira, $validated['response_subject'], $validated['response_message']));
+            // Queue the post-acceptance response email
+            Mail::to($lira->email)->queue(new \App\Mail\LiraResponse($lira, $validated['response_subject'], $validated['response_message']));
         } catch (\Throwable $e) {
             return redirect()->back()->with('status', 'Failed to send email: '.$e->getMessage());
         }

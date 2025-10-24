@@ -1,17 +1,19 @@
-
 <title>LiRA Request Form</title>
 @include('navbar')
 
 <style>
     /* Wrapper card to match ALINET theme */
     .lira-form-card {
-        background: #fff0f6; /* light pink */
+        background: #fff0f6;
+        /* light pink */
         border-radius: 1.5rem;
         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
-        border: 4px solid #4a90e2; /* blue border */
+        border: 4px solid #4a90e2;
+        /* blue border */
         padding: 2.5rem 2rem 1.5rem 2rem;
         max-width: 900px;
-        margin: 48px auto; /* spacing from top */
+        margin: 48px auto;
+        /* spacing from top */
     }
 
     .lira-banner {
@@ -27,12 +29,45 @@
         color: #222;
     }
 
+    /* Improved visibility for Next button */
+    .enhanced-next {
+        background: linear-gradient(90deg, #e83e8c, #f06292);
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.1rem;
+        padding: 0.9rem 2.5rem;
+        border-radius: 0.65rem;
+        box-shadow: 0 4px 12px rgba(232, 62, 140, 0.3);
+        transition: all 0.25s ease;
+    }
+
+    .enhanced-next:hover {
+        background: linear-gradient(90deg, #d81b60, #ec407a);
+        box-shadow: 0 6px 16px rgba(216, 27, 96, 0.4);
+        transform: translateY(-2px);
+    }
+
+    /* Restore dropdown arrow for pink-themed selects */
+    .lira-form-card .form-select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 16 10'><path fill='%23d81b60' d='M1.5 1.5l6.5 6 6.5-6L16 3l-8 7-8-7z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 12px 8px;
+        padding-right: 2rem;
+    }
+
     /* Inputs/selects themed like ALINET */
     .lira-form-card .form-control,
     .lira-form-card .form-select {
-        background: #ffe3ef; /* soft pink */
-        border: 1.5px solid #fcb6d0; /* light pink border */
-        color: #d81b60; /* pink text */
+        background: #ffe3ef;
+        /* soft pink */
+        border: 1.5px solid #fcb6d0;
+        /* light pink border */
+        color: #d81b60;
+        /* pink text */
         font-size: 1rem;
         border-radius: 0.5rem;
         padding: .65rem .75rem;
@@ -55,7 +90,11 @@
         font-size: 1rem;
         transition: background 0.2s;
     }
-    .lira-btn-pink:hover { background: #d81b60; color: #fff; }
+
+    .lira-btn-pink:hover {
+        background: #d81b60;
+        color: #fff;
+    }
 
     .lira-btn-outline {
         background: #fff;
@@ -67,7 +106,33 @@
         font-size: 1rem;
         transition: background 0.2s, color 0.2s;
     }
-    .lira-btn-outline:hover { background: #fcb6d0; color: #fff; }
+
+    .lira-btn-outline:hover {
+        background: #fcb6d0;
+        color: #fff;
+    }
+
+    /* Make 'Next' button highly visible and fix cascade override
+       (lira-btn-pink was overriding .enhanced-next because it appears later) */
+    .lira-btn-pink.enhanced-next {
+        background: linear-gradient(90deg, #e83e8c, #f06292) !important;
+        color: #fff !important;
+        font-weight: 700;
+        box-shadow: 0 6px 16px rgba(232, 62, 140, 0.35) !important;
+        border: 0;
+    }
+
+    .lira-btn-pink.enhanced-next:hover,
+    .lira-btn-pink.enhanced-next:focus {
+        background: linear-gradient(90deg, #d81b60, #ec407a) !important;
+        box-shadow: 0 8px 20px rgba(216, 27, 96, 0.45) !important;
+        transform: translateY(-2px);
+    }
+
+    .lira-btn-pink.enhanced-next:focus-visible {
+        outline: 3px solid #ffd1e1;
+        outline-offset: 2px;
+    }
 
     /* Sections inside LiRA form */
     .lira-form-card .form-section {
@@ -77,6 +142,7 @@
         margin-bottom: 1.5rem;
         border: 1px solid #fcb6d0;
     }
+
     .lira-form-card .form-section h5 {
         font-size: 1.1rem;
         font-weight: 700;
@@ -85,18 +151,60 @@
     }
 
     /* Checkbox spacing */
-    .lira-form-card .form-check { margin-bottom: .5rem; }
+    .lira-form-card .form-check {
+        margin-bottom: .5rem;
+    }
 
     /* Step visuals */
-    .lira-step { animation: fadeIn .3s ease; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .lira-step {
+        animation: fadeIn .3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
     /* Required note */
-    .note-required { font-size: .9rem; color: #666; margin-bottom: 1rem; font-style: italic; }
-    .required { color: #e53935; font-weight: bold; margin-left: 3px; }
+    .note-required {
+        font-size: .9rem;
+        color: #666;
+        margin-bottom: 1rem;
+        font-style: italic;
+    }
+
+    .required {
+        color: #e53935;
+        font-weight: bold;
+        margin-left: 3px;
+    }
 
     /* Optional divider like ALINET */
-    .lira-form-divider { border-top: 1.5px solid #fcb6d0; margin: 1.5rem 0; }
+    .lira-form-divider {
+        border-top: 1.5px solid #fcb6d0;
+        margin: 1.5rem 0;
+    }
+
+    /* Full-page loading overlay shown during form submit */
+    .lira-loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(255, 240, 246, 0.92);
+        -webkit-backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    .lira-loading-overlay.show { display: flex; }
 </style>
 
 <div style="height: 50px;"></div>
@@ -115,164 +223,170 @@
                 <form method="POST" action="{{ route('lira.submit') }}" id="liraForm" novalidate>
                     @csrf
 
-                        <input type="hidden" name="action" value="{{ $prefill['action'] ?? 'borrow' }}">
+                    <input type="hidden" name="action" value="{{ $prefill['action'] ?? 'borrow' }}">
 
-                        <div id="liraFormBody">
-                            <div class="alert alert-danger d-none" id="liraStepError" role="alert"></div>
+                    <div id="liraFormBody">
+                        <div class="alert alert-danger d-none" id="liraStepError" role="alert"></div>
 
-                            <!-- Step 1 -->
-                            <div class="lira-step" data-step="1">
-                                <div class="text-center mb-3">
-                                    <img src="{{ asset('images/lira.png') }}" alt="LiRA" style="width: 100%; max-width: 800px; height: auto;">
-                                </div>
-                                <p class="mb-3">
-                                    <strong>Data Protection Clause:</strong> By completing this form, you are granting LC Learning Commons the consent to collect and process the information provided for the purpose of this Library Research Assistance.
-                                </p>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" value="1" id="consent" name="consent">
-                                    <label class="form-check-label" for="consent">Yes</label>
-                                </div>
+                        <!-- Step 1 -->
+                        <div class="lira-step" data-step="1">
+                            <div class="text-center mb-3">
+                                <img src="{{ asset('images/lira.png') }}" alt="LiRA" style="width: 100%; max-width: 800px; height: auto;">
+                            </div>
+                            <p class="mb-3">
+                                <strong>Data Protection Clause:</strong> By completing this form, you are granting LC Learning Commons the consent to collect and process the information provided for the purpose of this Library Research Assistance.
+                            </p>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="consent" name="consent">
+                                <label class="form-check-label" for="consent">Yes</label>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="lira-step d-none" data-step="2">
+                            <div class="text-center mb-3">
+                                <img src="{{ asset('images/lira.png') }}" alt="LiRA" class="lira-banner mb-3">
                             </div>
 
-                            <!-- Step 2 -->
-                            <div class="lira-step d-none" data-step="2">
-                                <div class="text-center mb-3">
-                                    <img src="{{ asset('images/lira.png') }}" alt="LiRA" class="lira-banner mb-3">
-                                </div>
+                            <div class="note-required">
+                                All fields marked with <span class="required">*</span> are required.
+                            </div>
 
-                                <div class="note-required">
-                                    All fields marked with <span class="required">*</span> are required.
-                                </div>
-
-                                <div class="form-section">
-                                    <h5>Personal Information</h5>
-                                    <div class="row g-3">
-                                        <div class="col-md-4">
-                                            <label class="form-label">First Name <span class="required">*</span></label>
-                                            <input name="first_name" value="{{ old('first_name', $prefill['first'] ?? '') }}" class="form-control">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Middle Name</label>
-                                            <input name="middle_name" value="{{ old('middle_name', $prefill['middle'] ?? '') }}" class="form-control">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Last Name <span class="required">*</span></label>
-                                            <input name="last_name" value="{{ old('last_name', $prefill['last'] ?? '') }}" class="form-control">
-                                        </div>
+                            <div class="form-section">
+                                <h5>Personal Information</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label">First Name <span class="required">*</span></label>
+                                        <input name="first_name" value="{{ old('first_name', $prefill['first'] ?? '') }}" class="form-control">
                                     </div>
-                                </div>
-
-                                <div class="form-section">
-                                    <h5>Academic Information</h5>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Email <span class="required">*</span></label>
-                                            <input name="email" value="{{ old('email', $prefill['email'] ?? '') }}" class="form-control">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Program / Strand / Grade Level</label>
-                                            <input name="program_strand_grade_level" value="{{ old('program_strand_grade_level', $prefill['programstrandgradeLevel'] ?? '') }}" class="form-control">
-                                        </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Middle Name</label>
+                                        <input name="middle_name" value="{{ old('middle_name', $prefill['middle'] ?? '') }}" class="form-control">
                                     </div>
-
-                                    <div class="row g-3 mt-2">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Designation <span class="required">*</span></label>
-                                            <select name="designation" class="form-select">
-                                                <option value="Faculty" {{ (old('designation', $prefill['designation'] ?? '')=='Faculty')? 'selected':'' }}>Faculty</option>
-                                                <option value="Student" {{ (old('designation', $prefill['designation'] ?? '')=='Student')? 'selected':'' }}>Student</option>
-                                                <option value="Staff" {{ (old('designation', $prefill['designation'] ?? '')=='Staff')? 'selected':'' }}>Staff</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Department <span class="required">*</span></label>
-                                            <select name="department" class="form-select">
-                                                <option value="Grade School" {{ (old('department', $prefill['department'] ?? '')=='Grade School')? 'selected':'' }}>Grade School</option>
-                                                <option value="Junior High" {{ (old('department', $prefill['department'] ?? '')=='Junior High')? 'selected':'' }}>Junior High</option>
-                                                <option value="Senior High" {{ (old('department', $prefill['department'] ?? '')=='Senior High')? 'selected':'' }}>Senior High</option>
-                                                <option value="College" {{ (old('department', $prefill['department'] ?? '')=='College')? 'selected':'' }}>College</option>
-                                                <option value="Graduate School" {{ (old('department', $prefill['department'] ?? '')=='Graduate School')? 'selected':'' }}>Graduate School</option>
-                                            </select>
-                                        </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Last Name <span class="required">*</span></label>
+                                        <input name="last_name" value="{{ old('last_name', $prefill['last'] ?? '') }}" class="form-control">
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Step 3 -->
-                            <div class="lira-step d-none" data-step="3">
-                                <div class="text-center mb-3">
-                                    <img src="{{ asset('images/lira.png') }}" alt="LiRA" class="img-fluid w-100 mb-3">
-                                </div>
-                                <h5>What kind of assistance do you need? Please check <span class="required">*</span></h5>
-                                @php
-                                $action = $prefill['action'] ?? 'borrow';
-                                $oldAssists = old('assistance_types', []);
-                                $isOld = is_array($oldAssists) && count($oldAssists) > 0;
-                                @endphp
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="assistance_types[]" value="Document Delivery" id="assist1"
-                                        {{ $isOld ? (in_array('Document Delivery', $oldAssists) ? 'checked' : '') : '' }}>
-                                    <label class="form-check-label" for="assist1">Document Delivery (request for materials)</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="assistance_types[]" value="Library Scanning" id="assist2"
-                                        {{ $isOld ? (in_array('Library Scanning', $oldAssists) ? 'checked' : '') : ($action === 'scanning' ? 'checked' : '') }}>
-                                    <label class="form-check-label" for="assist2">Library Scanning</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="assistance_types[]" value="Book Borrowing" id="assist3"
-                                        {{ $isOld ? (in_array('Book Borrowing', $oldAssists) ? 'checked' : '') : ($action !== 'scanning' ? 'checked' : '') }}>
-                                    <label class="form-check-label" for="assist3">Book Borrowing</label>
+                            <div class="form-section">
+                                <h5>Academic Information</h5>
+
+                                <!-- Row 1: Email and Designation -->
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Email <span class="required">*</span></label>
+                                        <input name="email" value="{{ old('email', $prefill['email'] ?? '') }}" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Designation <span class="required">*</span></label>
+                                        <select name="designation" class="form-select">
+                                            <option value="Faculty" {{ (old('designation', $prefill['designation'] ?? '')=='Faculty')? 'selected':'' }}>Faculty</option>
+                                            <option value="Student" {{ (old('designation', $prefill['designation'] ?? '')=='Student')? 'selected':'' }}>Student</option>
+                                            <option value="Staff" {{ (old('designation', $prefill['designation'] ?? '')=='Staff')? 'selected':'' }}>Staff</option>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <h5 class="mt-3">What type of resource do you need? Please check <span class="required">*</span></h5>
-                                @php $types = ['eBooks','Books','eBook Chapter','eJournals','Videos','List of References']; @endphp
-                                @foreach($types as $t)
-                                @php
-                                $oldRes = old('resource_types', []);
-                                $isOldRes = is_array($oldRes) && count($oldRes) > 0;
-                                $defaultChecked = ($t == 'Books');
-                                @endphp
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="resource_types[]" value="{{ $t }}" id="res_{{ $loop->index }}"
-                                        {{ $isOldRes ? (in_array($t, $oldRes) ? 'checked' : '') : ($defaultChecked ? 'checked' : '') }}>
-                                    <label class="form-check-label" for="res_{{ $loop->index }}">{{ $t }}</label>
+                                <!-- Row 2: Program / Strand / Grade Level -->
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-12">
+                                        <label class="form-label">Program / Strand / Grade Level</label>
+                                        <input name="program_strand_grade_level" value="{{ old('program_strand_grade_level', $prefill['programstrandgradeLevel'] ?? '') }}" class="form-control">
+                                    </div>
                                 </div>
-                                @endforeach
-                            </div>
 
-                            <!-- Step 4 -->
-                            <div class="lira-step d-none" data-step="4">
-                                <div class="mb-3">
-                                    <label>Title/s of Resource (Book/eBook/Article/Journal) or Topic/s of Request</label>
-                                    <textarea name="titles_of" class="form-control" rows="3">{{ old('titles_of') }}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label>For BOOK BORROWING and LIBRARY SCANNING: specify TITLE, AUTHOR and CALL NUMBER</label>
-                                    <textarea name="for_borrow_scan" class="form-control" rows="3">{{ old('for_borrow_scan', $prefill['for_borrow_scan'] ?? (old('example_purposive', $prefill['title'] ?? ''))) }}</textarea>
-                                    <small class="text-muted">Example: Purposive communication, Zobeta, Mr. Antonieto G., 302.2 T74 2018 cl</small>
-                                </div>
-                                <div class="mb-3">
-                                    <label>For List of References: Specify Course Code and Course Description</label>
-                                    <textarea name="for_list" class="form-control" rows="3">{{ old('for_list') }}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label>For Videos</label>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="for_videos[]" value="Downloaded" id="v1"><label class="form-check-label" for="v1">Downloaded</label></div>
-                                    <div class="form-check"><input class="form-check-input" type="checkbox" name="for_videos[]" value="Link/s" id="v2"><label class="form-check-label" for="v2">Link/s</label></div>
+                                <!-- Row 3: Department -->
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Department <span class="required">*</span></label>
+                                        <select name="department" class="form-select">
+                                            <option value="Grade School" {{ (old('department', $prefill['department'] ?? '')=='Grade School')? 'selected':'' }}>Grade School</option>
+                                            <option value="Junior High" {{ (old('department', $prefill['department'] ?? '')=='Junior High')? 'selected':'' }}>Junior High</option>
+                                            <option value="Senior High" {{ (old('department', $prefill['department'] ?? '')=='Senior High')? 'selected':'' }}>Senior High</option>
+                                            <option value="College" {{ (old('department', $prefill['department'] ?? '')=='College')? 'selected':'' }}>College</option>
+                                            <option value="Graduate School" {{ (old('department', $prefill['department'] ?? '')=='Graduate School')? 'selected':'' }}>Graduate School</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="lira-form-divider"></div>
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
-                            <button type="button" class="lira-btn-outline" id="backBtn">Back</button>
-                            <div class="d-flex gap-2">
-                                <button type="button" class="lira-btn-outline" id="saveBtn">Save</button>
-                                <button type="button" class="lira-btn-pink" id="nextBtn">Next</button>
-                                <button type="submit" class="lira-btn-pink d-none" id="submitBtn">Submit</button>
+                        <!-- Step 3 -->
+                        <div class="lira-step d-none" data-step="3">
+                            <div class="text-center mb-3">
+                                <img src="{{ asset('images/lira.png') }}" alt="LiRA" class="img-fluid w-100 mb-3">
+                            </div>
+                            <h5>What kind of assistance do you need? Please check <span class="required">*</span></h5>
+                            @php
+                            $action = $prefill['action'] ?? 'borrow';
+                            $oldAssists = old('assistance_types', []);
+                            $isOld = is_array($oldAssists) && count($oldAssists) > 0;
+                            @endphp
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="assistance_types[]" value="Document Delivery" id="assist1"
+                                    {{ $isOld ? (in_array('Document Delivery', $oldAssists) ? 'checked' : '') : '' }}>
+                                <label class="form-check-label" for="assist1">Document Delivery (request for materials)</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="assistance_types[]" value="Library Scanning" id="assist2"
+                                    {{ $isOld ? (in_array('Library Scanning', $oldAssists) ? 'checked' : '') : ($action === 'scanning' ? 'checked' : '') }}>
+                                <label class="form-check-label" for="assist2">Library Scanning</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="assistance_types[]" value="Book Borrowing" id="assist3"
+                                    {{ $isOld ? (in_array('Book Borrowing', $oldAssists) ? 'checked' : '') : ($action !== 'scanning' ? 'checked' : '') }}>
+                                <label class="form-check-label" for="assist3">Book Borrowing</label>
+                            </div>
+
+                            <h5 class="mt-3">What type of resource do you need? Please check <span class="required">*</span></h5>
+                            @php $types = ['eBooks','Books','eBook Chapter','eJournals','Videos','List of References']; @endphp
+                            @foreach($types as $t)
+                            @php
+                            $oldRes = old('resource_types', []);
+                            $isOldRes = is_array($oldRes) && count($oldRes) > 0;
+                            $defaultChecked = ($t == 'Books');
+                            @endphp
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="resource_types[]" value="{{ $t }}" id="res_{{ $loop->index }}"
+                                    {{ $isOldRes ? (in_array($t, $oldRes) ? 'checked' : '') : ($defaultChecked ? 'checked' : '') }}>
+                                <label class="form-check-label" for="res_{{ $loop->index }}">{{ $t }}</label>
+                            </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="lira-step d-none" data-step="4">
+                            <div class="mb-3">
+                                <label>Title/s of Resource (Book/eBook/Article/Journal) or Topic/s of Request</label>
+                                <textarea name="titles_of" class="form-control" rows="3">{{ old('titles_of') }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label>For BOOK BORROWING and LIBRARY SCANNING: specify TITLE, AUTHOR and CALL NUMBER</label>
+                                <textarea name="for_borrow_scan" class="form-control" rows="3">{{ old('for_borrow_scan', $prefill['for_borrow_scan'] ?? (old('example_purposive', $prefill['title'] ?? ''))) }}</textarea>
+                                <small class="text-muted">Example: Purposive communication, Zobeta, Mr. Antonieto G., 302.2 T74 2018 cl</small>
+                            </div>
+                            <div class="mb-3">
+                                <label>For List of References: Specify Course Code and Course Description</label>
+                                <textarea name="for_list" class="form-control" rows="3">{{ old('for_list') }}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label>For Videos</label>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="for_videos[]" value="Downloaded" id="v1"><label class="form-check-label" for="v1">Downloaded</label></div>
+                                <div class="form-check"><input class="form-check-input" type="checkbox" name="for_videos[]" value="Link/s" id="v2"><label class="form-check-label" for="v2">Link/s</label></div>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="lira-form-divider"></div>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+                        <button type="button" class="lira-btn-outline" id="backBtn">Back</button>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="lira-btn-pink enhanced-next" id="nextBtn">Next</button>
+                            <button type="submit" class="lira-btn-pink enhanced-next" id="submitBtn">Submit</button>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -283,98 +397,114 @@
 
 @include('footer')
 
+<!-- Loading overlay (shown while submitting) -->
+<div id="liraLoadingOverlay" class="lira-loading-overlay d-none" aria-hidden="true">
+    <div class="text-center p-4 bg-white rounded-4 shadow" style="border: 2px solid #ffd1e3; max-width: 460px;">
+        <div class="spinner-border" role="status" aria-label="Loading" style="width:3rem;height:3rem;color:#d81b60;border-width:.35rem;"></div>
+        <h5 class="mt-3 mb-1" style="color:#d81b60;">Submitting your request…</h5>
+        <p class="mb-0 text-muted">Please wait while we process your request and send the email.</p>
+    </div>
+    <span class="visually-hidden">Loading</span>
+    </div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let step = 1;
-    const total = 4;
-    const steps = Array.from(document.querySelectorAll('.lira-step'));
-    const formBody = document.getElementById('liraFormBody');
-    const errorBox = document.getElementById('liraStepError');
+    document.addEventListener('DOMContentLoaded', function() {
+        let step = 1;
+        const total = 4;
+        const steps = Array.from(document.querySelectorAll('.lira-step'));
+        const formBody = document.getElementById('liraFormBody');
+        const errorBox = document.getElementById('liraStepError');
 
-    const computeAndSetHeight = () => {
-        let max = 0;
-        steps.forEach(s => {
-            s.classList.remove('d-none');
-            max = Math.max(max, s.scrollHeight);
-        });
-        steps.forEach((s, i) => {
-            if (i !== (step - 1)) s.classList.add('d-none');
-        });
-        formBody.style.minHeight = (max + 40) + 'px';
-    };
-    computeAndSetHeight();
+        const computeAndSetHeight = () => {
+            let max = 0;
+            steps.forEach(s => {
+                s.classList.remove('d-none');
+                max = Math.max(max, s.scrollHeight);
+            });
+            steps.forEach((s, i) => {
+                if (i !== (step - 1)) s.classList.add('d-none');
+            });
+            formBody.style.minHeight = (max + 40) + 'px';
+        };
+        computeAndSetHeight();
 
-    const showStep = (n) => {
-        errorBox.classList.add('d-none');
-        document.querySelectorAll('.lira-step').forEach(el => el.classList.add('d-none'));
-        const el = document.querySelector('.lira-step[data-step="' + n + '"]');
-        if (el) el.classList.remove('d-none');
-        document.getElementById('backBtn').style.display = n === 1 ? 'none' : 'inline-block';
-        document.getElementById('nextBtn').classList.toggle('d-none', n === total);
-        document.getElementById('submitBtn').classList.toggle('d-none', n !== total);
-        window.scrollTo({ top: el.offsetTop - 20, behavior: 'smooth' });
-    };
-    showStep(step);
-
-    const validateStep = (n) => {
-        if (n === 1) {
-            const consent = document.getElementById('consent');
-            if (!consent.checked) return 'You must accept the Data Protection Clause to proceed.';
-            return null;
-        }
-        if (n === 2) {
-            const first = document.querySelector('input[name="first_name"]').value.trim();
-            const last = document.querySelector('input[name="last_name"]').value.trim();
-            const email = document.querySelector('input[name="email"]').value.trim();
-            if (!first) return 'Please enter your First Name.';
-            if (!last) return 'Please enter your Last Name.';
-            if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Please enter a valid Email address.';
-            return null;
-        }
-        if (n === 3) {
-            const assists = document.querySelectorAll('input[name="assistance_types[]"]:checked');
-            const types = document.querySelectorAll('input[name="resource_types[]"]:checked');
-            if (assists.length === 0) return 'Please select at least one kind of assistance.';
-            if (types.length === 0) return 'Please select at least one resource type.';
-            return null;
-        }
-        return null;
-    };
-
-    document.getElementById('nextBtn').addEventListener('click', function() {
-        const err = validateStep(step);
-        if (err) {
-            errorBox.textContent = err;
-            errorBox.classList.remove('d-none');
-            return;
-        }
-        if (step < total) step++;
+        const showStep = (n) => {
+            errorBox.classList.add('d-none');
+            document.querySelectorAll('.lira-step').forEach(el => el.classList.add('d-none'));
+            const el = document.querySelector('.lira-step[data-step="' + n + '"]');
+            if (el) el.classList.remove('d-none');
+            document.getElementById('backBtn').style.display = n === 1 ? 'none' : 'inline-block';
+            document.getElementById('nextBtn').classList.toggle('d-none', n === total);
+            document.getElementById('submitBtn').classList.toggle('d-none', n !== total);
+            window.scrollTo({
+                top: el.offsetTop - 20,
+                behavior: 'smooth'
+            });
+        };
         showStep(step);
-    });
 
-    document.getElementById('backBtn').addEventListener('click', function() {
-        if (step > 1) step--;
-        showStep(step);
-    });
+        const validateStep = (n) => {
+            if (n === 1) {
+                const consent = document.getElementById('consent');
+                if (!consent.checked) return 'You must accept the Data Protection Clause to proceed.';
+                return null;
+            }
+            if (n === 2) {
+                const first = document.querySelector('input[name="first_name"]').value.trim();
+                const last = document.querySelector('input[name="last_name"]').value.trim();
+                const email = document.querySelector('input[name="email"]').value.trim();
+                if (!first) return 'Please enter your First Name.';
+                if (!last) return 'Please enter your Last Name.';
+                if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Please enter a valid Email address.';
+                return null;
+            }
+            if (n === 3) {
+                const assists = document.querySelectorAll('input[name="assistance_types[]"]:checked');
+                const types = document.querySelectorAll('input[name="resource_types[]"]:checked');
+                if (assists.length === 0) return 'Please select at least one kind of assistance.';
+                if (types.length === 0) return 'Please select at least one resource type.';
+                return null;
+            }
+            return null;
+        };
 
-    document.getElementById('saveBtn').addEventListener('click', function() {
-        const values = {};
-        new FormData(document.getElementById('liraForm')).forEach((v, k) => {
-            if (values[k]) {
-                if (!Array.isArray(values[k])) values[k] = [values[k]];
-                values[k].push(v);
-            } else values[k] = v;
+        document.getElementById('nextBtn').addEventListener('click', function() {
+            const err = validateStep(step);
+            if (err) {
+                errorBox.textContent = err;
+                errorBox.classList.remove('d-none');
+                return;
+            }
+            if (step < total) step++;
+            showStep(step);
         });
-        localStorage.setItem('lira.form', JSON.stringify(values));
-        alert('Form saved locally in your browser.');
-    });
 
-    document.getElementById('liraForm').addEventListener('submit', function(e) {
-        const err = validateStep(1) || validateStep(2) || validateStep(3);
-        if (err) {
-            e.preventDefault();
-            alert('Please complete required fields before submitting: ' + err);
-        }
+        document.getElementById('backBtn').addEventListener('click', function() {
+            if (step > 1) step--;
+            showStep(step);
+        });
+
+        const overlay = document.getElementById('liraLoadingOverlay');
+        const nextBtnEl = document.getElementById('nextBtn');
+        const backBtnEl = document.getElementById('backBtn');
+        const submitBtnEl = document.getElementById('submitBtn');
+
+        document.getElementById('liraForm').addEventListener('submit', function(e) {
+            const err = validateStep(1) || validateStep(2) || validateStep(3);
+            if (err) {
+                e.preventDefault();
+                alert('Please complete required fields before submitting: ' + err);
+                return;
+            }
+            // Show loading overlay and prevent duplicate clicks
+            if (overlay) {
+                overlay.classList.remove('d-none');
+                overlay.classList.add('show');
+                document.body.setAttribute('aria-busy', 'true');
+            }
+            if (nextBtnEl) nextBtnEl.disabled = true;
+            if (backBtnEl) backBtnEl.disabled = true;
+            if (submitBtnEl) submitBtnEl.disabled = true;
+        });
     });
-});
 </script>
