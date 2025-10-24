@@ -132,7 +132,9 @@
                 if (filter_var($pp, FILTER_VALIDATE_URL)) {
                 $profileSrc = $pp;
                 } else {
-                $profileSrc = asset('storage/' . $pp);
+                // If DB has only the filename, assume it resides under storage/profile_pictures
+                $relative = (strpos($pp, '/') === false) ? ('profile_pictures/' . $pp) : $pp;
+                $profileSrc = asset('storage/' . ltrim($relative, '/'));
                 }
                 }
                 @endphp
@@ -429,7 +431,13 @@
               if (imgWrap) {
                 var imgEl = imgWrap.querySelector('img');
                 if (sf.profile_picture) {
-                  var url = sf.profile_picture.match(/^https?:\/\//) ? sf.profile_picture : ('/storage/' + sf.profile_picture);
+                  var url;
+                  if (/^https?:\/\//.test(sf.profile_picture)) {
+                    url = sf.profile_picture;
+                  } else {
+                    var rel = sf.profile_picture.indexOf('/') === -1 ? ('profile_pictures/' + sf.profile_picture) : sf.profile_picture;
+                    url = '/storage/' + rel.replace(/^\/+/, '');
+                  }
                   if (imgEl) imgEl.src = url;
                   else {
                     imgWrap.innerHTML = '<img src="' + url + '" class="img-fluid rounded-circle" style="width:160px; height:160px; object-fit:cover;">';

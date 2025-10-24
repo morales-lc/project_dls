@@ -17,13 +17,16 @@ class ProfileController extends Controller
    public function completeProfile(Request $request)
 {
     $userId = Auth::id();
+    // Determine if this is an in-place edit (AJAX/JSON) vs initial completion form
+    $isEdit = $request->expectsJson() || $request->ajax();
 
     $rules = [
         'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/'],
         'first_name' => ['required', 'string', 'max:255'],
         'last_name' => ['required', 'string', 'max:255'],
         'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $userId],
-    'password' => ['required', 'string', 'min:6', 'confirmed'],
+        // Password is required on the complete profile page, but optional when editing
+        'password' => [$isEdit ? 'nullable' : 'required', 'string', 'min:6', 'confirmed'],
         'course' => ['nullable', 'string', 'max:255'],
         'yrlvl' => ['nullable', 'string', 'max:10'],
         'program_id' => ['nullable', 'exists:programs,id'],
