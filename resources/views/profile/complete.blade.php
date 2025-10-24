@@ -151,7 +151,7 @@
             <label for="school_id" class="form-label">Student/Faculty ID</label>
             <input type="text" name="school_id" id="school_id" class="form-control"
               value="{{ old('school_id', Auth::user()->studentFaculty->school_id ?? '') }}"
-              required pattern="[A-Z]{1,2}[0-9]{2}-[0-9]{4}" placeholder="C##-####">
+              required placeholder="C##-####">
             <div class="form-text">Format: C00-0000</div>
           </div>
 

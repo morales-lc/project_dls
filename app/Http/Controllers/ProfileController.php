@@ -21,7 +21,7 @@ class ProfileController extends Controller
     $isEdit = $request->expectsJson() || $request->ajax();
 
     $rules = [
-        'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/'],
+        'school_id' => ['required'],
         'first_name' => ['required', 'string', 'max:255'],
         'last_name' => ['required', 'string', 'max:255'],
         'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $userId],
@@ -47,13 +47,13 @@ class ProfileController extends Controller
     }
 
     $messages = [
-        'school_id.required' => 'School ID is required and must match format (e.g. C22-0171).',
+        'school_id.required' => 'School ID is required.',
         'school_id.regex' => 'School ID format is invalid. Use CXX-XXXX where X are digits.',
         'first_name.required' => 'First name is required.',
         'last_name.required' => 'Last name is required.',
         'username.required' => 'Username is required.',
-    'password.required' => 'Password is required.',
-    'password.min' => 'Password must be at least 6 characters.',
+        'password.required' => 'Password is required.',
+        'password.min' => 'Password must be at least 6 characters.',
         'password.confirmed' => 'Password confirmation does not match.',
         'program_id.required' => 'Please select a program.',
         'course.required' => 'Please select a course.',

@@ -17,7 +17,7 @@ class UserManagementController extends Controller
         $role = $request->input('role');
         if ($role === 'student_faculty') {
             $request->validate([
-                'school_id' => 'required|regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/|unique:student_faculty,school_id',
+                'school_id' => 'required|unique:student_faculty,school_id',
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => 'required|email|max:255|unique:users,email',
@@ -110,7 +110,7 @@ class UserManagementController extends Controller
             $userId = $sf->user ? $sf->user->id : null;
 
             $request->validate([
-                'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
+                'school_id' => ['required', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
                 'first_name' => 'required|string|max:255',
                 'last_name' => 'required|string|max:255',
                 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($userId)],

@@ -23,7 +23,7 @@ class StudentFacultyController extends Controller
         $returnUrl = $request->input('return_url');
 
         $request->validate([
-            'school_id' => ['required', 'regex:/^[A-Z]{1,2}[0-9]{2}-[0-9]{4}$/', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
+            'school_id' => ['required', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user ? $user->id : null)],
