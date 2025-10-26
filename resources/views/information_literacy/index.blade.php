@@ -35,7 +35,7 @@
                                 <h3 class="fw-bold mb-1" style="color:#1976d2;">{{ $post->title }}</h3>
                                 <div class="d-flex align-items-center gap-2">
                                     <small class="text-muted ms-2 toggle-indicator">&#x25B6;</small>
-                                    @auth
+                                    @if(Auth::check() && Auth::user()->role !== 'guest')
                                         <form method="POST" action="{{ route('bookmarks.toggle') }}" class="bookmark-toggle" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="id" value="{{ $post->id }}">
@@ -44,7 +44,7 @@
                                                 <i class="bi {{ in_array($post->id, $bookmarkedIds ?? []) ? 'bi-bookmark-heart-fill' : 'bi-bookmark' }}"></i>
                                             </button>
                                     </form>
-                                    @endauth
+                                    @endif
                                 </div>
                             </div>
                             <div class="mb-2 text-muted small">{{ date('F j, Y \a\t g:i A', strtotime($post->date_time)) }} &nbsp;|&nbsp; <span class="badge bg-info">{{ ucfirst($post->type) }}</span></div>

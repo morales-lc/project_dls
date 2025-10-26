@@ -33,9 +33,40 @@ CREATE TABLE IF NOT EXISTS catalogs (
     issn TEXT,
     lccn VARCHAR(255),
     subjects TEXT,
-    additional_details LONGTEXT
+    additional_details LONGTEXT,
+    created_at DATETIME NULL,
+    updated_at DATETIME NULL
 )
 """)
+
+# Ensure created_at / updated_at columns exist (for legacy tables created without timestamps)
+try:
+    cursor.execute(
+        """
+        SELECT COLUMN_NAME FROM information_schema.COLUMNS
+        WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'catalogs'
+        """
+    )
+    cols = {row[0] for row in cursor.fetchall()}
+    alters = []
+    if 'created_at' not in cols:
+        alters.append("ADD COLUMN created_at DATETIME NULL")
+    if 'updated_at' not in cols:
+        alters.append("ADD COLUMN updated_at DATETIME NULL")
+    if alters:
+        cursor.execute("ALTER TABLE catalogs " + ", ".join(alters))
+        conn.commit()
+except Exception as e:
+    # Non-fatal; continue without timestamps if privilege/schema issues
+    print(f"⚠️ Skipping timestamp column ensure: {e}")
+
+# === BACKFILL timestamps for legacy rows (set created_at/updated_at if NULL) ===
+try:
+    cursor.execute("UPDATE catalogs SET created_at = NOW() WHERE created_at IS NULL")
+    cursor.execute("UPDATE catalogs SET updated_at = created_at WHERE updated_at IS NULL AND created_at IS NOT NULL")
+    conn.commit()
+except Exception as e:
+    print(f"⚠️ Skipping timestamp backfill: {e}")
 
 # === ENSURE FULLTEXT INDEX EXISTS (idempotent) ===
 try:
@@ -175,30 +206,64 @@ print("ℹ️ Skipping deletion step. Existing records will be preserved.")
 
 # === STEP 3: Insert or Update Records ===
 for data in records_data:
-    cursor.execute("""
-        INSERT INTO catalogs (
-            unique_key, title, author, call_number, sublocation, publisher, year,
-            edition, format, content_type, media_type, carrier_type,
-            isbn, issn, lccn, subjects, additional_details
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        ON DUPLICATE KEY UPDATE
-            title=VALUES(title),
-            author=VALUES(author),
-            call_number=VALUES(call_number),
-            sublocation=VALUES(sublocation),
-            publisher=VALUES(publisher),
-            year=VALUES(year),
-            edition=VALUES(edition),
-            format=VALUES(format),
-            content_type=VALUES(content_type),
-            media_type=VALUES(media_type),
-            carrier_type=VALUES(carrier_type),
-            isbn=VALUES(isbn),
-            issn=VALUES(issn),
-            lccn=VALUES(lccn),
-            subjects=VALUES(subjects),
-            additional_details=VALUES(additional_details)
-    """, data)
+    try:
+        cursor.execute(
+            """
+            INSERT INTO catalogs (
+                unique_key, title, author, call_number, sublocation, publisher, year,
+                edition, format, content_type, media_type, carrier_type,
+                isbn, issn, lccn, subjects, additional_details, created_at, updated_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+            ON DUPLICATE KEY UPDATE
+                title=VALUES(title),
+                author=VALUES(author),
+                call_number=VALUES(call_number),
+                sublocation=VALUES(sublocation),
+                publisher=VALUES(publisher),
+                year=VALUES(year),
+                edition=VALUES(edition),
+                format=VALUES(format),
+                content_type=VALUES(content_type),
+                media_type=VALUES(media_type),
+                carrier_type=VALUES(carrier_type),
+                isbn=VALUES(isbn),
+                issn=VALUES(issn),
+                lccn=VALUES(lccn),
+                subjects=VALUES(subjects),
+                additional_details=VALUES(additional_details),
+                updated_at=NOW()
+            """,
+            data,
+        )
+    except Exception as e:
+        # Fallback for legacy schema without timestamps
+        cursor.execute(
+            """
+            INSERT INTO catalogs (
+                unique_key, title, author, call_number, sublocation, publisher, year,
+                edition, format, content_type, media_type, carrier_type,
+                isbn, issn, lccn, subjects, additional_details
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                title=VALUES(title),
+                author=VALUES(author),
+                call_number=VALUES(call_number),
+                sublocation=VALUES(sublocation),
+                publisher=VALUES(publisher),
+                year=VALUES(year),
+                edition=VALUES(edition),
+                format=VALUES(format),
+                content_type=VALUES(content_type),
+                media_type=VALUES(media_type),
+                carrier_type=VALUES(carrier_type),
+                isbn=VALUES(isbn),
+                issn=VALUES(issn),
+                lccn=VALUES(lccn),
+                subjects=VALUES(subjects),
+                additional_details=VALUES(additional_details)
+            """,
+            data,
+        )
 
 conn.commit()
 cursor.close()

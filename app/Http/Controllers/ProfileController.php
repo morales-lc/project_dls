@@ -32,7 +32,7 @@ class ProfileController extends Controller
         'program_id' => ['nullable', 'exists:programs,id'],
         'birthdate' => ['required', 'date'],
         'role' => ['required', 'in:student,faculty'],
-        'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
+        'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:4096'],
     ];
 
     // Backend role-based validation

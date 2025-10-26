@@ -563,7 +563,7 @@
                         </a>
                     </div>
 
-                    @auth
+                    @if(Auth::check() && Auth::user()->role !== 'guest')
                     @php $isBookmarked = $catalogBookmarked ?? false; @endphp
                     <form method="POST" action="{{ route('bookmarks.toggle') }}"
                         class="d-inline bookmark-toggle mt-2 w-100 text-center">
@@ -575,11 +575,11 @@
                             <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
                         </button>
                     </form>
-                    @else
+                    @elseif(!Auth::check())
                     <a href="{{ route('login') }}" class="btn btn-outline-dark btn-sm btn-animated mt-2 w-100 text-center">
                         <i class="bi bi-plus-circle"></i> Add to list
                     </a>
-                    @endauth
+                    @endif
                 </div>
             </div>
 

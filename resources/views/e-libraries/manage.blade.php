@@ -3,13 +3,13 @@
 <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
 @endpush
-@section('title', 'E-Libraries Management')
+@section('title', 'Online Databases Management')
 
 @section('content')
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-            <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">E-Libraries Control Panel</h2>
+            <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Online Databases Management</h2>
             <a class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.1rem;" href="{{ route('e-libraries.create') }}">
                 <i class="bi bi-plus-lg"></i> Add New E-Library
             </a>

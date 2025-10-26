@@ -553,7 +553,7 @@
 
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" class="form-control" value="{{ request('q') }}"
-                        placeholder="Search the Library Catalog by keyword, title, author, ISBN, ISSN, or LCCN..." aria-label="Search the library catalog">
+                        placeholder="Search the Library Catalog by keyword, title, author, ISBN, ISSN, or LCCN..." aria-label="Search the library catalog" required>
                 </div>
                 <button type="submit"
                     class="btn btn-pink"
@@ -734,7 +734,7 @@
                                 @if($post->website_link)
                                 <a href="{{ $post->website_link }}" target="_blank" class="lc-news-card-btn" onclick="event.stopPropagation();">Read More</a>
                                 @endif
-                                @if(Auth::check())
+                                @if(Auth::check() && Auth::user()->role !== 'guest')
                                 @php
                                 // Prefer controller-provided map of bookmarked post IDs to avoid per-item DB queries.
                                 $postBookmarked = false;

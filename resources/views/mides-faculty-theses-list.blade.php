@@ -56,7 +56,9 @@
                                 <th>Author</th>
                                 <th>Year</th>
                                 <th class="text-center">PDF</th>
+                                @if(Auth::check() && Auth::user()->role !== 'guest')
                                 <th class="text-center">Bookmark</th>
+                                @endif
                             </tr>
                         </thead>
                         <tbody>
@@ -114,8 +116,8 @@
                                         </div>
                                     </div>
                                 </td>
+                                @if(Auth::check() && Auth::user()->role !== 'guest')
                                 <td class="text-center">
-                                    @auth
                                     @php
                                     $sf = optional(auth()->user()->studentFaculty);
                                     $isBookmarked = false;
@@ -134,8 +136,8 @@
                                         <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} bookmark-btn"><i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i> <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span></button>
                                     </form>
                                     @endif
-                                    @endauth
                                 </td>
+                                @endif
                             </tr>
                             @endforeach
                         </tbody>

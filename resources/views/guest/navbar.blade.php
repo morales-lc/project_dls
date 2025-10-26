@@ -21,6 +21,9 @@
                     <a class="nav-link {{ request()->routeIs('sidlak.*') ? 'active' : '' }}" href="{{ route('sidlak.index') }}">SIDLAK</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('alinet.*') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">E‑Libraries</a>
                 </li>
             </ul>

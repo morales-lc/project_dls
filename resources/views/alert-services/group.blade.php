@@ -239,7 +239,7 @@
 
                 <div class="book-overlay">
                     <div class="book-title">{{ $book->title ?? 'Untitled' }}</div>
-                    @auth
+                    @if(Auth::check() && Auth::user()->role !== 'guest')
                     <div class="d-flex flex-column gap-2 w-100">
                         <form action="{{ route('bookmarks.toggle') }}" method="POST" class="bookmark-toggle-alert d-flex justify-content-center">
                             @csrf
@@ -256,14 +256,14 @@
                             <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                         </a>
                     </div>
-                    @else
+                    @elseif(!Auth::check())
                     <a href="{{ route('login') }}" onclick="alert('Please log in to bookmark and request via LiRA.');" class="btn-bookmark text-center">
                         <i class="bi bi-box-arrow-in-right"></i> Log in to bookmark
                     </a>
                     <a href="{{ route('login') }}" onclick="alert('Please log in to request via LiRA.');" class="btn-pink">
                         <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                     </a>
-                    @endauth
+                    @endif
                 </div>
             </div>
 

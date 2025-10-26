@@ -11,7 +11,6 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
 
     <style>
-
         /* Logo animation */
         .nav-logo-animate:hover {
             transform: scale(1.13) rotate(-2deg);
@@ -321,6 +320,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">E‑Libraries</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a>
                     </li>
                     @else
                     <li class="nav-item">

@@ -189,7 +189,7 @@
                             <i class="bi bi-box-arrow-up-right"></i> Open
                         </a>
 
-                        @auth
+                        @if(Auth::check() && Auth::user()->role !== 'guest')
                         @php
                         $sf = optional(auth()->user()->studentFaculty);
                         $isBookmarked = $sf && $sf->id
@@ -212,7 +212,7 @@
                             </button>
                         </form>
                         @endif
-                        @endauth
+                        @endif
                     </div>
 
                 </div>

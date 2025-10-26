@@ -108,6 +108,61 @@ body {
 .dashboard-card .btn-pink {
     margin-top: 0.5rem;
 }
+/* ==== Stat Cards (bigger, square, multi-color) ==== */
+.stat-card {
+    --accent: #d81b60; /* default fallback */
+    --tint: #f5f5f5;
+    --pill: #eceff1;
+    border-radius: 1.25rem !important;
+    background: linear-gradient(135deg, #ffffff 75%, var(--tint) 100%);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    min-height: 160px;
+}
+.stat-card .card-body { padding: 1.25rem 1.25rem; }
+.stat-card .h2 { font-size: 2.1rem; }
+.stat-card .stat-icon {
+    width: 64px;
+    height: 64px;
+    background: var(--pill);
+    color: var(--accent);
+}
+.stat-card .stat-icon i { font-size: 1.6rem; }
+.stat-card:hover { box-shadow: 0 10px 24px rgba(0,0,0,0.10); transform: translateY(-2px); transition: box-shadow .2s ease, transform .2s ease; }
+@media (min-width: 992px) {
+    .stat-card { aspect-ratio: 1 / 1; }
+}
+
+/* Color variants */
+.stat-card.is-blue  { --accent:#1976d2; --tint:#e3f2fd; --pill:#bbdefb; }
+.stat-card.is-green { --accent:#2e7d32; --tint:#e8f5e9; --pill:#c8e6c9; }
+.stat-card.is-red   { --accent:#c62828; --tint:#ffebee; --pill:#ffcdd2; }
+.stat-card.is-amber { --accent:#ef6c00; --tint:#fff3e0; --pill:#ffe0b2; }
+.stat-card.is-indigo{ --accent:#3949ab; --tint:#e8eaf6; --pill:#c5cae9; }
+.stat-card.is-purple{ --accent:#8e24aa; --tint:#f3e5f5; --pill:#e1bee7; }
+.stat-card.is-teal  { --accent:#00897b; --tint:#e0f2f1; --pill:#b2dfdb; }
+
+/* Solid card variant (no white gradient) */
+.stat-card.solid {
+    background: var(--accent);
+    color: #fff;
+    aspect-ratio: auto;
+    min-height: 180px;
+}
+.stat-card.solid .text-muted,
+.stat-card.solid .small { color: rgba(255,255,255,0.9) !important; }
+.stat-card.solid .stat-icon {
+    background: rgba(255,255,255,0.18);
+    color: #fff;
+}
+.stat-card.solid a { color: #fff; text-decoration: underline; }
+.stat-card.solid a:hover { color: #fff; text-decoration: none; }
+
+/* Metrics grid inside combined cards */
+.stat-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem 1rem; }
+@media (max-width: 576px) { .stat-metrics { grid-template-columns: 1fr; } }
+.stat-metric .label { font-size: .8rem; text-transform: uppercase; opacity: .95; letter-spacing: .03em; }
+.stat-metric .value { font-size: 1.6rem; font-weight: 800; line-height: 1.1; }
+
 @media (max-width: 991px) {
     .sidebar {
         width: 240px;

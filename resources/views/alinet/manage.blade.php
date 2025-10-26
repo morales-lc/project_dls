@@ -48,6 +48,26 @@
 
         </div>
 
+        {{-- Status Tabs --}}
+        @php
+            $activeStatus = $status ?? request('status');
+            $preserve = request()->except(['page','status']);
+        @endphp
+        <ul class="nav nav-pills mb-3">
+            <li class="nav-item">
+                <a class="nav-link {{ empty($activeStatus) ? 'active' : '' }}" href="{{ route('alinet.manage', $preserve) }}">All</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ $activeStatus === 'pending' ? 'active' : '' }}" href="{{ route('alinet.manage', array_merge($preserve, ['status' => 'pending'])) }}">Pending</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ $activeStatus === 'accepted' ? 'active' : '' }}" href="{{ route('alinet.manage', array_merge($preserve, ['status' => 'accepted'])) }}">Accepted</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {{ $activeStatus === 'rejected' ? 'active' : '' }}" href="{{ route('alinet.manage', array_merge($preserve, ['status' => 'rejected'])) }}">Rejected</a>
+            </li>
+        </ul>
+
         @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
         @endif
