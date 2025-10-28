@@ -73,30 +73,36 @@ class InformationLiteracyController extends Controller
     // Store new post
     public function store(Request $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'date_time' => 'required|date',
-            'facilitators' => 'required|string',
-            'type' => 'required|in:onsite,online',
-            'image' => 'nullable|image|max:4096',
-        ]);
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'date_time' => 'required|date',
+                'facilitators' => 'required|string',
+                'type' => 'required|in:onsite,online',
+                'image' => 'nullable|image|max:4096',
+            ]);
 
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('information_literacy_images', 'public');
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('information_literacy_images', 'public');
+            }
+
+            InformationLiteracyPost::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'date_time' => $request->date_time,
+                'facilitators' => $request->facilitators,
+                'type' => $request->type,
+                'image' => $imagePath,
+            ]);
+
+            return redirect()->route('information_literacy.manage')->with('success', 'Information Literacy post created!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e; // Let Laravel handle validation error bag
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to create post. Please try again.');
         }
-
-        InformationLiteracyPost::create([
-            'title' => $request->title,
-            'description' => $request->description,
-            'date_time' => $request->date_time,
-            'facilitators' => $request->facilitators,
-            'type' => $request->type,
-            'image' => $imagePath,
-        ]);
-
-        return redirect()->route('information_literacy.index')->with('success', 'Information Literacy post created!');
     }
 
     // Show edit form
@@ -110,40 +116,50 @@ class InformationLiteracyController extends Controller
     public function update(Request $request, $id)
     {
         $post = InformationLiteracyPost::findOrFail($id);
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'required|string',
-            'date_time' => 'required|date',
-            'facilitators' => 'required|string',
-            'type' => 'required|in:onsite,online',
-            'image' => 'nullable|image|max:4096',
-        ]);
+        try {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'date_time' => 'required|date',
+                'facilitators' => 'required|string',
+                'type' => 'required|in:onsite,online',
+                'image' => 'nullable|image|max:4096',
+            ]);
 
-        $imagePath = $post->image;
-        if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('information_literacy_images', 'public');
+            $imagePath = $post->image;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('information_literacy_images', 'public');
+            }
+
+            $post->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'date_time' => $request->date_time,
+                'facilitators' => $request->facilitators,
+                'type' => $request->type,
+                'image' => $imagePath,
+            ]);
+
+            return redirect()->route('information_literacy.manage')->with('success', 'Information Literacy post updated!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to update post. Please try again.');
         }
-
-        $post->update([
-            'title' => $request->title,
-            'description' => $request->description,
-            'date_time' => $request->date_time,
-            'facilitators' => $request->facilitators,
-            'type' => $request->type,
-            'image' => $imagePath,
-        ]);
-
-        return redirect()->route('information_literacy.index')->with('success', 'Information Literacy post updated!');
     }
 
     // Delete post
     public function destroy($id)
     {
-        $post = InformationLiteracyPost::findOrFail($id);
-        if ($post->image) {
-            Storage::disk('public')->delete($post->image);
+        try {
+            $post = InformationLiteracyPost::findOrFail($id);
+            if ($post->image) {
+                Storage::disk('public')->delete($post->image);
+            }
+            $post->delete();
+            return redirect()->route('information_literacy.manage')->with('success', 'Information Literacy post deleted!');
+        } catch (\Throwable $e) {
+            return redirect()->route('information_literacy.manage')->with('error', 'Failed to delete post. Please try again.');
         }
-        $post->delete();
-        return redirect()->route('information_literacy.index')->with('success', 'Information Literacy post deleted!');
     }
 }

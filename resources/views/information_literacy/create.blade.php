@@ -26,6 +26,9 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
 
             <form method="POST" action="{{ route('information_literacy.store') }}" enctype="multipart/form-data" class="row g-4">
                 @csrf

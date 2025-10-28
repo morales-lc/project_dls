@@ -54,7 +54,8 @@ class SidlakJournalController extends Controller
     public function update(Request $request, $id)
     {
         $journal = SidlakJournal::findOrFail($id);
-        $request->validate([
+        // Build validation rules dynamically so existing articles don't require re-uploading the PDF
+        $rules = [
             'title' => 'required|string|max:255',
             'month_year' => 'required|string',
             'print_issn' => [
@@ -65,14 +66,25 @@ class SidlakJournalController extends Controller
             'cover_photo' => 'nullable|image|max:2048',
             'articles.*.title' => 'required|string|max:255',
             'articles.*.authors' => 'required|string',
-            'articles.*.pdf_file' => 'required|file|mimes:pdf',
+            // articles.*.pdf_file will be set per-index below
             'editors.*.name' => 'required_with:editors.*.title|string|max:255',
             'editors.*.title' => 'required_with:editors.*.name|string|max:255',
             'peer_reviewers.*.name' => 'required_with:peer_reviewers.*.title|string|max:255',
             'peer_reviewers.*.title' => 'required_with:peer_reviewers.*.name|string|max:255',
             'peer_reviewers.*.institution' => 'required_with:peer_reviewers.*.name|string|max:255',
             'peer_reviewers.*.city' => 'required_with:peer_reviewers.*.name|string|max:255',
-        ], [
+        ];
+
+        // For each article payload, require PDF for new items (no id), allow nullable for existing
+        if ($request->has('articles') && is_array($request->articles)) {
+            foreach ($request->articles as $i => $article) {
+                $rules["articles.$i.pdf_file"] = (!empty($article['id']))
+                    ? 'nullable|file|mimes:pdf'
+                    : 'required|file|mimes:pdf';
+            }
+        }
+
+        $request->validate($rules, [
             'print_issn.regex' => 'The Print ISSN must follow the format ####-#### (e.g. 2350-8337).',
         ]);
 

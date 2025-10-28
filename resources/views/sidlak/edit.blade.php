@@ -14,7 +14,7 @@
     .reviewer-row {
         transition: opacity 0.5s;
         opacity: 1;
-        border: 0.5px solirgba(149, 149, 149, 1)fd;
+        border: 0.5px solid rgba(149, 149, 149, 1);
         border-radius: 1rem;
         background: #fff;
         margin-bottom: 1rem;
@@ -29,6 +29,11 @@
     .reviewer-row,
     .article-row {
         padding: 1rem 0.5rem 0.5rem 0.5rem;
+    }
+    /* Make research article cards a bit roomier */
+    .article-row {
+        padding: 1rem !important;
+        margin-bottom: 1.25rem !important;
     }
 </style>
 @endpush
@@ -138,7 +143,7 @@
             <h4 class="fw-bold mb-3">Research Articles</h4>
             <div id="articles-list" class="p-3 rounded-4 bg-light shadow-sm border border-2 border-primary mb-4">
                 @foreach($journal->articles as $idx => $article)
-                <div class="row g-3 mb-2 article-row">
+                <div class="row g-3 mb-3 p-3 article-row">
                     <input type="hidden" name="articles[{{ $idx }}][id]" value="{{ $article->id }}">
                     <div class="col-md-5">
                         <label class="form-label">Article Title</label>
@@ -155,7 +160,7 @@
                         <a href="{{ asset('storage/' . $article->pdf_file) }}" target="_blank" class="d-block mt-2">Current PDF</a>
                         @endif
                     </div>
-                    <div class="col-md-12 mt-2 d-flex justify-content-end">
+                    <div class="col-md-12 mt-3 d-flex justify-content-end">
                         <button type="button" class="btn btn-sm btn-danger remove-article-btn px-3" data-idx="{{ $idx }}"><i class="bi bi-trash me-1"></i>Remove Article</button>
                         <input type="hidden" name="articles[{{ $idx }}][remove]" value="0" class="remove-flag">
                     </div>
@@ -175,7 +180,7 @@
     function addArticle() {
         const list = document.getElementById('articles-list');
         const row = document.createElement('div');
-        row.className = 'row g-3 mb-2 article-row';
+        row.className = 'row g-3 mb-3 p-3 article-row';
         row.innerHTML = `
         <div class="col-md-5">
             <label class="form-label">Article Title</label>
@@ -189,7 +194,7 @@
             <label class="form-label">PDF File</label>
             <input type="file" name="articles[${articleIdx}][pdf_file]" class="form-control border-primary shadow-sm" accept="application/pdf" required>
         </div>
-        <div class="col-md-12 mt-2 d-flex justify-content-end">
+        <div class="col-md-12 mt-3 d-flex justify-content-end">
             <button type="button" class="btn btn-sm btn-danger remove-article-btn px-3"><i class="bi bi-trash me-1"></i>Remove Article</button>
         </div>
     `;

@@ -12,7 +12,7 @@
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-            <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Information Literacy Control Panel</h2>
+            <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Information Literacy Management</h2>
         </div>
 
         <div class="d-flex flex-wrap gap-2">
@@ -23,9 +23,12 @@
 
         <div style="height: 30px;"></div>
 
-        @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-        @endif
+    @if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+    <div class="alert alert-danger">{{ session('error') }}</div>
+    @endif
 
         <!-- Filter & Sort Form -->
         <form method="GET" action="{{ route('information_literacy.manage') }}" class="row g-2 mb-3 align-items-end">

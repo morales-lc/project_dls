@@ -11,8 +11,9 @@
         table {border-collapse: collapse;}
         .email-container{width:100%;padding:20px 0;background:#f8f9fa;}
         .email-content{width:600px;max-width:95%;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,0.05);}
-        .header{background:#004080;text-align:center;padding:20px;}
-        .header img{width:120px;height:auto;margin:0 8px;}
+    .header{background:#e83e8c;text-align:center;padding:20px;}
+    .header img{width:120px;height:auto;margin:0 8px;background:#ffffff;border-radius:6px;padding:4px;}
+    .brand-title{color:#ffffff;font-weight:700;font-size:18px;margin-top:8px;font-family:Arial,Helvetica,sans-serif;}
         .content{padding:30px;color:#333;font-size:15px;line-height:1.7;}
         .footer{background:#f1f1f1;padding:15px;font-size:12px;color:#666;text-align:center;}
         @media(max-width:600px){.content{padding:20px;}.header img{width:100px;}}
@@ -23,9 +24,9 @@
     <table class="email-container"><tr><td align="center">
         <table class="email-content">
             <tr>
-                <td class="header">
-                    <img src="{{ $message->embed(public_path('images/lourdes_college.jpg')) }}" alt="Lourdes College">
-                    <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="Learning Commons">
+                <td class="header" style="background:#e83e8c;text-align:center;padding:20px;">
+                    <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="LC Learning Commons">
+                    <div class="brand-title">LC MIDES Digital Library</div>
                 </td>
             </tr>
             <tr>

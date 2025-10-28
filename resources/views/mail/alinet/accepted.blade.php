@@ -1,28 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALINET Appointment Accepted</title>
     <style>
         .container { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; }
-        .header { background: #004080; padding: 20px; text-align: center; }
-        .header img { height: 60px; vertical-align: middle; }
+        .header { background: #e83e8c; padding: 20px; text-align: center; }
+        .header img { height: 60px; vertical-align: middle; background:#ffffff; border-radius:6px; padding:3px; }
+        .brand-title { color:#ffffff; font-weight:700; font-size:18px; margin-top:8px; font-family: Arial, Helvetica, sans-serif; }
         .content { padding: 28px; color: #333333; font-size: 15px; line-height: 1.6; font-family: Arial, Helvetica, sans-serif; }
         .date { font-size: 16px; color: #004080; font-weight: bold; }
         .footer { background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #666666; font-family: Arial, Helvetica, sans-serif; }
-        .btn { display: inline-block; padding: 10px 16px; background: #1976d2; color: #ffffff !important; text-decoration: none; border-radius: 6px; margin-top: 10px; }
+        .kv { font-size:14px; }
+        .kv td { padding:4px 0; vertical-align:top; }
+        .kv td:first-child { width: 190px; color:#6b7280; }
     </style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
 <body style="margin:0; padding:20px; background-color:#f8f9fa;">
     <div class="container">
-        <div class="header">
-            <img src="{{ $message->embed(public_path('images/lourdes_college.jpg')) }}" alt="Lourdes College" style="margin-right:15px;">
-            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="Learning Commons">
+        <div class="header" style="background:#e83e8c; padding:20px; text-align:center;">
+            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="LC Learning Commons">
+            <div class="brand-title">LC MIDES Digital Library</div>
         </div>
         <div class="content">
             <p>Dear <strong>{{ $appointment->firstname }}</strong>,</p>
             <p>Your <strong>ALINET appointment request</strong> has been <span style="color:green; font-weight:bold;">accepted</span>.</p>
+
             @if(($appointment->mode_of_research ?? '') === 'Online (Virtual)')
                 <p>Mode: <strong>Online (Virtual)</strong></p>
                 <p>Please use the following guest account to access the resources:</p>
@@ -30,37 +34,44 @@
                     <div><strong>Email:</strong> {{ $guestEmail ?? config('services.alinet.guest_email', 'guest@example.com') }}</div>
                     <div><strong>Password:</strong> {{ $guestPassword ?? config('services.alinet.guest_password', 'guest12345') }}</div>
                 </div>
-                <p>Requested assistance:</p>
-                <ul>
-                    @foreach((array) $appointment->assistance as $s)
-                    <li>{{ $s }}</li>
-                    @endforeach
-                </ul>
-                <p>Resource types:</p>
-                <ul>
-                    @foreach((array) $appointment->resource_types as $s)
-                    <li>{{ $s }}</li>
-                    @endforeach
-                </ul>
             @else
                 <p>Mode: <strong>Onsite</strong></p>
                 @if(!empty($appointment->appointment_date))
                     <p>Please visit us on:</p>
                     <p class="date">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('F d, Y') }} — 8:00am–3:00pm</p>
                 @endif
-                <p>Requested assistance:</p>
-                <ul>
-                    @foreach((array) $appointment->assistance as $s)
-                    <li>{{ $s }}</li>
-                    @endforeach
-                </ul>
-                <p>Resource types:</p>
-                <ul>
-                    @foreach((array) $appointment->resource_types as $s)
-                    <li>{{ $s }}</li>
-                    @endforeach
-                </ul>
             @endif
+
+            <p>Requested assistance:</p>
+            <ul>
+                @forelse((array) $appointment->assistance as $s)
+                    <li>{{ $s }}</li>
+                @empty
+                    <li>—</li>
+                @endforelse
+            </ul>
+
+            <p>Resource types:</p>
+            <ul>
+                @forelse((array) $appointment->resource_types as $s)
+                    <li>{{ $s }}</li>
+                @empty
+                    <li>—</li>
+                @endforelse
+            </ul>
+
+            <!-- Requester information (after resource types) -->
+            <table class="kv" width="100%">
+                <tr><td>Email</td><td>{{ $appointment->email }}</td></tr>
+                <tr><td>Strand/Course</td><td>{{ $appointment->strand_course }}</td></tr>
+                <tr><td>Institution/College</td><td>{{ $appointment->institution_college }}</td></tr>
+                <tr><td>Requested</td><td>{{ optional($appointment->created_at)->format('F d, Y g:i A') }}</td></tr>
+                @if(!empty($appointment->appointment_date))
+                    <tr><td>Appointment Date</td><td>{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('F d, Y') }}</td></tr>
+                @endif
+                <tr><td>Mode of Research</td><td>{{ $appointment->mode_of_research }}</td></tr>
+            </table>
+
             <p>We look forward to assisting you.</p>
             <p style="margin-top:24px;">
                 Sincerely,<br>

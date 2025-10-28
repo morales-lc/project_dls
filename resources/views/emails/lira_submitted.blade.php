@@ -33,7 +33,7 @@
         }
 
         .header {
-            background-color: #004080;
+            background-color: #e83e8c;
             text-align: center;
             padding: 20px;
         }
@@ -43,7 +43,9 @@
             height: auto;
             margin: 0 8px;
             vertical-align: middle;
+            background:#ffffff; border-radius:6px; padding:4px;
         }
+        .brand-title { color:#ffffff; font-weight:700; font-size:18px; margin-top:8px; font-family: Arial, Helvetica, sans-serif; }
 
         .content {
             padding: 30px;
@@ -100,9 +102,9 @@
                 <table class="email-content" cellpadding="0" cellspacing="0">
 
                     <tr>
-                        <td class="header">
-                            <img src="{{ $message->embed(public_path('images/lourdes_college.jpg')) }}" alt="Lourdes College">
-                            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="Learning Commons">
+                        <td class="header" style="background:#e83e8c; text-align:center; padding:20px;">
+                            <img src="{{ $message->embed(public_path('images/learningcommons.png')) }}" alt="LC Learning Commons">
+                            <div class="brand-title">LC MIDES Digital Library</div>
                         </td>
                     </tr>
 
