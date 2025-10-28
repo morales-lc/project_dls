@@ -150,7 +150,7 @@
           <div class="col-12 col-md-6">
             <label for="school_id" class="form-label">Student/Faculty ID</label>
             <input type="text" name="school_id" id="school_id" class="form-control"
-              required placeholder="Enter your School ID here">
+              required placeholder="Enter your School ID here" value="{{ old('school_id', Auth::user()->studentFaculty->school_id ?? '') }}">
           </div>
 
           <div class="col-12 col-md-6">
@@ -305,6 +305,12 @@
           .then(r => r.json())
           .then(list => {
             list.forEach(p => {
+              // Hide Non-Teaching Staff from student program selection
+              if (selectEl === progStudent && String(p.name).toLowerCase() === 'non-teaching staff') {
+                // still track in map for name lookups if needed
+                programNamesById[String(p.id)] = p.name;
+                return;
+              }
               const opt = document.createElement('option');
               opt.value = p.id;
               opt.textContent = p.name;

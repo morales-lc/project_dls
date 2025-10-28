@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
         // Ensure baseline reference data exists
         $this->call([
             \Database\Seeders\ProgramSeeder::class,
+            \Database\Seeders\NonTeachingStaffProgramSeeder::class,
             \Database\Seeders\MidesCategorySeeder::class,
             \Database\Seeders\MidesDocumentSeeder::class,
             \Database\Seeders\MidesGraduateChildhoodEducationSeeder::class,

@@ -350,9 +350,12 @@
             opt.value = p.id;
             opt.textContent = p.name;
             if (sel) {
-              const o = opt.cloneNode(true);
-              if (sel.dataset.currentProgram && String(p.id) === String(sel.dataset.currentProgram)) o.selected = true;
-              sel.appendChild(o);
+              // Exclude Non-Teaching Staff from the student-facing select
+              if (String(p.name).toLowerCase() !== 'non-teaching staff') {
+                const o = opt.cloneNode(true);
+                if (sel.dataset.currentProgram && String(p.id) === String(sel.dataset.currentProgram)) o.selected = true;
+                sel.appendChild(o);
+              }
             }
             if (selF) {
               const of = opt.cloneNode(true);
