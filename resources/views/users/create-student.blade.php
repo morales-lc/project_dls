@@ -122,23 +122,41 @@
                 const programsEndpoint = "{{ route('api.programs') }}";
                 const programSelect = document.getElementById('programSelect');
                 const courseSelect = document.getElementById('courseSelect');
+                const roleSelect = document.getElementById('roleTypeSelect');
                 programSelect.innerHTML = '<option value="">-- Select Program --</option>';
 
-                fetch(programsEndpoint).then(r => r.json()).then(programs => {
-                    programs.forEach(p => {
-                        const o = document.createElement('option');
-                        o.value = p.id;
-                        o.textContent = p.name;
-                        if (String(p.id) === String("{{ old('program_id') }}")) o.selected = true;
-                        programSelect.appendChild(o);
+                function populatePrograms(selectedId = "{{ old('program_id') }}") {
+                    programSelect.innerHTML = '<option value="">-- Select Program --</option>';
+                    fetch(programsEndpoint).then(r => r.json()).then(programs => {
+                        const isStudent = roleSelect && roleSelect.value === 'student';
+                        programs.forEach(p => {
+                            // Exclude Non-Teaching Staff for students
+                            if (isStudent && String(p.name).toLowerCase() === 'non-teaching staff') return;
+                            const o = document.createElement('option');
+                            o.value = p.id;
+                            o.textContent = p.name;
+                            if (String(p.id) === String(selectedId)) o.selected = true;
+                            programSelect.appendChild(o);
+                        });
+                        if (programSelect.value) {
+                            loadCourses(programSelect.value, "{{ old('course') }}");
+                        } else {
+                            // If previously selected program was filtered out, clear courses
+                            courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                        }
                     });
-                    if (programSelect.value) {
-                        loadCourses(programSelect.value, "{{ old('course') }}");
-                    }
-                });
+                }
+
+                populatePrograms();
 
                 programSelect.addEventListener('change', function() {
                     loadCourses(this.value);
+                });
+
+                // Re-populate programs when role changes to reflect visibility of Non-Teaching Staff
+                roleSelect.addEventListener('change', function() {
+                    // When switching to student, ensure NTS is removed; switching to faculty, include it
+                    populatePrograms(programSelect.value);
                 });
 
                 function loadCourses(programId, selectedCourse = '') {

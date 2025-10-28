@@ -93,8 +93,12 @@
                     <select name="program_id" id="programSelect" class="form-select" required>
                         <option value="">-- Select Program --</option>
                         @foreach ($programs as $program)
-                            <option value="{{ $program->id }}" 
-                                {{ old('program_id', $sf->program_id) == $program->id ? 'selected' : '' }}>
+                            @php $isNTS = strtolower($program->name) === 'non-teaching staff'; @endphp
+                            <option value="{{ $program->id }}"
+                                data-program-name="{{ $program->name }}"
+                                {{ old('program_id', $sf->program_id) == $program->id ? 'selected' : '' }}
+                                {{-- Hide NTS initially if editing a student --}}
+                                @if ($isNTS && old('role_type', $sf->role) === 'student') hidden disabled @endif>
                                 {{ $program->name }}
                             </option>
                         @endforeach
@@ -144,6 +148,25 @@
         toggleStudentFields();
         const programSelect = document.getElementById('programSelect');
         const courseSelect = document.getElementById('courseSelect');
+        const roleSelect = document.getElementById('roleTypeSelect');
+        // Helper: toggle visibility of Non-Teaching Staff option based on role
+        function toggleNTSOption() {
+            const options = Array.from(programSelect.options);
+            const isStudent = roleSelect && roleSelect.value === 'student';
+            options.forEach(opt => {
+                if (String(opt.getAttribute('data-program-name')).toLowerCase() === 'non-teaching staff') {
+                    opt.hidden = isStudent;
+                    opt.disabled = isStudent;
+                    // If currently selected while switching to student, reset selection
+                    if (isStudent && programSelect.value === opt.value) {
+                        programSelect.value = '';
+                        // clear courses when program cleared
+                        courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                    }
+                }
+            });
+        }
+        toggleNTSOption();
 
         function loadCourses(programId, selectedCourse = '') {
             if (!programId) {
@@ -166,6 +189,10 @@
 
         programSelect.addEventListener('change', function() {
             loadCourses(this.value);
+        });
+        roleSelect.addEventListener('change', function() {
+            toggleStudentFields();
+            toggleNTSOption();
         });
 
         // Initial load

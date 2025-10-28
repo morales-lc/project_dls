@@ -502,31 +502,45 @@
         const programsEndpoint = "{{ route('api.programs') }}";
         // When a modal is shown, populate dropdowns and select values
         document.querySelectorAll('.modal').forEach(function(modal) {
-            modal.addEventListener('show.bs.modal', function() {
+            function populateProgramSelect() {
                 const programSel = modal.querySelector('.program-select');
                 const courseSel = modal.querySelector('.course-select');
-                if (programSel) {
-                    // Clear previous options
-                    programSel.innerHTML = '<option value="">-- Select Program --</option>';
-                    fetch(programsEndpoint).then(r => r.json()).then(programs => {
-                        const currentProgram = programSel.dataset.currentProgram;
-                        programs.forEach(p => {
-                            const o = document.createElement('option');
-                            o.value = p.id;
-                            o.textContent = p.name;
-                            if (String(p.id) === String(currentProgram)) o.selected = true;
-                            programSel.appendChild(o);
-                        });
-                        // If current program, load courses
-                        if (currentProgram && courseSel) {
-                            loadCourses(currentProgram, courseSel, courseSel.dataset.currentCourse);
-                        }
+                if (!programSel) return;
+                const roleSel = modal.querySelector('.role-type-select, select[name="role_type"], #roleTypeSelect');
+                const isStudent = roleSel && roleSel.value === 'student';
+                // Clear previous options
+                programSel.innerHTML = '<option value="">-- Select Program --</option>';
+                fetch(programsEndpoint).then(r => r.json()).then(programs => {
+                    const currentProgram = programSel.dataset.currentProgram;
+                    programs.forEach(p => {
+                        // Exclude Non-Teaching Staff when role is student
+                        if (isStudent && String(p.name).toLowerCase() === 'non-teaching staff') return;
+                        const o = document.createElement('option');
+                        o.value = p.id;
+                        o.textContent = p.name;
+                        if (String(p.id) === String(currentProgram)) o.selected = true;
+                        programSel.appendChild(o);
                     });
-                    programSel.addEventListener('change', function() {
-                        if (courseSel) loadCourses(this.value, courseSel);
-                    });
+                    // If current program was filtered out, ensure none selected
+                    if (!programSel.value) {
+                        programSel.value = '';
+                        if (courseSel) courseSel.innerHTML = '<option value="">-- Select Course --</option>';
+                    }
+                    // If current program, load courses
+                    if (programSel.value && courseSel) {
+                        loadCourses(programSel.value, courseSel, courseSel.dataset.currentCourse);
+                    }
+                });
+                programSel.addEventListener('change', function() {
+                    if (courseSel) loadCourses(this.value, courseSel);
+                });
+                if (roleSel) {
+                    roleSel.addEventListener('change', function() {
+                        populateProgramSelect();
+                    }, { once: true }); // rewire on next show/change cycle
                 }
-            });
+            }
+            modal.addEventListener('show.bs.modal', populateProgramSelect);
         });
 
         function loadCourses(programId, courseSel, currentCourse = '') {
