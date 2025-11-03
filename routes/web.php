@@ -52,7 +52,20 @@ Route::get('/about/contact', [ContactController::class, 'index'])->name('about.c
 
 
 
-Route::get('/', [App\Http\Controllers\PostController::class, 'index'])->name('dashboard');
+Route::get('/', function () {
+    if (Auth::check()) {
+        $user = Auth::user();
+        if ($user->role === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+        if ($user->role === 'librarian') {
+            return redirect()->route('librarian.dashboard');
+        }
+    }
+    // Fall back to the public dashboard/home feed
+    // Resolve the controller instance and let the container call the method (no static call)
+    return app()->call([app(App\Http\Controllers\PostController::class), 'index']);
+})->name('dashboard');
 // Show login page or redirect logged-in staff to their dashboards
 Route::get('/login', function () {
     if (\Illuminate\Support\Facades\Auth::check()) {
@@ -208,12 +221,21 @@ Route::middleware(['auth'])->group(function () {
         })->name('admin.dashboard');
 
 
-        // Admin Contact Info Management
-        Route::get('/admin/contact-info', [ContactController::class, 'adminContactInfo'])->name('admin.contact-info');
+        // Library content management (admin-only: Library Hours GIF + Announcements + Contact Info)
+        Route::get('/library-content', [LibraryContentController::class, 'manage'])->name('library.content.manage');
+        Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif'])->name('library.content.gif');
+        Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement'])->name('library.content.announcements.store');
+        Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement'])->name('library.content.announcements.update');
+        Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement'])->name('library.content.announcements.delete');
+        Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements'])->name('library.content.announcements.reorder');
         Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
+
         // import routes
         Route::get('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'showForm'])->name('marc.import.form');
         Route::post('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'import'])->name('marc.import');
+        Route::get('/admin/marc-logs/{filename}', [App\Http\Controllers\MarcController::class, 'downloadLog'])->name('marc.log.download');
+        Route::get('/admin/import-history', [App\Http\Controllers\MarcController::class, 'importLogs'])->name('marc.import.logs');
+        Route::get('/admin/import-history/export', [App\Http\Controllers\MarcController::class, 'exportLogs'])->name('marc.import.logs.export');
 
         // User Management (admin-only)
         Route::get('/user-management', [UserManagementController::class, 'index'])->name('user.management');
@@ -314,14 +336,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
 
-        // Library content (Library Hours GIF + Announcements)
-        Route::get('/library-content', [LibraryContentController::class, 'manage'])->name('library.content.manage');
-        Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif'])->name('library.content.gif');
-        Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement'])->name('library.content.announcements.store');
-        Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement'])->name('library.content.announcements.update');
-        Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement'])->name('library.content.announcements.delete');
-        Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements'])->name('library.content.announcements.reorder');
-
+        // (Moved: Library content management routes moved to admin-only group)
         // (Moved: sidlak article download route will be registered in public routes so downloads are available to all users)
         // Sidlak create/store for librarians/admins
         Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');

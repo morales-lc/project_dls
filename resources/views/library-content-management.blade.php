@@ -25,7 +25,7 @@
     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4">
         <div>
             <h2 class="fw-bold text-pink mb-0">Library Content</h2>
-            <small class="text-muted">Manage Library Hours GIF and announcements</small>
+            <small class="text-muted">Manage Library Hours GIF, announcements, and contact information</small>
         </div>
         <div>
             <a href="{{ route('admin.dashboard') }}" class="btn btn-outline-pink">Back to Dashboard</a>
@@ -125,6 +125,61 @@
                     </ul>
 
                     <div class="mt-3 text-muted small">Drag-and-drop to reorder announcements.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Information Section -->
+    <div class="row g-4 mt-2">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ route('admin.contact-info.update') }}">
+                        @csrf
+                        @method('PUT')
+                        <h5 class="text-pink fw-bold mb-4">Library Contact Information</h5>
+                        
+                        <h6 class="fw-semibold mb-3">Contact Numbers</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">College Library</label>
+                                <input type="text" name="phone_college" class="form-control" value="{{ $contact?->phone_college }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Graduate Library</label>
+                                <input type="text" name="phone_graduate" class="form-control" value="{{ $contact?->phone_graduate }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Senior High School Library</label>
+                                <input type="text" name="phone_senior_high" class="form-control" value="{{ $contact?->phone_senior_high }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">IBED Library</label>
+                                <input type="text" name="phone_ibed" class="form-control" value="{{ $contact?->phone_ibed }}">
+                            </div>
+                        </div>
+                        
+                        <h6 class="fw-semibold mb-3">Social Media & Online</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Facebook URL</label>
+                                <input type="text" name="facebook_url" class="form-control" value="{{ $contact?->facebook_url }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                <input type="email" name="email" class="form-control" value="{{ $contact?->email }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Website URL</label>
+                                <input type="text" name="website_url" class="form-control" value="{{ $contact?->website_url }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-pink px-4 py-2">Update Contact Information</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

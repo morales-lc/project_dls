@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -50,6 +51,23 @@
             white-space: nowrap;
         }
 
+        /* Desktop toolbar show/hide floating button */
+        #toolbar-fab {
+            position: fixed;
+            top: 8px;
+            right: 8px;
+            z-index: 1300;
+            background: rgba(34,34,34,0.95);
+            color: #fff;
+            border: none;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+            display: none; /* shown when toolbar is hidden on desktop */
+            cursor: pointer;
+        }
+
         /* PDF container */
         #pdf-container {
             margin-top: 55px;
@@ -66,28 +84,44 @@
             margin: 0 auto;
             background: #fff;
             border-radius: 4px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.6);
-            max-width: 100%;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+            /* Avoid CSS scaling that can distort aspect ratio at large zooms */
+            max-width: none;
             height: auto;
+            /* height will be set via JS; auto here won’t conflict since width isn’t clamped */
+            flex: 0 0 auto;
+            /* prevent flexbox from stretching the canvas */
+        }
+
+        /* Drag-to-pan cues for desktop */
+        canvas.grabbable {
+            cursor: grab;
+        }
+        canvas.grabbing {
+            cursor: grabbing;
         }
 
         /* Mobile Adjustments */
         @media (max-width: 768px) {
+
             /* Hide the top toolbar and show a compact bottom toolbar for touch devices */
-            #toolbar { display: none; }
+            #toolbar {
+                display: none;
+            }
+
             #bottom-toolbar {
                 position: fixed;
                 bottom: 8px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(34,34,34,0.95);
+                background: rgba(34, 34, 34, 0.95);
                 padding: 8px 10px;
                 border-radius: 999px;
                 display: flex;
                 gap: 8px;
                 z-index: 1200;
                 align-items: center;
-                box-shadow: 0 6px 18px rgba(0,0,0,0.45);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
             }
 
             #bottom-toolbar button {
@@ -97,7 +131,8 @@
                 padding: 10px 12px;
                 border-radius: 8px;
                 font-size: 16px;
-                min-width: 44px; /* recommend touch size */
+                min-width: 44px;
+                /* recommend touch size */
                 min-height: 44px;
                 display: inline-flex;
                 align-items: center;
@@ -106,8 +141,10 @@
 
             #pdf-container {
                 margin-top: 0;
-                height: calc(100vh - 24px); /* leave room for bottom toolbar */
-                padding: 8px 6px 64px; /* bottom padding so last page isn't hidden */
+                height: calc(100vh - 24px);
+                /* leave room for bottom toolbar */
+                padding: 8px 6px 64px;
+                /* bottom padding so last page isn't hidden */
                 box-sizing: border-box;
             }
 
@@ -117,17 +154,18 @@
                 left: 10px;
                 bottom: 18px;
                 z-index: 1210;
-                background: rgba(34,34,34,0.95);
+                background: rgba(34, 34, 34, 0.95);
                 color: #fff;
                 border: none;
                 padding: 10px 12px;
                 border-radius: 8px;
                 font-size: 16px;
-                box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Toolbar -->
     <div id="toolbar">
@@ -137,8 +175,13 @@
         <button id="zoomOut">➖ Zoom Out</button>
         <button id="zoomIn">➕ Zoom In</button>
         <button id="fitWidth">↔ Fit Width</button>
+        <span id="zoomIndicator" style="min-width:64px;text-align:center;opacity:.9">120%</span>
+        <button id="hideControls" title="Hide controls">Hide Controls</button>
         <button id="fullscreen">⛶ Fullscreen</button>
     </div>
+
+    <!-- Desktop toolbar toggle (shown when toolbar is hidden) -->
+    <button id="toolbar-fab" title="Show controls">☰ Controls</button>
 
     <!-- PDF Render Area -->
     <div id="pdf-container">
@@ -158,11 +201,27 @@
             canvas = document.getElementById("pdf-render"),
             ctx = canvas.getContext("2d");
         let renderTask = null;
+        // Zoom boundaries and step for smoother, "real" zooming behavior
+        const MIN_SCALE = 0.25;
+        const MAX_SCALE = 5;
+        const ZOOM_IN_FACTOR = 1.1; // ~10% per notch
+        const ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR;
+        // Anchor to maintain point-of-interest during zoom (set before render, consumed in renderPage)
+        let pendingAnchor = null; // { ratioX, ratioY }
 
         const container = document.getElementById("pdf-container");
 
         // Create bottom toolbar for mobile and the toggle control
         function ensureBottomToolbar() {
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            const existing = document.getElementById('bottom-toolbar');
+            const existingToggle = document.getElementById('toolbar-toggle');
+            if (!isMobile) {
+                // Remove mobile controls on desktop
+                if (existing && existing.parentNode) existing.parentNode.removeChild(existing);
+                if (existingToggle && existingToggle.parentNode) existingToggle.parentNode.removeChild(existingToggle);
+                return;
+            }
             if (!document.getElementById('bottom-toolbar')) {
                 const bt = document.createElement('div');
                 bt.id = 'bottom-toolbar';
@@ -172,6 +231,7 @@
                     <button id="b-zoomOut">➖</button>
                     <button id="b-zoomIn">➕</button>
                     <button id="b-fitWidth">↔</button>
+                    <span id="b-zoomIndicator" style="color:#bbb;min-width:48px;text-align:center;">100%</span>
                 `;
                 document.body.appendChild(bt);
 
@@ -201,8 +261,32 @@
                             top.style.right = '8px';
                             top.style.zIndex = '1300';
                         }
+                        updateDesktopFabVisibility();
                     }
                 });
+            }
+        }
+
+        // Desktop toolbar hide/show helpers
+        function hideToolbarDesktop() {
+            const top = document.getElementById('toolbar');
+            if (top) top.style.display = 'none';
+            updateDesktopFabVisibility();
+        }
+        function showToolbarDesktop() {
+            const top = document.getElementById('toolbar');
+            if (top) top.style.display = 'flex';
+            updateDesktopFabVisibility();
+        }
+        function updateDesktopFabVisibility() {
+            const fab = document.getElementById('toolbar-fab');
+            const top = document.getElementById('toolbar');
+            const isMobile = window.matchMedia('(max-width: 768px)').matches;
+            if (!fab) return;
+            if (!isMobile && top && (top.style.display === 'none')) {
+                fab.style.display = 'inline-block';
+            } else {
+                fab.style.display = 'none';
             }
         }
 
@@ -210,7 +294,10 @@
             if (!pdfDoc) return;
             // cancel any ongoing render to avoid flicker
             if (renderTask && typeof renderTask.cancel === 'function') {
-                try { renderTask.cancel(); } catch (e) { /* ignore */ }
+                try {
+                    renderTask.cancel();
+                } catch (e) {
+                    /* ignore */ }
                 renderTask = null;
             }
 
@@ -220,14 +307,23 @@
                     // fit to available width and height (considering mobile bottom toolbar)
                     const desiredWidth = container.clientWidth - 10;
                     const desiredHeight = container.clientHeight - 10;
-                    const unscaledViewport = page.getViewport({ scale: 1 });
+                    const unscaledViewport = page.getViewport({
+                        scale: 1
+                    });
                     const scaleX = desiredWidth / unscaledViewport.width;
                     const scaleY = desiredHeight / unscaledViewport.height;
                     const scaleFactor = Math.min(scaleX, scaleY);
-                    viewport = page.getViewport({ scale: scaleFactor });
+                    viewport = page.getViewport({
+                        scale: scaleFactor
+                    });
                 } else {
-                    viewport = page.getViewport({ scale });
+                    viewport = page.getViewport({
+                        scale
+                    });
                 }
+
+                // Update zoom indicator based on the effective viewport scale
+                updateZoomIndicator(viewport.scale);
 
                 // Use devicePixelRatio for crisp rendering on HiDPI displays
                 const outputScale = window.devicePixelRatio || 1;
@@ -238,8 +334,37 @@
                 // reset transform and scale drawing to device pixels
                 ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
 
+                // If we had a requested anchor (from a zoom action), keep the same point in view
+                if (pendingAnchor) {
+                    try {
+                        const newW = parseFloat(canvas.style.width) || 0;
+                        const newH = parseFloat(canvas.style.height) || 0;
+                        const targetLeft = newW * pendingAnchor.ratioX - container.clientWidth / 2;
+                        const targetTop = newH * pendingAnchor.ratioY - container.clientHeight / 2;
+                        const maxLeft = Math.max(0, newW - container.clientWidth);
+                        const maxTop = Math.max(0, newH - container.clientHeight);
+                        container.scrollLeft = Math.min(maxLeft, Math.max(0, targetLeft));
+                        container.scrollTop = Math.min(maxTop, Math.max(0, targetTop));
+                    } catch (e) {}
+                    pendingAnchor = null;
+                }
+
+                // Toggle grab cursor when content exceeds viewport in any axis (desktop only)
+                try {
+                    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+                    const cw = parseFloat(canvas.style.width) || 0;
+                    const ch = parseFloat(canvas.style.height) || 0;
+                    if (!isMobile && (cw > container.clientWidth + 0.5 || ch > container.clientHeight + 0.5)) {
+                        canvas.classList.add('grabbable');
+                    } else {
+                        canvas.classList.remove('grabbable');
+                    }
+                } catch (e) {}
+
                 // hide canvas until rendering completes to avoid flicker
-                try { canvas.style.visibility = 'hidden'; } catch (e) {}
+                try {
+                    canvas.style.visibility = 'hidden';
+                } catch (e) {}
                 renderTask = page.render({
                     canvasContext: ctx,
                     viewport
@@ -248,13 +373,15 @@
                 // update page number when rendering finished
                 renderTask.promise.then(function() {
                     document.getElementById("page_num").textContent = num;
-                    try { canvas.style.visibility = 'visible'; } catch (e) {}
+                    try {
+                        canvas.style.visibility = 'visible';
+                    } catch (e) {}
                     renderTask = null;
                 }).catch(function(err) {
                     // ignore render cancellation errors
                     renderTask = null;
                 });
-            }).catch(function(err){
+            }).catch(function(err) {
                 console.error('Failed to get page', err);
             });
         }
@@ -271,18 +398,59 @@
             renderPage(pageNum);
         };
 
-        document.getElementById("zoomIn").onclick = () => {
-            scale += 0.2;
+        function getCenterAnchorRatios() {
+            // Compute center based on scroll offsets to avoid jumps when crossing overflow thresholds
+            try {
+                const dpr = window.devicePixelRatio || 1;
+                const canvW = canvas.clientWidth || parseFloat(canvas.style.width) || (canvas.width / dpr) || 0;
+                const canvH = canvas.clientHeight || parseFloat(canvas.style.height) || (canvas.height / dpr) || 0;
+                let ratioX = 0.5, ratioY = 0.5;
+                if (canvW > container.clientWidth + 0.5) {
+                    ratioX = (container.scrollLeft + container.clientWidth / 2) / canvW;
+                }
+                if (canvH > container.clientHeight + 0.5) {
+                    ratioY = (container.scrollTop + container.clientHeight / 2) / canvH;
+                }
+                return { ratioX: Math.min(1, Math.max(0, ratioX)), ratioY: Math.min(1, Math.max(0, ratioY)) };
+            } catch (e) {
+                return { ratioX: 0.5, ratioY: 0.5 };
+            }
+        }
+
+        function getMouseAnchorRatios(evt) {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                const x = evt.clientX - rect.left;
+                const y = evt.clientY - rect.top;
+                const ratioX = rect.width ? x / rect.width : 0.5;
+                const ratioY = rect.height ? y / rect.height : 0.5;
+                return {
+                    ratioX: Math.min(1, Math.max(0, ratioX)),
+                    ratioY: Math.min(1, Math.max(0, ratioY))
+                };
+            } catch (e) {
+                return {
+                    ratioX: 0.5,
+                    ratioY: 0.5
+                };
+            }
+        }
+
+        function setScale(newScale, anchor) {
+            const clamped = Math.min(MAX_SCALE, Math.max(MIN_SCALE, newScale));
+            if (Math.abs(clamped - scale) < 0.001) return;
             fitMode = false;
+            pendingAnchor = anchor || getCenterAnchorRatios();
+            scale = clamped;
             renderPage(pageNum);
+        }
+
+        document.getElementById("zoomIn").onclick = () => {
+            setScale(scale * ZOOM_IN_FACTOR, getCenterAnchorRatios());
         };
 
         document.getElementById("zoomOut").onclick = () => {
-            if (scale > 0.5) {
-                scale -= 0.2;
-                fitMode = false;
-                renderPage(pageNum);
-            }
+            setScale(scale * ZOOM_OUT_FACTOR, getCenterAnchorRatios());
         };
 
         document.getElementById("fitWidth").onclick = () => {
@@ -306,21 +474,142 @@
             renderPage(pageNum);
             // Ensure bottom toolbar exists on mobile
             ensureBottomToolbar();
+            updateDesktopFabVisibility();
         });
 
         window.addEventListener("resize", () => {
             // recreate bottom toolbar if viewport changes
-            try { ensureBottomToolbar(); } catch (e) {}
+            try {
+                ensureBottomToolbar();
+            } catch (e) {}
+            updateDesktopFabVisibility();
             if (fitMode) renderPage(pageNum);
         });
+
+        // Smooth Ctrl/Meta + wheel zoom with anchor at mouse position
+        container.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const delta = e.deltaY;
+                const factor = delta < 0 ? ZOOM_IN_FACTOR : ZOOM_OUT_FACTOR;
+                const anchor = getMouseAnchorRatios(e);
+                setScale(scale * factor, anchor);
+            }
+        }, {
+            passive: false
+        });
+
+        // Double-click to zoom in (Shift + double-click to zoom out)
+        container.addEventListener('dblclick', (e) => {
+            const anchor = getMouseAnchorRatios(e);
+            if (e.shiftKey) setScale(scale * ZOOM_OUT_FACTOR, anchor);
+            else setScale(scale * (ZOOM_IN_FACTOR * ZOOM_IN_FACTOR), anchor); // a bit stronger zoom on dblclick
+        });
+
+        // Keyboard shortcuts similar to common viewers
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                // Ctrl+'+' or Ctrl+=''
+                if (e.key === '+' || e.key === '=') {
+                    e.preventDefault();
+                    setScale(scale * ZOOM_IN_FACTOR, getCenterAnchorRatios());
+                }
+                // Ctrl+'-'
+                if (e.key === '-') {
+                    e.preventDefault();
+                    setScale(scale * ZOOM_OUT_FACTOR, getCenterAnchorRatios());
+                }
+                // Ctrl+'0' => Fit width
+                if (e.key === '0') {
+                    e.preventDefault();
+                    fitMode = true;
+                    renderPage(pageNum);
+                }
+                // Ctrl+'1' => 100%
+                if (e.key === '1') {
+                    e.preventDefault();
+                    setScale(1.0, getCenterAnchorRatios());
+                }
+            }
+        });
+
+        // Zoom indicator updater
+        function updateZoomIndicator(effectiveScale) {
+            try {
+                const pct = Math.round(effectiveScale * 100);
+                const el = document.getElementById('zoomIndicator');
+                if (el) el.textContent = pct + '%';
+                const bel = document.getElementById('b-zoomIndicator');
+                if (bel) bel.textContent = pct + '%';
+            } catch (e) {}
+        }
+
+        // --- Desktop drag-to-pan (click and drag) ---
+        (function enableDesktopDragToPan(){
+            const isDesktop = () => !window.matchMedia('(max-width: 768px)').matches;
+            let panning = false;
+            let moved = false;
+            let startX = 0, startY = 0;
+            let startLeft = 0, startTop = 0;
+            const THRESH = 3; // px before we treat it as a drag
+
+            const onPointerDown = (e) => {
+                if (!isDesktop()) return; // desktop only
+                if (e.button !== 0 && e.button !== 1) return; // left or middle button
+                // Only start if there is actually something to pan
+                const cw = canvas.clientWidth;
+                const ch = canvas.clientHeight;
+                if (cw <= container.clientWidth + 0.5 && ch <= container.clientHeight + 0.5) return;
+
+                panning = true;
+                moved = false;
+                startX = e.clientX;
+                startY = e.clientY;
+                startLeft = container.scrollLeft;
+                startTop = container.scrollTop;
+                try { canvas.classList.add('grabbing'); } catch (err) {}
+                try { canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId); } catch (err) {}
+            };
+
+            const onPointerMove = (e) => {
+                if (!panning) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (!moved && (Math.abs(dx) > THRESH || Math.abs(dy) > THRESH)) moved = true;
+                if (moved) {
+                    e.preventDefault();
+                    container.scrollLeft = startLeft - dx;
+                    container.scrollTop = startTop - dy;
+                }
+            };
+
+            const endPan = (e) => {
+                if (!panning) return;
+                panning = false;
+                try { canvas.classList.remove('grabbing'); } catch (err) {}
+                try { canvas.releasePointerCapture && canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+            };
+
+            // Prefer pointer events if available
+            const downEvt = ('onpointerdown' in window) ? 'pointerdown' : 'mousedown';
+            const moveEvt = (downEvt === 'pointerdown') ? 'pointermove' : 'mousemove';
+            const upEvt   = (downEvt === 'pointerdown') ? 'pointerup'   : 'mouseup';
+
+            canvas.addEventListener(downEvt, onPointerDown);
+            window.addEventListener(moveEvt, onPointerMove, { passive: false });
+            window.addEventListener(upEvt, endPan);
+            window.addEventListener('mouseleave', endPan);
+        })();
 
         // Debounce helper
         function debounce(fn, wait) {
             let t = null;
-            return function () {
+            return function() {
                 const args = arguments;
                 clearTimeout(t);
-                t = setTimeout(function () { fn.apply(null, args); }, wait);
+                t = setTimeout(function() {
+                    fn.apply(null, args);
+                }, wait);
             };
         }
 
@@ -341,7 +630,7 @@
                 const modalEl = window.frameElement.closest('.modal');
                 if (modalEl) {
                     const debouncedRender = debounce(() => renderPage(pageNum), 120);
-                    const mo = new MutationObserver(function (mutations) {
+                    const mo = new MutationObserver(function(mutations) {
                         for (const m of mutations) {
                             if (m.attributeName === 'class') {
                                 const cls = modalEl.className || '';
@@ -352,7 +641,10 @@
                             }
                         }
                     });
-                    mo.observe(modalEl, { attributes: true, attributeFilter: ['class'] });
+                    mo.observe(modalEl, {
+                        attributes: true,
+                        attributeFilter: ['class']
+                    });
                 }
             }
         } catch (e) {
@@ -370,7 +662,9 @@
                         setTimeout(() => renderPage(pageNum), 260);
                     };
                     parentModal.addEventListener('shown.bs.modal', onShown);
-                    parentModal.addEventListener('show.bs.modal', function() { setTimeout(() => renderPage(pageNum), 120); });
+                    parentModal.addEventListener('show.bs.modal', function() {
+                        setTimeout(() => renderPage(pageNum), 120);
+                    });
                     // if modal already open, force a render
                     if ((parentModal.className || '').indexOf('show') !== -1) {
                         setTimeout(() => renderPage(pageNum), 80);
@@ -381,7 +675,12 @@
             // ignore
         }
 
-        document.addEventListener('contextmenu', event => event.preventDefault());
+    // Desktop toolbar events
+    document.getElementById('hideControls').addEventListener('click', hideToolbarDesktop);
+    document.getElementById('toolbar-fab').addEventListener('click', showToolbarDesktop);
+
+    document.addEventListener('contextmenu', event => event.preventDefault());
     </script>
 </body>
+
 </html>

@@ -75,13 +75,13 @@
                                 <button type="button" class="btn btn-outline-pink btn-sm view-btn" data-bs-toggle="modal" data-bs-target="#pdfModal{{ $record->id }}"><i class="bi bi-file-earmark-pdf"></i> View</button>
 
                                 <div class="modal fade" id="pdfModal{{ $record->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $record->id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-xl modal-dialog-centered">
-                                        <div class="modal-content">
+                                    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width:95vw; width:95vw;">
+                                        <div class="modal-content" style="height:90vh;">
                                             <div class="modal-header">
                                                 <h5 class="modal-title" id="pdfModalLabel{{ $record->id }}">{{ $record->title }} ({{ $record->year }})</h5>
                                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                             </div>
-                                            <iframe src="{{ route('mides.seniorhigh.viewer', $record->id) }}" width="100%" height="100%" style="border:none; min-height:70vh;"></iframe>
+                                            <iframe src="{{ route('mides.seniorhigh.viewer', $record->id) }}" width="100%" height="100%" style="border:none; min-height:85vh;"></iframe>
                                         </div>
                                     </div>
                                 </div>

@@ -39,6 +39,6 @@ class ContactController extends Controller
                 'website_url',
             ]));
             $contact->save();
-            return redirect()->route('admin.contact-info')->with('success', 'Contact info updated successfully.');
+            return redirect()->route('library.content.manage')->with('success', 'Contact info updated successfully.');
         }
 }

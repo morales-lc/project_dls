@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use App\Models\LibrarySetting;
 use App\Models\LibraryAnnouncement;
+use App\Models\ContactInfo;
 
 class LibraryContentController extends Controller
 {
@@ -13,7 +14,8 @@ class LibraryContentController extends Controller
     {
         $settings = LibrarySetting::singleton();
         $announcements = LibraryAnnouncement::orderBy('position')->get();
-        return view('library-content-management', compact('settings', 'announcements'));
+        $contact = ContactInfo::first();
+        return view('library-content-management', compact('settings', 'announcements', 'contact'));
     }
 
     public function updateGif(Request $request)

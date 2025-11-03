@@ -18,7 +18,6 @@
         [ 'route' => 'feedback.admin', 'icon' => 'bi-chat-dots', 'label' => 'Feedback' ],
         [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
         [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'SIDLAK Journals' ],
-        [ 'route' => 'admin.contact-info', 'icon' => 'bi-telephone', 'label' => 'Contact Info Management' ],
         [ 'route' => 'e-libraries.manage', 'icon' => 'bi-globe-americas', 'label' => 'Manage E-libraries' ],
         [ 'route' => 'lira.manage', 'icon' => 'bi-journal', 'label' => 'Manage LIRA Requests' ],
         [ 'route' => 'admin.analytics', 'icon' => 'bi-bar-chart', 'label' => 'Analytics' ],

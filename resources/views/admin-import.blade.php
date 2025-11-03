@@ -11,8 +11,35 @@
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
         <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
-            <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Import Catalog</h2>
-            <small class="text-muted">Upload MARC (.mrc/.marc) files to import records</small>
+            <div>
+                <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Import Catalog</h2>
+                <small class="text-muted">Upload MARC (.mrc/.marc) files to import records</small>
+                @php
+                    $catalogLastUpdated = null;
+                    try {
+                        if (\Illuminate\Support\Facades\Schema::hasTable('catalogs')) {
+                            if (\Illuminate\Support\Facades\Schema::hasColumn('catalogs', 'updated_at')) {
+                                $catalogLastUpdated = \App\Models\Catalog::max('updated_at');
+                            } elseif (\Illuminate\Support\Facades\Schema::hasColumn('catalogs', 'created_at')) {
+                                $catalogLastUpdated = \App\Models\Catalog::max('created_at');
+                            }
+                        }
+                    } catch (\Throwable $e) {
+                        $catalogLastUpdated = null;
+                    }
+                @endphp
+                @if($catalogLastUpdated)
+                    <div class="small text-muted mt-1">Last catalog update: {{ \Carbon\Carbon::parse($catalogLastUpdated)->format('M d, Y h:i A') }}</div>
+                @else
+                    <div class="small text-muted mt-1">No catalog updates yet</div>
+                @endif
+            </div>
+            <div class="d-flex gap-2 align-items-center">
+                <a href="{{ route('marc.import.logs') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-clock-history"></i> Import History
+                </a>
+                <small class="text-muted">{{ now()->format('M d, Y h:i A') }}</small>
+            </div>
         </div>
 
         @if(session('success'))
@@ -36,6 +63,10 @@
                     <div class="mb-3">
                         <label for="marc_file" class="form-label fw-semibold">Upload MARC file</label>
                         <input type="file" name="marc_file" id="marc_file" accept=".mrc,.marc" class="form-control" required>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="delete_missing" name="delete_missing">
+                        <label class="form-check-label" for="delete_missing">Delete records missing from this file</label>
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" id="importBtn" class="btn btn-pink px-4 py-2 fw-semibold">
@@ -66,6 +97,7 @@
         const csrfToken = form.dataset.csrf;
         const fileInput = document.getElementById('marc_file');
         const importBtn = document.getElementById('importBtn');
+    const deleteMissing = document.getElementById('delete_missing');
         const statusWrap = document.getElementById('uploadStatus');
         const progressBar = document.getElementById('uploadProgress');
         const message = document.getElementById('uploadMessage');
@@ -85,6 +117,9 @@
             const fd = new FormData();
             fd.append('_token', csrfToken);
             fd.append('marc_file', fileInput.files[0]);
+            if (deleteMissing && deleteMissing.checked) {
+                fd.append('delete_missing', '1');
+            }
 
             const xhr = new XMLHttpRequest();
             xhr.open('POST', uploadUrl, true);
@@ -106,15 +141,31 @@
                             const res = JSON.parse(xhr.responseText);
                             if (res.success) {
                                 progressBar.style.width = '100%';
-                                message.innerHTML = '<span class="text-success">' + (res.message || 'Import succeeded.') + '</span>';
-                                if (res.output) {
-                                    message.innerHTML += '<div class="mt-2 small text-muted">' + escapeHtml(res.output) + '</div>';
+                                let html = '<span class="text-success fw-semibold"><i class="bi bi-check-circle me-2"></i>' + (res.message || 'Import succeeded.') + '</span>';
+                                if (res.summary) {
+                                    const s = res.summary;
+                                    html += `<div class="mt-3 p-3 bg-light rounded">`+
+                                        `<div class="row g-2 text-center">`+
+                                        `<div class="col"><div class="small text-muted">Added</div><div class="h5 mb-0 text-success">${s.inserted}</div></div>`+
+                                        `<div class="col"><div class="small text-muted">Updated</div><div class="h5 mb-0 text-info">${s.updated}</div></div>`+
+                                        `<div class="col"><div class="small text-muted">Unchanged</div><div class="h5 mb-0 text-secondary">${s.unchanged}</div></div>`;
+                                    if (s.deletion_mode === 'applied') {
+                                        html += `<div class="col"><div class="small text-muted">Deleted</div><div class="h5 mb-0 text-danger">${s.deleted}</div></div>`;
+                                    }
+                                    if (s.errors && s.errors > 0) {
+                                        html += `<div class="col"><div class="small text-muted">Errors</div><div class="h5 mb-0 text-warning">${s.errors}</div></div>`;
+                                    }
+                                    html += `</div></div>`;
+                                    html += `<div class="mt-3 d-flex gap-2 justify-content-center">`+
+                                        `<a href="{{ route('marc.import.logs') }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-clock-history me-1"></i> View Import History</a>`;
+                                    if (s.log_file) {
+                                        const logUrl = `{{ url('admin/marc-logs') }}/${encodeURIComponent(s.log_file)}`;
+                                        html += `<a href="${logUrl}" class="btn btn-sm btn-outline-secondary" download><i class="bi bi-download me-1"></i> Download Detailed Log</a>`;
+                                    }
+                                    html += `</div>`;
                                 }
-                                setTimeout(() => {
-                                    statusWrap.style.display = 'none';
-                                    progressBar.style.width = '0%';
-                                    message.textContent = '';
-                                }, 5000);
+                                message.innerHTML = html;
+                                // Keep the results and download button visible - don't hide automatically
                             } else {
                                 message.innerHTML = '<span class="text-danger">' + (res.message || 'Import failed.') + '</span>';
                             }
