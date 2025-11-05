@@ -44,7 +44,7 @@ use App\Http\Controllers\LiRAController;
 
 
 
-Route::view('/about', 'about')->name('about');
+Route::get('/about', [HomeController::class, 'about'])->name('about');
 
 
 
@@ -221,13 +221,38 @@ Route::middleware(['auth'])->group(function () {
         })->name('admin.dashboard');
 
 
-        // Library content management (admin-only: Library Hours GIF + Announcements + Contact Info)
+        // Library content management (admin-only: Library Hours GIF + Announcements + Contact Info + Slideshow)
         Route::get('/library-content', [LibraryContentController::class, 'manage'])->name('library.content.manage');
         Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif'])->name('library.content.gif');
         Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement'])->name('library.content.announcements.store');
         Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement'])->name('library.content.announcements.update');
         Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement'])->name('library.content.announcements.delete');
         Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements'])->name('library.content.announcements.reorder');
+        Route::post('/library-content/slideshow', [LibraryContentController::class, 'storeSlideshowImage'])->name('library.content.slideshow.store');
+        Route::put('/library-content/slideshow/{id}', [LibraryContentController::class, 'updateSlideshowImage'])->name('library.content.slideshow.update');
+        Route::delete('/library-content/slideshow/{id}', [LibraryContentController::class, 'deleteSlideshowImage'])->name('library.content.slideshow.delete');
+        Route::post('/library-content/slideshow/reorder', [LibraryContentController::class, 'reorderSlideshowImages'])->name('library.content.slideshow.reorder');
+        
+        // Netzone management routes
+        Route::post('/library-content/netzone', [LibraryContentController::class, 'updateNetzone'])->name('library.content.netzone.update');
+        Route::post('/library-content/netzone/image', [LibraryContentController::class, 'addNetzoneImage'])->name('library.content.netzone.image.add');
+        Route::delete('/library-content/netzone/image', [LibraryContentController::class, 'deleteNetzoneImage'])->name('library.content.netzone.image.delete');
+        Route::post('/library-content/netzone/reminder', [LibraryContentController::class, 'addNetzoneReminder'])->name('library.content.netzone.reminder.add');
+        Route::put('/library-content/netzone/reminder', [LibraryContentController::class, 'updateNetzoneReminder'])->name('library.content.netzone.reminder.update');
+        Route::delete('/library-content/netzone/reminder', [LibraryContentController::class, 'deleteNetzoneReminder'])->name('library.content.netzone.reminder.delete');
+        
+        // Learning Space management routes
+        Route::post('/library-content/learning-space', [LibraryContentController::class, 'updateLearningSpace'])->name('library.content.learning-space.update');
+        Route::post('/library-content/learning-space/image', [LibraryContentController::class, 'addLearningSpaceImage'])->name('library.content.learning-space.image.add');
+        Route::delete('/library-content/learning-space/image', [LibraryContentController::class, 'deleteLearningSpaceImage'])->name('library.content.learning-space.image.delete');
+        Route::put('/library-content/learning-space/content', [LibraryContentController::class, 'updateLearningSpaceContent'])->name('library.content.learning-space.content.update');
+        Route::post('/library-content/learning-space/section', [LibraryContentController::class, 'addLearningSpaceSection'])->name('library.content.learning-space.section.add');
+        Route::put('/library-content/learning-space/section', [LibraryContentController::class, 'updateLearningSpaceSection'])->name('library.content.learning-space.section.update');
+        Route::delete('/library-content/learning-space/section', [LibraryContentController::class, 'deleteLearningSpaceSection'])->name('library.content.learning-space.section.delete');
+        Route::post('/library-content/learning-space/section/item', [LibraryContentController::class, 'addLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.add');
+        Route::put('/library-content/learning-space/section/item', [LibraryContentController::class, 'updateLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.update');
+        Route::delete('/library-content/learning-space/section/item', [LibraryContentController::class, 'deleteLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.delete');
+        
         Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
 
         // import routes
@@ -323,9 +348,38 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Information Literacy manage routes declared below (create/store/manage/edit/update/delete)
-        // Librarian profile (view/edit own profile)
         Route::get('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'edit'])->name('librarian.profile');
         Route::put('/librarian/profile', [\App\Http\Controllers\LibrarianProfileController::class, 'update'])->name('librarian.profile.update');
+        
+        // Library Content Management (shared with admin)
+        Route::get('/library-content', [LibraryContentController::class, 'manage'])->name('library.content.manage');
+        Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif'])->name('library.content.gif');
+        Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement'])->name('library.content.announcements.store');
+        Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement'])->name('library.content.announcements.update');
+        Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement'])->name('library.content.announcements.delete');
+        Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements'])->name('library.content.announcements.reorder');
+        Route::post('/library-content/slideshow', [LibraryContentController::class, 'storeSlideshowImage'])->name('library.content.slideshow.store');
+        Route::put('/library-content/slideshow/{id}', [LibraryContentController::class, 'updateSlideshowImage'])->name('library.content.slideshow.update');
+        Route::delete('/library-content/slideshow/{id}', [LibraryContentController::class, 'deleteSlideshowImage'])->name('library.content.slideshow.delete');
+        Route::post('/library-content/slideshow/reorder', [LibraryContentController::class, 'reorderSlideshowImages'])->name('library.content.slideshow.reorder');
+        Route::post('/library-content/netzone', [LibraryContentController::class, 'updateNetzone'])->name('library.content.netzone.update');
+        Route::post('/library-content/netzone/image', [LibraryContentController::class, 'addNetzoneImage'])->name('library.content.netzone.image.add');
+        Route::delete('/library-content/netzone/image', [LibraryContentController::class, 'deleteNetzoneImage'])->name('library.content.netzone.image.delete');
+        Route::post('/library-content/netzone/reminder', [LibraryContentController::class, 'addNetzoneReminder'])->name('library.content.netzone.reminder.add');
+        Route::put('/library-content/netzone/reminder', [LibraryContentController::class, 'updateNetzoneReminder'])->name('library.content.netzone.reminder.update');
+        Route::delete('/library-content/netzone/reminder', [LibraryContentController::class, 'deleteNetzoneReminder'])->name('library.content.netzone.reminder.delete');
+        Route::post('/library-content/learning-space', [LibraryContentController::class, 'updateLearningSpace'])->name('library.content.learning-space.update');
+        Route::post('/library-content/learning-space/image', [LibraryContentController::class, 'addLearningSpaceImage'])->name('library.content.learning-space.image.add');
+        Route::delete('/library-content/learning-space/image', [LibraryContentController::class, 'deleteLearningSpaceImage'])->name('library.content.learning-space.image.delete');
+        Route::put('/library-content/learning-space/content', [LibraryContentController::class, 'updateLearningSpaceContent'])->name('library.content.learning-space.content.update');
+        Route::post('/library-content/learning-space/section', [LibraryContentController::class, 'addLearningSpaceSection'])->name('library.content.learning-space.section.add');
+        Route::put('/library-content/learning-space/section', [LibraryContentController::class, 'updateLearningSpaceSection'])->name('library.content.learning-space.section.update');
+        Route::delete('/library-content/learning-space/section', [LibraryContentController::class, 'deleteLearningSpaceSection'])->name('library.content.learning-space.section.delete');
+        Route::post('/library-content/learning-space/section/item', [LibraryContentController::class, 'addLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.add');
+        Route::put('/library-content/learning-space/section/item', [LibraryContentController::class, 'updateLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.update');
+        Route::delete('/library-content/learning-space/section/item', [LibraryContentController::class, 'deleteLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.delete');
+        Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
+        
         // Post Management routes
         Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
         Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
@@ -484,6 +538,8 @@ Route::middleware(['auth'])->group(function () {
 
 // Book Borrowing page
 use App\Http\Controllers\BookBorrowingController;
+use App\Http\Controllers\NetzoneController;
+use App\Http\Controllers\LearningSpaceController;
 
 Route::get('/book-borrowing', [BookBorrowingController::class, 'show'])->name('book.borrowing');
 
@@ -491,7 +547,10 @@ Route::get('/book-borrowing', [BookBorrowingController::class, 'show'])->name('b
 Route::get('/scanning-services', [App\Http\Controllers\BookBorrowingController::class, 'scanningServices'])->name('scanning.services');
 
 // Netzone page
-Route::get('/netzone', [App\Http\Controllers\BookBorrowingController::class, 'netzone'])->name('netzone');
+Route::get('/netzone', [NetzoneController::class, 'show'])->name('netzone');
+
+// Learning Spaces page
+Route::get('/learning-spaces', [LearningSpaceController::class, 'show'])->name('learning-spaces');
 
 // Guest role routes: limited-access dashboard and entry points
 Route::middleware(['auth', 'role:guest'])->group(function () {

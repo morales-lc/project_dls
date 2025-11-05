@@ -1,17 +1,47 @@
-@include('navbar')
 
+<title>NETZONE</title>
+@include('navbar')
 
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card shadow border-0 mb-4">
                 <div class="card-body">
-                    <h1 class="mb-3 fw-bold text-center" style="color:#e83e8c;">Netzone</h1>
+                    <h1 class="mb-3 fw-bold text-center" style="color:#e83e8c;">{{ $settings->title }}</h1>
                     <hr class="mb-4" style="border-top:2px solid #e83e8c;">
-                    <div class="mb-4 d-flex flex-column flex-md-row align-items-center justify-content-center gap-4">
-                        <img src="{{ asset('images/netzone1.png') }}" alt="Netzone 1" class="img-fluid rounded shadow-sm learning-space-img" style="max-width: 420px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imgModal" data-img="{{ asset('images/netzone1.png') }}">
-                        <img src="{{ asset('images/netzone2.png') }}" alt="Netzone 2" class="img-fluid rounded shadow-sm learning-space-img" style="max-width: 420px; cursor:pointer;" data-bs-toggle="modal" data-bs-target="#imgModal" data-img="{{ asset('images/netzone2.png') }}">
+                    
+                    @if($settings->images && count($settings->images) > 0)
+                    <!-- Image Slideshow -->
+                    <div class="mb-4">
+                        <div id="netzoneCarousel" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-indicators">
+                                @foreach($settings->images as $index => $image)
+                                <button type="button" data-bs-target="#netzoneCarousel" data-bs-slide-to="{{ $index }}" 
+                                    class="{{ $index === 0 ? 'active' : '' }}" 
+                                    aria-current="{{ $index === 0 ? 'true' : 'false' }}" 
+                                    aria-label="Slide {{ $index + 1 }}"></button>
+                                @endforeach
+                            </div>
+                            <div class="carousel-inner rounded shadow-sm">
+                                @foreach($settings->images as $index => $image)
+                                <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                                    <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="Netzone Image {{ $index + 1 }}" style="height: 450px; object-fit: cover; cursor: pointer;" data-bs-toggle="modal" data-bs-target="#imgModal" data-img="{{ asset('storage/' . $image) }}">
+                                </div>
+                                @endforeach
+                            </div>
+                            @if(count($settings->images) > 1)
+                            <button class="carousel-control-prev" type="button" data-bs-target="#netzoneCarousel" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Previous</span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#netzoneCarousel" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                <span class="visually-hidden">Next</span>
+                            </button>
+                            @endif
+                        </div>
                     </div>
+                    @endif
 
                     <!-- Image Modal -->
                     <div class="modal fade" id="imgModal" tabindex="-1" aria-labelledby="imgModalLabel" aria-hidden="true">
@@ -40,12 +70,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     var imgModal = document.getElementById('imgModal');
     var modalImg = document.getElementById('modalImg');
-    document.querySelectorAll('.learning-space-img').forEach(function(img) {
+    
+    // Handle carousel image clicks
+    document.querySelectorAll('#netzoneCarousel img').forEach(function(img) {
         img.addEventListener('click', function() {
             var src = this.getAttribute('data-img');
             modalImg.src = src;
         });
     });
+    
     // Clear image on modal close
     imgModal.addEventListener('hidden.bs.modal', function () {
         modalImg.src = '';
@@ -54,8 +87,10 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
                     <div class="mb-4">
                         <h4 class="fw-semibold" style="color:#e83e8c;">What is the Netzone?</h4>
-                        <p class="fs-5">The College Library provides 30 terminals for the use of students. The Senior High School has its own Internet Room and has 10 terminals for use. In addition, there are spaces for students to use their laptops or notebooks.</p>
+                        <p class="fs-5">{{ $settings->description }}</p>
                     </div>
+                    
+                    @if($settings->reminders && count($settings->reminders) > 0)
                     <div class="reminders-card" role="region" aria-labelledby="netzone-reminders">
                         <div id="netzone-reminders" class="reminders-title" style="font-size:1.25rem;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#e83e8c" viewBox="0 0 16 16" class="me-2" aria-hidden="true" focusable="false">
@@ -64,36 +99,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             Reminders While Using the Netzone
                         </div>
                         <ul class="reminders-list mt-3" style="list-style:none; padding-left:0;">
+                            @foreach($settings->reminders as $index => $reminder)
                             <li class="d-flex align-items-start mb-2">
-                                <span class="badge rounded-pill bg-pink me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">1</span>
-                                <span class="flex-fill"><strong class="text-danger">BE RESPECTFUL!</strong> Always treat the computer lab equipment AND your teacher and classmates the way that you would want your belongings and yourself to be treated.</span>
+                                <span class="badge rounded-pill bg-{{ $reminder['type'] === 'danger' ? 'pink' : $reminder['type'] }} me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">{{ $index + 1 }}</span>
+                                <span class="flex-fill{{ $reminder['type'] === 'danger' ? ' text-danger' : '' }}">
+                                    @if(str_contains($reminder['text'], 'BE RESPECTFUL!'))
+                                        <strong class="text-danger">BE RESPECTFUL!</strong> {{ str_replace('BE RESPECTFUL!', '', $reminder['text']) }}
+                                    @elseif(str_contains($reminder['text'], 'NO EXCEPTIONS'))
+                                        {!! str_replace('NO EXCEPTIONS.', '<strong>NO EXCEPTIONS.</strong>', $reminder['text']) !!}
+                                    @else
+                                        {{ $reminder['text'] }}
+                                    @endif
+                                </span>
                             </li>
-                            <li class="d-flex align-items-start mb-2">
-                                <span class="badge rounded-pill bg-pink me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">2</span>
-                                <span class="flex-fill text-danger">No food or drinks near the computers. <strong>NO EXCEPTIONS.</strong></span>
-                            </li>
-                            <li class="d-flex align-items-start mb-2">
-                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">3</span>
-                                <span class="flex-fill">Enter the Netzone quietly and work quietly. There are other individuals who may be using the Netone. Please be respectful.</span>
-                            </li>
-                            <li class="d-flex align-items-start mb-2">
-                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">4</span>
-                                <span class="flex-fill">Surf safely! Only visit assigned websites. Some web links can contain viruses or malware. Others may contain inappropriate content.</span>
-                            </li>
-                            <li class="d-flex align-items-start mb-2">
-                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">5</span>
-                                <span class="flex-fill">Clean up your work area before you leave.</span>
-                            </li>
-                            <li class="d-flex align-items-start mb-2">
-                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">6</span>
-                                <span class="flex-fill">Do not change computer settings or backgrounds.</span>
-                            </li>
-                            <li class="d-flex align-items-start mb-0">
-                                <span class="badge rounded-pill bg-warning text-dark me-3" style="min-width:38px; display:inline-flex; align-items:center; justify-content:center;">7</span>
-                                <span class="flex-fill">For your saving and printing needs, proceed to the Concierge.</span>
-                            </li>
+                            @endforeach
                         </ul>
                     </div>
+                    @endif
                 </div>
             </div>
         </div>

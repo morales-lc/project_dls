@@ -7,531 +7,14 @@
     <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="{{ asset('css/news-card.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/dashboard.css') }}" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.png') }}">
-
-
-    <style>
-        /* Keep search bar and button aligned side by side */
-        .search-bar {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        /* Make the search bar full-width and stack on small screens */
-        @media (max-width: 575.98px) {
-            .search-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .search-bar .input-group,
-            .search-bar .btn {
-                width: 100%;
-            }
-        }
-
-        /* Catalog search - make it larger and obvious */
-        .catalog-search .input-group-text,
-        .catalog-search .form-control,
-        .catalog-search .btn {
-            height: 54px;
-            font-size: 1.05rem;
-        }
-
-        .catalog-search .form-control {
-            padding: .85rem 1rem;
-        }
-
-        .catalog-search .catalog-chip {
-            background: #d81b60;
-            color: #fff;
-            font-weight: 700;
-            border: none;
-        }
-
-        .catalog-search .input-group-text {
-            background: #fff;
-            border-color: #ffd1e3;
-            color: #d81b60;
-        }
-
-        .catalog-search .form-control {
-            border-color: #ffd1e3;
-        }
-
-        .catalog-search .form-control:focus {
-            border-color: #d81b60;
-            box-shadow: 0 0 0 .2rem rgba(216, 27, 96, 0.15);
-        }
-
-        .card-clickable {
-            cursor: pointer;
-            transition: box-shadow .2s, transform .2s;
-        }
-
-        .card-clickable:focus,
-        .card-clickable:hover {
-            box-shadow: 0 4px 24px 0 rgba(216, 27, 96, 0.18), 0 1.5px 8px 0 rgba(66, 46, 89, 0.08);
-            transform: translateY(-2px) scale(1.02);
-            outline: 2px solid #d81b60;
-        }
-
-        /* Uniform card image and video size */
-        .lc-news-card-img,
-        .lc-news-card .lc-news-card-img,
-        .lc-news-card iframe.lc-news-card-img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-            border-radius: 0 !important;
-            background: #fff;
-            display: block;
-        }
-
-        .lc-news-card iframe.lc-news-card-img {
-            min-height: 180px;
-            max-height: 180px;
-        }
-
-        /* Modern modal, no gradients, pink highlights only */
-        .post-modal-glass {
-            background: #fff;
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 40px 0 rgba(216, 27, 96, 0.13), 0 2px 16px 0 rgba(66, 46, 89, 0.08);
-            border: 2px solid #ffd1e3;
-            overflow: hidden;
-        }
-
-        .animate-modal {
-            animation: modalPop .35s cubic-bezier(.4, 1.6, .6, 1) 1;
-        }
-
-        @keyframes modalPop {
-            0% {
-                transform: scale(.92) translateY(40px);
-                opacity: 0;
-            }
-
-            100% {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .post-modal-header {
-            background: #ffe3ef;
-            border-bottom: 1.5px solid #ffd1e3;
-            padding-top: 1.2rem;
-            padding-bottom: 1.2rem;
-        }
-
-        #postModal .modal-title {
-            color: #d81b60;
-            font-size: 2.1rem;
-            letter-spacing: -0.5px;
-        }
-
-        #postModalType {
-            font-size: 1rem;
-            letter-spacing: 0.5px;
-            background: #d81b60 !important;
-            border-radius: 0.7rem;
-            padding: 0.4em 1.1em;
-            font-weight: 600;
-            box-shadow: 0 2px 8px 0 rgba(216, 27, 96, 0.08);
-        }
-
-        .post-modal-imgwrap {
-            background: #ffe3ef;
-            border-top-left-radius: 1.5rem;
-            border-top-right-radius: 1.5rem;
-            overflow: hidden;
-        }
-
-        #postModalImageWrap img,
-        #postModalImageWrap iframe {
-            width: 100%;
-            height: auto;
-            max-height: 1200px;
-            /* Bigger modal image */
-            object-fit: scale-down;
-            /* Keeps full image visible */
-            border-top-left-radius: 1.5rem;
-            border-top-right-radius: 1.5rem;
-            box-shadow: 0 2px 16px 0 rgba(216, 27, 96, 0.08);
-            background: #fff;
-            display: block;
-            margin: 0 auto;
-        }
-
-
-        #postModalImageWrap iframe {
-            aspect-ratio: 16/9;
-        }
-
-        @media (max-width: 991px) {
-
-            #postModalImageWrap img,
-            #postModalImageWrap iframe {
-                height: 180px;
-                max-height: 180px;
-            }
-        }
-
-        .post-modal-body {
-            font-size: 1.18rem;
-            color: #a0003a;
-            line-height: 1.7;
-        }
-
-        #postModalDesc {
-            font-size: 1.18rem;
-            color: #a0003a;
-            line-height: 1.7;
-            word-break: break-word;
-        }
-
-        #postModalLinks a {
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-            border-radius: 2em;
-            font-weight: 600;
-            padding: 0.5em 1.5em;
-            font-size: 1.05rem;
-            box-shadow: 0 2px 8px 0 rgba(216, 27, 96, 0.08);
-            transition: background .18s, color .18s, box-shadow .18s;
-        }
-
-        #postModalLinks a.btn-primary {
-            background: #d81b60;
-            border: none;
-            color: #fff;
-        }
-
-        #postModalLinks a.btn-primary:hover {
-            background: #b8004c;
-            color: #fff;
-        }
-
-        #postModalLinks a.btn-danger {
-            background: #ff5252;
-            border: none;
-            color: #fff;
-        }
-
-        #postModalLinks a.btn-danger:hover {
-            background: #b8004c;
-            color: #fff;
-        }
-
-        @media (max-width: 767px) {
-            #postModal .modal-title {
-                font-size: 1.2rem;
-            }
-
-            #postModalImageWrap img,
-            #postModalImageWrap iframe {
-                max-height: 180px;
-            }
-
-            .post-modal-glass {
-                border-radius: 0.8rem;
-            }
-
-            .post-modal-header {
-                border-radius: 0.8rem 0.8rem 0 0;
-            }
-        }
-
-        /* Reduce horizontal gutter between news cards even further */
-        .news-carousel-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-
-        .news-carousel {
-            display: flex;
-            justify-content: flex-start;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-            gap: 0.7rem;
-            padding-bottom: 0.5rem;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-            width: 100%;
-            max-width: 100%;
-        }
-
-        .news-carousel::-webkit-scrollbar {
-            display: none;
-        }
-
-        .carousel-card {
-            flex: 0 0 calc((100% - 1.4rem) / 3);
-            /* 3 cards, 2 gaps of 0.7rem */
-            max-width: calc((100% - 1.4rem) / 3);
-            min-width: calc((100% - 1.4rem) / 3);
-            margin-right: 0;
-        }
-
-        .lc-news-card {
-            border-radius: 0 !important;
-        }
-
-        @media (max-width: 991px) {
-            .carousel-card {
-                flex: 0 0 90vw;
-                max-width: 90vw;
-                min-width: 90vw;
-            }
-        }
-
-        .carousel-btn {
-            position: absolute;
-            top: 50%;
-            z-index: 2;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            padding: 0;
-            width: 3.2rem;
-            height: 3.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: filter .18s, box-shadow .18s;
-            box-shadow: none;
-        }
-
-        .carousel-btn.left {
-            left: -1.6rem;
-        }
-
-        .carousel-btn.right {
-            right: -1.6rem;
-        }
-
-        @media (max-width: 991px) {
-            .carousel-btn {
-                width: 2.4rem;
-                height: 2.4rem;
-            }
-
-            .carousel-btn.left {
-                left: -1.2rem;
-            }
-
-            .carousel-btn.right {
-                right: -1.2rem;
-            }
-        }
-
-        @media (max-width: 575.98px) {
-            .carousel-btn {
-                width: 2rem;
-                height: 2rem;
-            }
-
-            .carousel-btn.left {
-                left: 0.1rem;
-            }
-
-            .carousel-btn.right {
-                right: 0.1rem;
-            }
-        }
-
-        .carousel-btn:active svg circle,
-        .carousel-btn:focus svg circle {
-            stroke: #b8004c;
-            filter: drop-shadow(0 2px 8px #ffd1e3);
-        }
-
-        .carousel-btn[disabled] {
-            opacity: 0.4;
-            pointer-events: none;
-        }
-
-        .carousel-btn svg {
-            display: block;
-        }
-
-        .carousel-btn svg circle {
-            transition: stroke .18s, filter .18s;
-        }
-
-        .carousel-btn svg path {
-            transition: stroke .18s;
-        }
-
-        .carousel-btn:active svg path,
-        .carousel-btn:focus svg path {
-            stroke: #b8004c;
-        }
-
-        .carousel-btn.modern-btn {
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            padding: 0;
-        }
-
-        .carousel-dots {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .carousel-dot {
-            width: 0.8rem;
-            height: 0.8rem;
-            border-radius: 50%;
-            background: #ffd1e3;
-            border: 2px solid #d81b60;
-            cursor: pointer;
-            transition: background .18s, border .18s;
-        }
-
-        .carousel-dot.active {
-            background: #d81b60;
-            border-color: #d81b60;
-        }
-
-        .section-white {
-            background: #fff;
-        }
-
-        .section-pink {
-            background: #ffb6c1;
-        }
-
-        .text-pink {
-            color: #d81b60 !important;
-        }
-
-        .bg-pink {
-            background: #d81b60 !important;
-        }
-
-        .section-pink .card {
-            background: #fff;
-        }
-
-        .section-pink .text-white {
-            color: #fff !important;
-        }
-
-        .section-pink .badge.bg-white.text-pink {
-            background: #fff !important;
-            color: #d81b60 !important;
-        }
-
-        .section-white .badge.bg-pink.text-white {
-            background: #d81b60 !important;
-            color: #fff !important;
-        }
-
-        .library-hours-gif:hover {
-            transform: scale(1.13) rotate(-2deg);
-            z-index: 2;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18), 0 2px 16px 0 rgba(216, 27, 96, 0.10);
-        }
-
-
-        /* --- Featured Library Resources --- */
-        .featured-card {
-            border: 2px solid #ffe0ef;
-            border-radius: 1rem;
-            transition: all 0.3s ease;
-            background: linear-gradient(180deg, #fff 92%, #fff7fb 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .featured-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 10px 25px rgba(216, 27, 96, 0.18), 0 6px 10px rgba(0, 0, 0, 0.06);
-            border-color: #d81b60;
-        }
-
-        /* Animated pink glow line on hover */
-        .featured-card::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 4px;
-            background: linear-gradient(90deg, #d81b60, #ff9ecf);
-            transition: width 0.3s ease;
-        }
-
-        .featured-card:hover::after {
-            width: 100%;
-        }
-
-        /* Add subtle hover animation to button icons */
-        .featured-card a.btn i {
-            transition: transform 0.25s ease, color 0.25s ease;
-        }
-
-        .featured-card:hover a.btn i {
-            transform: scale(1.2);
-            color: #b8004c;
-        }
-
-        /* Card title and paragraph enhancements */
-        .featured-card .card-title {
-            color: #d81b60;
-            font-weight: 700;
-            margin-bottom: 0.6rem;
-            transition: color 0.3s ease;
-        }
-
-        .featured-card:hover .card-title {
-            color: #b8004c;
-        }
-
-        .featured-card .card-text {
-            color: #5a5a5a;
-            flex-grow: 1;
-            transition: color 0.25s ease;
-        }
-
-        .featured-card:hover .card-text {
-            color: #2f2f2f;
-        }
-
-        /* Pink outline button with hover fill */
-        .btn-outline-pink {
-            border-color: #d81b60;
-            color: #d81b60;
-            background-color: #fff;
-            transition: all 0.25s ease;
-            font-weight: 600;
-            border-radius: 0.6rem;
-        }
-
-        .btn-outline-pink:hover {
-            background-color: #d81b60;
-            color: #fff;
-            box-shadow: 0 4px 12px rgba(216, 27, 96, 0.3);
-        }
-
-    </style>
 </head>
 
 <body style="min-height: 100vh; overflow-y: auto; background-color: #f8f9fa;">
 
     <!-- Navbar -->
     @include('navbar')
-
-
-
     <!-- Content -->
     <div class="container mt-5 mb-5">
 
@@ -556,19 +39,18 @@
                         placeholder="Search the Library Catalog by keyword, title, author, ISBN, ISSN, or LCCN..." aria-label="Search the library catalog" required>
                 </div>
                 <button type="submit"
-                    class="btn btn-pink"
+                    class="btn btn-pink search-catalog-btn"
                     style="
-            background-color: #e83e8c; 
-            color: white; 
-            border: none; 
-            padding: 0.55rem 1.25rem; 
-            border-radius: 8px;
-            white-space: nowrap;
-            transition: 0.3s;
-        "
-                    onmouseover="this.style.backgroundColor='#d63384';"
-                    onmouseout="this.style.backgroundColor='#e83e8c';">
-                    Search Catalog
+                            background-color: #e83e8c; 
+                            color: white; 
+                            border: none; 
+                            padding: 0.55rem 1.25rem; 
+                            border-radius: 8px;
+                            white-space: nowrap;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 2px 8px rgba(232, 62, 140, 0.2);
+                            ">
+                    <i class="bi bi-search me-1"></i>Search Catalog
                 </button>
             </form>
 
@@ -588,6 +70,77 @@
         </div>
 
         <!-- Featured Resources -->
+
+
+
+
+        <!-- Announcements & Library Hours Side by Side -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-8">
+                <section class="section-white rounded-4 shadow-sm p-4 h-100">
+                    <h3 class="fw-bold mb-3 text-pink">Library Announcements</h3>
+                    
+                    <ul class="list-group list-group-flush">
+                        @if(isset($libraryAnnouncements) && $libraryAnnouncements->count())
+                        @foreach($libraryAnnouncements as $ann)
+                        <li class="list-group-item bg-transparent announcement-item">{{ $ann->text }}</li>
+                        @endforeach
+                        @else
+                        <li class="list-group-item bg-transparent text-muted">No announcements at the moment.</li>
+                        @endif
+                    </ul>
+                </section>
+            </div>
+            <div class="col-lg-4 d-flex align-items-stretch">
+                <div class="section-white rounded-4 shadow-sm p-4 w-100 d-flex flex-column align-items-center justify-content-center">
+                    <h3 class="fw-bold mb-3">Library Hours</h3>
+                    @if(isset($librarySettings) && $librarySettings->library_hours_gif)
+                    <img src="{{ asset('storage/' . $librarySettings->library_hours_gif) }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    @else
+                    <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Slideshow Section -->
+        @if(isset($slideshowImages) && $slideshowImages->count())
+        <div class="mb-5">
+            <div id="librarySlideshow" class="carousel slide" data-bs-ride="carousel" data-bs-interval="2500">
+                <div class="carousel-indicators">
+                    @foreach($slideshowImages as $index => $slide)
+                    <button type="button" data-bs-target="#librarySlideshow" data-bs-slide-to="{{ $index }}" 
+                        class="{{ $index === 0 ? 'active' : '' }}" 
+                        aria-current="{{ $index === 0 ? 'true' : 'false' }}" 
+                        aria-label="Slide {{ $index + 1 }}"></button>
+                    @endforeach
+                </div>
+                <div class="carousel-inner rounded-3 shadow-sm" style="border: 2px solid #ffd1e3;">
+                    @foreach($slideshowImages as $index => $slide)
+                    <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                        <img src="{{ asset('storage/' . $slide->image_path) }}" 
+                             class="d-block w-100" 
+                             alt="{{ $slide->caption ?? 'Slideshow image ' . ($index + 1) }}"
+                             style="height: 600px; object-fit: cover;">
+                        @if($slide->caption)
+                        <div class="carousel-caption d-none d-md-block bg-dark bg-opacity-75 rounded px-3 py-2">
+                            <p class="mb-0">{{ $slide->caption }}</p>
+                        </div>
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#librarySlideshow" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#librarySlideshow" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+        @endif
 
         @auth
         <div class="mb-5">
@@ -643,35 +196,6 @@
             </div>
         </div>
         @endauth
-
-
-        <!-- Announcements & Library Hours Side by Side -->
-        <div class="row g-4 mb-5">
-            <div class="col-lg-8">
-                <section class="section-white rounded-4 shadow-sm p-4 h-100">
-                    <h3 class="fw-bold mb-3 text-pink">Library Announcements</h3>
-                    <ul class="list-group list-group-flush">
-                        @if(isset($libraryAnnouncements) && $libraryAnnouncements->count())
-                        @foreach($libraryAnnouncements as $ann)
-                        <li class="list-group-item bg-transparent">{{ $ann->text }}</li>
-                        @endforeach
-                        @else
-                        <li class="list-group-item bg-transparent text-muted">No announcements at the moment.</li>
-                        @endif
-                    </ul>
-                </section>
-            </div>
-            <div class="col-lg-4 d-flex align-items-stretch">
-                <div class="section-white rounded-4 shadow-sm p-4 w-100 d-flex flex-column align-items-center justify-content-center">
-                    <h3 class="fw-bold mb-3">Library Hours</h3>
-                    @if(isset($librarySettings) && $librarySettings->library_hours_gif)
-                    <img src="{{ asset('storage/' . $librarySettings->library_hours_gif) }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
-                    @else
-                    <img src="{{ asset('images/servicehours.gif') }}" alt="Library Service Hours" class="img-fluid rounded shadow library-hours-gif" style="max-width: 340px; width: 100%; height: auto; background: #fff; border: 2px solid #ffd1e3; padding: 0.5rem; transition: transform 0.35s cubic-bezier(.4,1.6,.6,1);" loading="lazy">
-                    @endif
-                </div>
-            </div>
-        </div>
 
 
         <!-- Posts by Type -->
@@ -778,13 +302,8 @@
             <div class="carousel-dots mt-3 text-center" id="carousel-dots-{{ $i }}"></div>
         </section>
         @endforeach
-
-
-
+        <!-- Post view Modal -->
         @include('partials.post-modal')
-
-
-
 
         <!-- Library Services -->
         <div class="mb-5">
@@ -805,208 +324,7 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Modal logic (unchanged)
-            var postModal = new bootstrap.Modal(document.getElementById('postModal'));
-            document.querySelectorAll('.card-clickable').forEach(function(card) {
-                card.addEventListener('click', function(e) {
-                    // Ignore clicks on bookmark buttons or inside forms/links
-                    if (e.target.closest('.post-bookmark-toggle') ||
-                        e.target.closest('.post-bookmark-btn') ||
-                        e.target.closest('form') ||
-                        e.target.closest('a')) {
-                        e.stopPropagation();
-                        return;
-                    }
-
-                    var title = card.getAttribute('data-title') || '';
-                    var type = card.getAttribute('data-type') || '';
-                    var desc = card.getAttribute('data-description') || '';
-                    var photo = card.getAttribute('data-photo') || '';
-                    var youtube = card.getAttribute('data-youtube') || '';
-                    var website = card.getAttribute('data-website') || '';
-                    var ogthumb = card.getAttribute('data-ogthumb') || '';
-                    var favicon = card.getAttribute('data-favicon') || '';
-                    var imageHtml = '';
-                    var placeholder = card.getAttribute('data-placeholder') || '';
-
-                    if (photo) {
-                        imageHtml = '<img src="' + photo + '" alt="Photo"/>';
-                    } else if (youtube) {
-                        var match = youtube.match(/v=([^&]+)/);
-                        var ytid = match ? match[1] : null;
-                        if (ytid) imageHtml = '<iframe src="https://www.youtube.com/embed/' + ytid + '" title="YouTube video" allowfullscreen style="width:100%;height:340px;border:none;"></iframe>';
-                    } else if (website) {
-                        imageHtml = '<img src="' + (ogthumb || favicon) + '" alt="Website Thumbnail"/>';
-                    } else {
-                        imageHtml = '<img src="' + placeholder + '" alt="No Image"/>';
-                    }
-
-                    document.getElementById('postModalLabel').textContent = title;
-                    document.getElementById('postModalType').textContent = type;
-                    document.getElementById('postModalDesc').textContent = desc;
-                    document.getElementById('postModalImageWrap').innerHTML = imageHtml;
-
-                    var linksHtml = '';
-                    if (website) linksHtml += '<a href="' + website + '" target="_blank" class="btn btn-primary">Visit Website</a>';
-                    if (youtube) linksHtml += '<a href="' + youtube + '" target="_blank" class="btn btn-danger">Watch Video</a>';
-                    document.getElementById('postModalLinks').innerHTML = linksHtml;
-
-                    postModal.show();
-                });
-            });
-
-            // Post bookmark toggles
-            document.querySelectorAll('.post-bookmark-toggle').forEach(function(form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var btn = form.querySelector('.post-bookmark-btn');
-                    var original = btn.innerHTML;
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>...';
-
-                    var fd = new FormData(form);
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
-                        },
-                        body: fd
-                    }).then(function(res) {
-                        return res.json();
-                    }).then(function(data) {
-                        if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
-                            var bookmarked = data.status === 'bookmarked';
-                            var icon = btn.querySelector('i');
-                            var label = btn.querySelector('span');
-                            if (bookmarked) {
-                                btn.classList.remove('btn-outline-secondary');
-                                btn.classList.add('btn-primary');
-                                icon.classList.remove('bi-bookmark');
-                                icon.classList.add('bi-bookmark-fill');
-                                label.textContent = 'Bookmarked';
-                            } else {
-                                btn.classList.remove('btn-primary');
-                                btn.classList.add('btn-outline-secondary');
-                                icon.classList.remove('bi-bookmark-fill');
-                                icon.classList.add('bi-bookmark');
-                                label.textContent = 'Bookmark';
-                            }
-                        } else {
-                            alert((data && data.message) || 'Unexpected response');
-                        }
-                    }).catch(function(err) {
-                        console.error(err);
-                        alert('Failed to toggle bookmark.');
-                    }).finally(function() {
-                        btn.disabled = false;
-                        btn.innerHTML = original;
-                    });
-                });
-            });
-
-            // Carousel logic for each section
-            document.querySelectorAll('.news-carousel').forEach(function(carousel, idx) {
-                var wrap = carousel.closest('.news-carousel-wrap');
-                var leftBtn = wrap.querySelector('.carousel-btn.left');
-                var rightBtn = wrap.querySelector('.carousel-btn.right');
-                var dotsWrap = document.getElementById('carousel-dots-' + idx);
-                var cards = carousel.querySelectorAll('.carousel-card');
-                var visibleCards = 3;
-                var cardWidth = 0;
-                var gap = 0;
-                var total = cards.length;
-                var pos = 0;
-
-                function recalcCardWidth() {
-                    if (window.innerWidth < 992) {
-                        cardWidth = carousel.querySelector('.carousel-card')?.offsetWidth || 320;
-                        visibleCards = 1;
-                        gap = 0;
-                    } else {
-                        cardWidth = carousel.querySelector('.carousel-card')?.offsetWidth || 320;
-                        visibleCards = 3;
-                        // Get computed gap between cards
-                        if (cards.length > 1) {
-                            var style = window.getComputedStyle(cards[1]);
-                            gap = parseFloat(style.marginLeft || 0);
-                        } else {
-                            gap = 0;
-                        }
-                    }
-                }
-
-                function getDotCount() {
-                    return Math.max(1, total - visibleCards + 1);
-                }
-
-                function renderDots() {
-                    var dotCount = getDotCount();
-                    dotsWrap.innerHTML = '';
-                    for (let i = 0; i < dotCount; i++) {
-                        var dot = document.createElement('span');
-                        dot.className = 'carousel-dot' + (i === pos ? ' active' : '');
-                        dot.setAttribute('tabindex', '0');
-                        dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-                        dot.addEventListener('click', function() {
-                            scrollToIdx(i);
-                        });
-                        dot.addEventListener('keydown', function(e) {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                scrollToIdx(i);
-                            }
-                        });
-                        dotsWrap.appendChild(dot);
-                    }
-                }
-
-                function updateDots() {
-                    var dots = dotsWrap.querySelectorAll('.carousel-dot');
-                    dots.forEach(function(dot, i) {
-                        dot.classList.toggle('active', i === pos);
-                    });
-                }
-
-                function scrollToIdx(idx) {
-                    pos = idx;
-                    var scrollAmount = (cardWidth + gap) * pos;
-                    carousel.scrollTo({
-                        left: scrollAmount,
-                        behavior: 'smooth'
-                    });
-                    updateDots();
-                    updateBtns();
-                }
-
-                function updateBtns() {
-                    var dotCount = getDotCount();
-                    leftBtn.disabled = pos === 0;
-                    rightBtn.disabled = pos >= dotCount - 1;
-                }
-                leftBtn.addEventListener('click', function() {
-                    if (pos > 0) scrollToIdx(pos - 1);
-                });
-                rightBtn.addEventListener('click', function() {
-                    if (pos < getDotCount() - 1) scrollToIdx(pos + 1);
-                });
-                // Responsive: recalc on resize
-                window.addEventListener('resize', function() {
-                    recalcCardWidth();
-                    renderDots();
-                    updateDots();
-                    updateBtns();
-                    scrollToIdx(pos);
-                });
-                // Init
-                recalcCardWidth();
-                renderDots();
-                scrollToIdx(0);
-            });
-        });
-    </script>
+    <script src="{{ asset('js/dashboard.js') }}"></script>
 
     @include('footer')
 </body>

@@ -1,3 +1,6 @@
+
+<!-- PDF viewer for MIDES based on pdf.js with improved zooming, panning, and mobile support -->
+
 <!DOCTYPE html>
 <html lang="en">
 

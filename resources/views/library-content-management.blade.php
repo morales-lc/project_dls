@@ -130,15 +130,466 @@
         </div>
     </div>
 
+    <!-- Slideshow Images Section -->
+    <div class="row g-4 mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <h3 class="text-pink fw-bold mb-1">Homepage Slideshow Images</h3>
+                            <small class="text-muted">Manage images displayed in the dashboard slideshow</small>
+                        </div>
+                    </div>
+
+                    <form action="{{ route('library.content.slideshow.store') }}" method="POST" enctype="multipart/form-data" class="mb-4 p-3 bg-light rounded">
+                        @csrf
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Image</label>
+                                <input type="file" name="image" accept="image/*" class="form-control" required>
+                                <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Caption (Optional)</label>
+                                <input type="text" name="caption" class="form-control" placeholder="Image caption..." maxlength="255">
+                            </div>
+                            <div class="col-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="1" id="slideActive" name="active" checked>
+                                    <label class="form-check-label" for="slideActive">Active</label>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button class="btn btn-outline-pink" type="submit">
+                                    <i class="bi bi-upload"></i> Upload Image
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="row g-3" id="slideshow-list">
+                        @forelse($slideshowImages as $slide)
+                            <div class="col-md-4 col-lg-3 slideshow-item" data-id="{{ $slide->id }}">
+                                <div class="card h-100 shadow-sm">
+                                    <img src="{{ asset('storage/' . $slide->image_path) }}" class="card-img-top" alt="{{ $slide->caption }}" style="height: 200px; object-fit: cover;">
+                                    <div class="card-body p-2">
+                                        <form action="{{ route('library.content.slideshow.update', $slide->id) }}" method="POST" class="mb-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="mb-2">
+                                                <input type="text" name="caption" value="{{ $slide->caption }}" class="form-control form-control-sm" placeholder="Caption..." maxlength="255">
+                                            </div>
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <div class="form-check form-check-sm">
+                                                    <input class="form-check-input" type="checkbox" name="active" value="1" {{ $slide->active ? 'checked' : '' }} id="slide-active-{{ $slide->id }}">
+                                                    <label class="form-check-label small" for="slide-active-{{ $slide->id }}">Active</label>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-pink" type="submit">Save</button>
+                                            </div>
+                                        </form>
+                                        <div class="d-flex gap-2">
+                                            <span class="badge bg-secondary"><i class="bi bi-grip-vertical"></i> Drag</span>
+                                            <form action="{{ route('library.content.slideshow.delete', $slide->id) }}" method="POST" class="flex-grow-1" onsubmit="return confirm('Delete this image?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="btn btn-sm btn-outline-danger w-100" type="submit">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <div class="col-12">
+                                <div class="alert alert-info mb-0">No slideshow images yet. Upload your first image above.</div>
+                            </div>
+                        @endforelse
+                    </div>
+
+                    @if($slideshowImages->isNotEmpty())
+                        <div class="mt-3 text-muted small">
+                            <i class="bi bi-info-circle"></i> Drag-and-drop images to reorder them in the slideshow.
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Netzone Management Section -->
+    <div class="row g-4 mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h3 class="text-pink fw-bold mb-1">Netzone Settings</h3>
+                    <small class="text-muted">Manage Netzone page content, images, and reminders</small>
+
+                    <form action="{{ route('library.content.netzone.update') }}" method="POST" class="mt-4">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $netzoneSettings->title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="3" required>{{ $netzoneSettings->description }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-outline-pink">Update Netzone Info</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Netzone Images (Slideshow)</h6>
+                    <form action="{{ route('library.content.netzone.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <button type="submit" class="btn btn-outline-pink">Add Image</button>
+                        </div>
+                        <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                    </form>
+
+                    <div class="row g-3">
+                        @forelse($netzoneSettings->images ?? [] as $index => $imagePath)
+                        <div class="col-md-3">
+                            <div class="card">
+                                <img src="{{ asset('storage/' . $imagePath) }}" class="card-img-top" alt="Netzone Image" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <form action="{{ route('library.content.netzone.image.delete') }}" method="POST" onsubmit="return confirm('Delete this image?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="col-12">
+                            <p class="text-muted">No images added yet.</p>
+                        </div>
+                        @endforelse
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Netzone Reminders</h6>
+                    <form action="{{ route('library.content.netzone.reminder.add') }}" method="POST" class="mb-3">
+                        @csrf
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input type="text" name="text" class="form-control" placeholder="Reminder text..." required>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="type" class="form-select" required>
+                                    <option value="danger">Danger</option>
+                                    <option value="warning" selected>Warning</option>
+                                    <option value="info">Info</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-outline-pink w-100">Add</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <ul class="list-group">
+                        @forelse($netzoneSettings->reminders ?? [] as $index => $reminder)
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <span class="badge bg-{{ $reminder['type'] }} me-2">{{ $index + 1 }}</span>
+                                    <span>{{ $reminder['text'] }}</span>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editReminderModal{{ $index }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form action="{{ route('library.content.netzone.reminder.delete') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this reminder?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <!-- Edit Modal -->
+                            <div class="modal fade" id="editReminderModal{{ $index }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{{ route('library.content.netzone.reminder.update') }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="index" value="{{ $index }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Reminder</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Text</label>
+                                                    <textarea name="text" class="form-control" rows="3" required>{{ $reminder['text'] }}</textarea>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Type</label>
+                                                    <select name="type" class="form-select" required>
+                                                        <option value="danger" {{ $reminder['type'] == 'danger' ? 'selected' : '' }}>Danger</option>
+                                                        <option value="warning" {{ $reminder['type'] == 'warning' ? 'selected' : '' }}>Warning</option>
+                                                        <option value="info" {{ $reminder['type'] == 'info' ? 'selected' : '' }}>Info</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-pink">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+                        @empty
+                        <li class="list-group-item text-muted">No reminders added yet.</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Spaces Management Section -->
+    <div class="row g-4 mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body">
+                    <h3 class="text-pink fw-bold mb-1">Learning Spaces Settings</h3>
+                    <small class="text-muted">Manage Learning Spaces page content and images</small>
+
+                    <form action="{{ route('library.content.learning-space.update') }}" method="POST" class="mt-4">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $learningSpaceSettings->title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Description</label>
+                            <textarea name="description" class="form-control" rows="3" required>{{ $learningSpaceSettings->description }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-outline-pink">Update Learning Space Info</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Learning Space Images (Slideshow)</h6>
+                    <form action="{{ route('library.content.learning-space.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <button type="submit" class="btn btn-outline-pink">Add Image</button>
+                        </div>
+                        <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                    </form>
+
+                    <div class="row g-3">
+                        @forelse($learningSpaceSettings->images ?? [] as $index => $imagePath)
+                        <div class="col-md-3">
+                            <div class="card">
+                                <img src="{{ asset('storage/' . $imagePath) }}" class="card-img-top" alt="Learning Space Image" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <form action="{{ route('library.content.learning-space.image.delete') }}" method="POST" onsubmit="return confirm('Delete this image?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="col-12">
+                            <p class="text-muted">No images added yet.</p>
+                        </div>
+                        @endforelse
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Content Sections</h6>
+                    
+                    <!-- Add New Section Form -->
+                    <form action="{{ route('library.content.learning-space.section.add') }}" method="POST" class="mb-4 p-3 bg-light rounded">
+                        @csrf
+                        <div class="row g-2">
+                            <div class="col-md-8">
+                                <input type="text" name="heading" class="form-control" placeholder="Section heading (e.g., Types of Learning Spaces)..." required>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="type" class="form-select" required>
+                                    <option value="list">Bullet List</option>
+                                    <option value="numbered">Numbered List</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-outline-pink w-100">Add Section</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Display Existing Sections -->
+                    @forelse($learningSpaceSettings->content_sections ?? [] as $sectionIndex => $section)
+                    <div class="card mb-3">
+                        <div class="card-header bg-light">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="flex-grow-1">
+                                    <strong>{{ $section['heading'] }}</strong>
+                                    <span class="badge bg-info ms-2">{{ $section['type'] === 'list' ? 'Bullet List' : 'Numbered List' }}</span>
+                                </div>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editSectionModal{{ $sectionIndex }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form action="{{ route('library.content.learning-space.section.delete') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this entire section?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="index" value="{{ $sectionIndex }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Add Item Form -->
+                            <form action="{{ route('library.content.learning-space.section.item.add') }}" method="POST" class="mb-3">
+                                @csrf
+                                <input type="hidden" name="section_index" value="{{ $sectionIndex }}">
+                                <div class="input-group">
+                                    <input type="text" name="item_text" class="form-control" placeholder="Add new item..." required>
+                                    <button type="submit" class="btn btn-sm btn-outline-pink">Add Item</button>
+                                </div>
+                            </form>
+
+                            <!-- Display Items -->
+                            <ul class="list-group">
+                                @forelse($section['items'] ?? [] as $itemIndex => $item)
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <span class="badge bg-secondary me-2">{{ $itemIndex + 1 }}</span>
+                                            <span>{!! $item !!}</span>
+                                        </div>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#editItemModal{{ $sectionIndex }}_{{ $itemIndex }}">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form action="{{ route('library.content.learning-space.section.item.delete') }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this item?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input type="hidden" name="section_index" value="{{ $sectionIndex }}">
+                                                <input type="hidden" name="item_index" value="{{ $itemIndex }}">
+                                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+
+                                    <!-- Edit Item Modal -->
+                                    <div class="modal fade" id="editItemModal{{ $sectionIndex }}_{{ $itemIndex }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form action="{{ route('library.content.learning-space.section.item.update') }}" method="POST">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="section_index" value="{{ $sectionIndex }}">
+                                                    <input type="hidden" name="item_index" value="{{ $itemIndex }}">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Edit Item</h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Item Text</label>
+                                                            <textarea name="item_text" class="form-control" rows="3" required>{{ strip_tags($item) }}</textarea>
+                                                            <small class="text-muted">You can use HTML tags like &lt;strong&gt; for bold text.</small>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-pink">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </li>
+                                @empty
+                                <li class="list-group-item text-muted">No items in this section yet.</li>
+                                @endforelse
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Edit Section Modal -->
+                    <div class="modal fade" id="editSectionModal{{ $sectionIndex }}" tabindex="-1">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <form action="{{ route('library.content.learning-space.section.update') }}" method="POST">
+                                    @csrf
+                                    @method('PUT')
+                                    <input type="hidden" name="index" value="{{ $sectionIndex }}">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Section</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <label class="form-label">Section Heading</label>
+                                            <input type="text" name="heading" class="form-control" value="{{ $section['heading'] }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">List Type</label>
+                                            <select name="type" class="form-select" required>
+                                                <option value="list" {{ $section['type'] === 'list' ? 'selected' : '' }}>Bullet List</option>
+                                                <option value="numbered" {{ $section['type'] === 'numbered' ? 'selected' : '' }}>Numbered List</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-pink">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    @empty
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No content sections yet. Add your first section above (e.g., "Types of Learning Spaces", "How to Reserve a Space").
+                    </div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Contact Information Section -->
-    <div class="row g-4 mt-2">
+    <div class="row g-4 mt-5">
         <div class="col-12">
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body p-4">
                     <form method="POST" action="{{ route('admin.contact-info.update') }}">
                         @csrf
                         @method('PUT')
-                        <h5 class="text-pink fw-bold mb-4">Library Contact Information</h5>
+                        <h3 class="text-pink fw-bold mb-1">Library Contact Information</h3>
+                        <small class="text-muted d-block mb-4">Update library contact details and social media links</small>
                         
                         <h6 class="fw-semibold mb-3">Contact Numbers</h6>
                         <div class="row mb-4">
@@ -191,36 +642,146 @@
 <script>
 // Basic drag sort and send order to server
 document.addEventListener('DOMContentLoaded', function() {
-    const list = document.getElementById('ann-list');
-    if (!list) return;
-    let dragged;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    list.querySelectorAll('.ann-item').forEach(li => {
-        li.setAttribute('draggable', 'true');
-        li.addEventListener('dragstart', (e) => { dragged = li; li.classList.add('dragging'); });
-        li.addEventListener('dragend', () => { dragged = null; li.classList.remove('dragging'); sendOrder(); });
-        li.addEventListener('dragover', (e) => {
+    // Helper function to show toast notifications
+    function showToast(message, type = 'success') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+        alertDiv.style.zIndex = '9999';
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alertDiv);
+        setTimeout(() => alertDiv.remove(), 3000);
+    }
+
+    // Handle all form submissions with AJAX
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            // Skip forms with file uploads for now (handle separately)
+            const hasFileUpload = form.querySelector('input[type="file"]');
+            if (hasFileUpload && hasFileUpload.files.length > 0) {
+                return; // Let it submit normally
+            }
+
             e.preventDefault();
-            const target = e.currentTarget;
-            if (dragged && target !== dragged) {
-                const rect = target.getBoundingClientRect();
-                const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
-                list.insertBefore(dragged, next ? target.nextSibling : target);
+            
+            const formData = new FormData(form);
+            const method = formData.get('_method') || form.method;
+            const action = form.action;
+
+            try {
+                const response = await fetch(action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    showToast(data.message || 'Updated successfully!', 'success');
+                    
+                    // Reload page content without losing scroll position
+                    const scrollPos = window.scrollY;
+                    setTimeout(() => {
+                        location.reload();
+                        window.scrollTo(0, scrollPos);
+                    }, 500);
+                } else {
+                    showToast(data.message || 'An error occurred', 'danger');
+                }
+            } catch (error) {
+                showToast('An error occurred', 'danger');
             }
         });
     });
 
-    function sendOrder() {
-        const ids = Array.from(list.querySelectorAll('.ann-item')).map(li => li.dataset.id);
-    fetch("{{ route('library.content.announcements.reorder') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ order: ids })
+    // Announcements drag and drop
+    const list = document.getElementById('ann-list');
+    if (list) {
+        let dragged;
+
+        list.querySelectorAll('.ann-item').forEach(li => {
+            li.setAttribute('draggable', 'true');
+            li.addEventListener('dragstart', (e) => { dragged = li; li.classList.add('dragging'); });
+            li.addEventListener('dragend', () => { dragged = null; li.classList.remove('dragging'); sendOrder(); });
+            li.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const target = e.currentTarget;
+                if (dragged && target !== dragged) {
+                    const rect = target.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    list.insertBefore(dragged, next ? target.nextSibling : target);
+                }
+            });
         });
+
+        function sendOrder() {
+            const ids = Array.from(list.querySelectorAll('.ann-item')).map(li => li.dataset.id);
+            fetch("{{ route('library.content.announcements.reorder') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ order: ids })
+            });
+        }
+    }
+
+    // Slideshow images drag and drop
+    const slideshowList = document.getElementById('slideshow-list');
+    if (slideshowList) {
+        let draggedSlide;
+
+        slideshowList.querySelectorAll('.slideshow-item').forEach(item => {
+            item.setAttribute('draggable', 'true');
+            item.style.cursor = 'grab';
+            
+            item.addEventListener('dragstart', (e) => { 
+                draggedSlide = item; 
+                item.style.opacity = '0.5';
+                item.style.cursor = 'grabbing';
+            });
+            
+            item.addEventListener('dragend', () => { 
+                draggedSlide = null; 
+                item.style.opacity = '1';
+                item.style.cursor = 'grab';
+                sendSlideshowOrder(); 
+            });
+            
+            item.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                const target = e.currentTarget;
+                if (draggedSlide && target !== draggedSlide) {
+                    const rect = target.getBoundingClientRect();
+                    const midpoint = rect.left + rect.width / 2;
+                    const next = e.clientX > midpoint;
+                    slideshowList.insertBefore(draggedSlide, next ? target.nextSibling : target);
+                }
+            });
+        });
+
+        function sendSlideshowOrder() {
+            const ids = Array.from(slideshowList.querySelectorAll('.slideshow-item')).map(item => item.dataset.id);
+            fetch("{{ route('library.content.slideshow.reorder') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfToken
+                },
+                body: JSON.stringify({ order: ids })
+            });
+        }
     }
 });
 </script>

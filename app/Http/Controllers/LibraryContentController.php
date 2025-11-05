@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\LibrarySetting;
 use App\Models\LibraryAnnouncement;
 use App\Models\ContactInfo;
+use App\Models\LibrarySlideshowImage;
+use App\Models\NetzoneSettings;
+use App\Models\LearningSpaceSettings;
 
 class LibraryContentController extends Controller
 {
@@ -15,7 +18,18 @@ class LibraryContentController extends Controller
         $settings = LibrarySetting::singleton();
         $announcements = LibraryAnnouncement::orderBy('position')->get();
         $contact = ContactInfo::first();
-        return view('library-content-management', compact('settings', 'announcements', 'contact'));
+        $slideshowImages = LibrarySlideshowImage::ordered()->get();
+        $netzoneSettings = NetzoneSettings::get();
+        $learningSpaceSettings = LearningSpaceSettings::get();
+        
+        return view('library-content-management', compact(
+            'settings', 
+            'announcements', 
+            'contact', 
+            'slideshowImages',
+            'netzoneSettings',
+            'learningSpaceSettings'
+        ));
     }
 
     public function updateGif(Request $request)
@@ -44,6 +58,9 @@ class LibraryContentController extends Controller
 
         $settings->save();
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Library hours GIF updated.']);
+        }
         return back()->with('success', 'Library hours GIF updated.');
     }
 
@@ -59,6 +76,9 @@ class LibraryContentController extends Controller
         $data['active'] = $request->boolean('active', true);
         LibraryAnnouncement::create($data);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Announcement added.']);
+        }
         return back()->with('success', 'Announcement added.');
     }
 
@@ -75,6 +95,9 @@ class LibraryContentController extends Controller
             'active' => $request->has('active') ? $request->boolean('active') : false,
         ]);
 
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Announcement updated.']);
+        }
         return back()->with('success', 'Announcement updated.');
     }
 
@@ -82,6 +105,10 @@ class LibraryContentController extends Controller
     {
         $announcement = LibraryAnnouncement::findOrFail($id);
         $announcement->delete();
+        
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['message' => 'Announcement deleted.']);
+        }
         return back()->with('success', 'Announcement deleted.');
     }
 
@@ -97,5 +124,431 @@ class LibraryContentController extends Controller
         }
 
         return response()->json(['status' => 'ok']);
+    }
+
+    // Slideshow Image Methods
+    public function storeSlideshowImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+            'caption' => 'nullable|string|max:255',
+            'active' => 'sometimes|boolean',
+        ]);
+
+        $path = $request->file('image')->store('slideshow', 'public');
+        
+        $maxPos = LibrarySlideshowImage::max('position') ?? 0;
+        
+        LibrarySlideshowImage::create([
+            'image_path' => $path,
+            'caption' => $request->input('caption'),
+            'position' => $maxPos + 1,
+            'active' => $request->boolean('active', true),
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Slideshow image added.']);
+        }
+        return back()->with('success', 'Slideshow image added.');
+    }
+
+    public function updateSlideshowImage(Request $request, int $id)
+    {
+        $image = LibrarySlideshowImage::findOrFail($id);
+        
+        $request->validate([
+            'caption' => 'nullable|string|max:255',
+            'active' => 'sometimes|boolean',
+        ]);
+
+        $image->update([
+            'caption' => $request->input('caption'),
+            'active' => $request->has('active') ? $request->boolean('active') : false,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Slideshow image updated.']);
+        }
+        return back()->with('success', 'Slideshow image updated.');
+    }
+
+    public function deleteSlideshowImage(int $id)
+    {
+        $image = LibrarySlideshowImage::findOrFail($id);
+        
+        // Delete the file from storage
+        if ($image->image_path) {
+            Storage::disk('public')->delete($image->image_path);
+        }
+        
+        $image->delete();
+        
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json(['message' => 'Slideshow image deleted.']);
+        }
+        return back()->with('success', 'Slideshow image deleted.');
+    }
+
+    public function reorderSlideshowImages(Request $request)
+    {
+        $request->validate([
+            'order' => 'required|array',
+            'order.*' => 'integer|exists:library_slideshow_images,id',
+        ]);
+
+        foreach ($request->order as $index => $id) {
+            LibrarySlideshowImage::where('id', (int) $id)->update(['position' => $index + 1]);
+        }
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    // Netzone Management Methods
+    public function updateNetzone(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
+        $settings = NetzoneSettings::get();
+        $settings->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Netzone settings updated.']);
+        }
+        return back()->with('success', 'Netzone settings updated.');
+    }
+
+    public function addNetzoneImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ]);
+
+        $settings = NetzoneSettings::get();
+        $path = $request->file('image')->store('netzone', 'public');
+        
+        $images = $settings->images ?? [];
+        $images[] = $path;
+        $settings->images = $images;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Netzone image added.']);
+        }
+        return back()->with('success', 'Netzone image added.');
+    }
+
+    public function deleteNetzoneImage(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = NetzoneSettings::get();
+        $images = $settings->images ?? [];
+        
+        if (isset($images[$request->index])) {
+            Storage::disk('public')->delete($images[$request->index]);
+            unset($images[$request->index]);
+            $settings->images = array_values($images);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Netzone image deleted.']);
+        }
+        return back()->with('success', 'Netzone image deleted.');
+    }
+
+    public function updateNetzoneReminder(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+            'text' => 'required|string',
+            'type' => 'required|in:danger,warning,info',
+        ]);
+
+        $settings = NetzoneSettings::get();
+        $reminders = $settings->reminders ?? [];
+        
+        if (isset($reminders[$request->index])) {
+            $reminders[$request->index] = [
+                'text' => $request->text,
+                'type' => $request->type,
+            ];
+            $settings->reminders = $reminders;
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Netzone reminder updated.']);
+        }
+        return back()->with('success', 'Netzone reminder updated.');
+    }
+
+    public function addNetzoneReminder(Request $request)
+    {
+        $request->validate([
+            'text' => 'required|string',
+            'type' => 'required|in:danger,warning,info',
+        ]);
+
+        $settings = NetzoneSettings::get();
+        $reminders = $settings->reminders ?? [];
+        
+        $reminders[] = [
+            'text' => $request->text,
+            'type' => $request->type,
+        ];
+        
+        $settings->reminders = $reminders;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Netzone reminder added.']);
+        }
+        return back()->with('success', 'Netzone reminder added.');
+    }
+
+    public function deleteNetzoneReminder(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = NetzoneSettings::get();
+        $reminders = $settings->reminders ?? [];
+        
+        if (isset($reminders[$request->index])) {
+            unset($reminders[$request->index]);
+            $settings->reminders = array_values($reminders);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Netzone reminder deleted.']);
+        }
+        return back()->with('success', 'Netzone reminder deleted.');
+    }
+
+    // Learning Space Management Methods
+    public function updateLearningSpace(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $settings->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Learning Space settings updated.']);
+        }
+        return back()->with('success', 'Learning Space settings updated.');
+    }
+
+    public function addLearningSpaceImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $path = $request->file('image')->store('learning-spaces', 'public');
+        
+        $images = $settings->images ?? [];
+        $images[] = $path;
+        $settings->images = $images;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Learning Space image added.']);
+        }
+        return back()->with('success', 'Learning Space image added.');
+    }
+
+    public function deleteLearningSpaceImage(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $images = $settings->images ?? [];
+        
+        if (isset($images[$request->index])) {
+            Storage::disk('public')->delete($images[$request->index]);
+            unset($images[$request->index]);
+            $settings->images = array_values($images);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Learning Space image deleted.']);
+        }
+        return back()->with('success', 'Learning Space image deleted.');
+    }
+
+    public function updateLearningSpaceContent(Request $request)
+    {
+        $request->validate([
+            'content_sections' => 'required|json',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $settings->content_sections = json_decode($request->content_sections, true);
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Learning Space content updated.']);
+        }
+        return back()->with('success', 'Learning Space content updated.');
+    }
+
+    public function addLearningSpaceSection(Request $request)
+    {
+        $request->validate([
+            'heading' => 'required|string|max:255',
+            'type' => 'required|in:list,numbered',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $sections = $settings->content_sections ?? [];
+        
+        $sections[] = [
+            'heading' => $request->heading,
+            'type' => $request->type,
+            'items' => [],
+        ];
+        
+        $settings->content_sections = $sections;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Content section added.']);
+        }
+        return back()->with('success', 'Content section added.');
+    }
+
+    public function updateLearningSpaceSection(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+            'heading' => 'required|string|max:255',
+            'type' => 'required|in:list,numbered',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $sections = $settings->content_sections ?? [];
+        
+        if (isset($sections[$request->index])) {
+            $sections[$request->index]['heading'] = $request->heading;
+            $sections[$request->index]['type'] = $request->type;
+            $settings->content_sections = $sections;
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Content section updated.']);
+        }
+        return back()->with('success', 'Content section updated.');
+    }
+
+    public function deleteLearningSpaceSection(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $sections = $settings->content_sections ?? [];
+        
+        if (isset($sections[$request->index])) {
+            unset($sections[$request->index]);
+            $settings->content_sections = array_values($sections);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Content section deleted.']);
+        }
+        return back()->with('success', 'Content section deleted.');
+    }
+
+    public function addLearningSpaceSectionItem(Request $request)
+    {
+        $request->validate([
+            'section_index' => 'required|integer',
+            'item_text' => 'required|string',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $sections = $settings->content_sections ?? [];
+        
+        if (isset($sections[$request->section_index])) {
+            $sections[$request->section_index]['items'][] = $request->item_text;
+            $settings->content_sections = $sections;
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Item added to section.']);
+        }
+        return back()->with('success', 'Item added to section.');
+    }
+
+    public function updateLearningSpaceSectionItem(Request $request)
+    {
+        $request->validate([
+            'section_index' => 'required|integer',
+            'item_index' => 'required|integer',
+            'item_text' => 'required|string',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $sections = $settings->content_sections ?? [];
+        
+        if (isset($sections[$request->section_index]['items'][$request->item_index])) {
+            $sections[$request->section_index]['items'][$request->item_index] = $request->item_text;
+            $settings->content_sections = $sections;
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Item updated.']);
+        }
+        return back()->with('success', 'Item updated.');
+    }
+
+    public function deleteLearningSpaceSectionItem(Request $request)
+    {
+        $request->validate([
+            'section_index' => 'required|integer',
+            'item_index' => 'required|integer',
+        ]);
+
+        $settings = LearningSpaceSettings::get();
+        $sections = $settings->content_sections ?? [];
+        
+        if (isset($sections[$request->section_index]['items'][$request->item_index])) {
+            unset($sections[$request->section_index]['items'][$request->item_index]);
+            $sections[$request->section_index]['items'] = array_values($sections[$request->section_index]['items']);
+            $settings->content_sections = $sections;
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Item deleted.']);
+        }
+        return back()->with('success', 'Item deleted.');
     }
 }

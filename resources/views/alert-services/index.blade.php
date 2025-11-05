@@ -158,6 +158,7 @@
             return str_pad($book->month, 2, '0', STR_PAD_LEFT);
             }]);
             $years = $grouped->keys()->sort(); // ✅ Oldest to newest
+            $grouped = $grouped->sortKeys(); // ✅ Sort grouped data by year to match $years order
             @endphp
 
             @if($books->count())

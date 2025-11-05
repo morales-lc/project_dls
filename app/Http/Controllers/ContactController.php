@@ -39,6 +39,10 @@ class ContactController extends Controller
                 'website_url',
             ]));
             $contact->save();
+            
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Contact info updated successfully.']);
+            }
             return redirect()->route('library.content.manage')->with('success', 'Contact info updated successfully.');
         }
 }

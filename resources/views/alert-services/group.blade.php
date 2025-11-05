@@ -230,7 +230,7 @@
         <div class="netflix-grid">
             @php $count = 0; @endphp
             @foreach($books as $book)
-            <div class="book-card">
+            <div class="book-card" data-pdf-url="{{ $book->pdf_path ? asset('storage/'.$book->pdf_path) : '' }}">
                 @if($book->cover_image)
                 <img src="{{ asset('storage/'.$book->cover_image) }}" alt="Book Cover">
                 @else
@@ -241,7 +241,7 @@
                     <div class="book-title">{{ $book->title ?? 'Untitled' }}</div>
                     @if(Auth::check() && Auth::user()->role !== 'guest')
                     <div class="d-flex flex-column gap-2 w-100">
-                        <form action="{{ route('bookmarks.toggle') }}" method="POST" class="bookmark-toggle-alert d-flex justify-content-center">
+                        <form action="{{ route('bookmarks.toggle') }}" method="POST" class="bookmark-toggle-alert d-flex justify-content-center" onclick="event.stopPropagation();">
                             @csrf
                             <input type="hidden" name="id" value="{{ $book->id }}">
                             <input type="hidden" name="type" value="alert_book">
@@ -252,15 +252,15 @@
                             </button>
                         </form>
                         <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
-                            target="_blank" rel="noopener noreferrer" class="btn-pink text-center">
+                            target="_blank" rel="noopener noreferrer" class="btn-pink text-center" onclick="event.stopPropagation();">
                             <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                         </a>
                     </div>
                     @elseif(!Auth::check())
-                    <a href="{{ route('login') }}" onclick="alert('Please log in to bookmark and request via LiRA.');" class="btn-bookmark text-center">
+                    <a href="{{ route('login') }}" onclick="event.stopPropagation(); alert('Please log in to bookmark and request via LiRA.');" class="btn-bookmark text-center">
                         <i class="bi bi-box-arrow-in-right"></i> Log in to bookmark
                     </a>
-                    <a href="{{ route('login') }}" onclick="alert('Please log in to request via LiRA.');" class="btn-pink">
+                    <a href="{{ route('login') }}" onclick="event.stopPropagation(); alert('Please log in to request via LiRA.');" class="btn-pink">
                         <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                     </a>
                     @endif
@@ -284,7 +284,20 @@
 
     @include('footer')
         <script>
+            // Handle book card click to view PDF
             document.addEventListener('DOMContentLoaded', function() {
+                document.querySelectorAll('.book-card').forEach(function(card) {
+                    card.addEventListener('click', function(e) {
+                        var pdfUrl = this.getAttribute('data-pdf-url');
+                        if (pdfUrl) {
+                            window.open(pdfUrl, '_blank');
+                        } else {
+                            alert('PDF not available for this book.');
+                        }
+                    });
+                });
+
+                // Handle bookmark toggle
                 document.querySelectorAll('.bookmark-toggle-alert').forEach(function(form) {
                     form.addEventListener('submit', function(e) {
                         e.preventDefault();

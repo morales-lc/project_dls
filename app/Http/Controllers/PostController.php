@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Models\LibrarySetting;
 use App\Models\LibraryAnnouncement;
+use App\Models\LibrarySlideshowImage;
 
 class PostController extends Controller
 {
@@ -30,12 +31,14 @@ class PostController extends Controller
         // Load library settings and active announcements for the dashboard section
         $settings = LibrarySetting::singleton();
         $announcements = LibraryAnnouncement::where('active', true)->orderBy('position')->get();
+        $slideshowImages = LibrarySlideshowImage::active()->get();
 
         return view('dashboard', [
             'posts' => $posts,
             'bookmarkedPostIds' => $bookmarkedPostIds,
             'librarySettings' => $settings,
             'libraryAnnouncements' => $announcements,
+            'slideshowImages' => $slideshowImages,
         ]);
     }
 
