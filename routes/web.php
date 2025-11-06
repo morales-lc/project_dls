@@ -268,6 +268,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/user-management/add', [UserManagementController::class, 'add'])->name('user.add');
         Route::put('/user-management/{id}', [UserManagementController::class, 'update'])->name('user.update');
         Route::delete('/user-management/{id}', [UserManagementController::class, 'delete'])->name('user.delete');
+        Route::get('/user-management/export', [UserManagementController::class, 'export'])->name('user.export');
 
         // Student/Faculty edit/update routes
         Route::get('/student-faculty/{id}/edit', [\App\Http\Controllers\StudentFacultyController::class, 'edit'])->name('student_faculty.edit');

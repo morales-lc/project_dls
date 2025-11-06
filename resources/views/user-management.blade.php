@@ -69,6 +69,13 @@
         <!-- Header -->
         <h2 class="fw-bold mb-3 text-pink" style="letter-spacing: 1px; font-size: 2rem;">User Management</h2>
 
+        <!-- Export Button -->
+        <div class="mb-3 text-end">
+            <a href="{{ route('user.export') }}" class="btn btn-success px-4 btn-animated">
+                <i class="bi bi-file-earmark-excel me-1"></i> Export All Users to Excel
+            </a>
+        </div>
+
         <!-- Tabs -->
         <ul class="nav nav-pills mb-3" id="userTypeTabs">
             <li class="nav-item">

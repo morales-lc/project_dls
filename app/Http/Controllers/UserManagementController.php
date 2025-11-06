@@ -8,6 +8,8 @@ use App\Models\StudentFaculty;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Crypt;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\UserManagementExport;
 
 class UserManagementController extends Controller
 {
@@ -279,5 +281,10 @@ class UserManagementController extends Controller
             return view('users.create-guest');
         }
         abort(404);
+    }
+
+    public function export()
+    {
+        return Excel::download(new UserManagementExport, 'users_' . date('Y-m-d_His') . '.xlsx');
     }
 }

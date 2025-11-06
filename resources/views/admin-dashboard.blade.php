@@ -202,7 +202,6 @@
                         @else
                         <div class="small">No updates yet</div>
                         @endif
-                        <a href="{{ route('catalogs.search') }}" class="small d-inline-block mt-2">Search catalog →</a>
                     </div>
                     <div class="rounded-circle d-flex align-items-center justify-content-center stat-icon">
                         <i class="bi bi-book"></i>
