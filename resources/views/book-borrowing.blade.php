@@ -144,21 +144,62 @@
     @include('navbar')
 
 
-    <div class="header-text">Online Borrowing & Returning</div>
+    <div class="header-text">{{ $settings->title }}</div>
 
     <div class="container py-5">
         <div class="divider"></div>
+        
+        @if($settings->images && count($settings->images) > 0)
+        <!-- Image Slideshow -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div id="bookBorrowingCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        @foreach($settings->images as $index => $image)
+                        <button type="button" data-bs-target="#bookBorrowingCarousel" data-bs-slide-to="{{ $index }}" 
+                            class="{{ $index === 0 ? 'active' : '' }}" 
+                            aria-current="{{ $index === 0 ? 'true' : 'false' }}" 
+                            aria-label="Slide {{ $index + 1 }}"></button>
+                        @endforeach
+                    </div>
+                    <div class="carousel-inner rounded shadow-sm" style="border: 2px solid #e83e8c;">
+                        @foreach($settings->images as $index => $image)
+                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                            <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="Book Borrowing Image {{ $index + 1 }}" style="height: 450px; object-fit: cover;">
+                        </div>
+                        @endforeach
+                    </div>
+                    @if(count($settings->images) > 1)
+                    <button class="carousel-control-prev" type="button" data-bs-target="#bookBorrowingCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#bookBorrowingCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
+        
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="instructions">
+                                <div class="instructions">
                     <div class="section-title">Borrowing</div>
                     <ol>
+                        @if($settings->borrowing_steps && count($settings->borrowing_steps) > 0)
+                            @foreach($settings->borrowing_steps as $step)
+                            <li>{!! $step !!}</li>
+                            @endforeach
+                        @else
                         <li>Log in using your <strong>@lccdo.edu.ph</strong> email.</li>
                         <li>Search the catalog you want to borrow:
                             <a href="{{ route('dashboard') }}" target="_blank">Search Here</a>
                         </li>
                         <li>
-                            Select your desired catalog/book and press <em>“Request Borrow”</em> button.
+                            Select your desired catalog/book and press <em>"Request Borrow"</em> button.
                             This will redirect you to the LiRA Web Form with fields pre-filled.<br>
                             <sub>The library staff will endeavor to process your request within 3–5 working days.</sub>
                         </li>
@@ -167,10 +208,16 @@
                             When notified, proceed to the designated area indicated by LiRA.
                             Sign the two book receipts and drop one copy in the designated Drop Box.
                         </li>
+                        @endif
                     </ol>
 
                     <div class="section-title mt-4">Returning</div>
                     <ol>
+                        @if($settings->returning_steps && count($settings->returning_steps) > 0)
+                            @foreach($settings->returning_steps as $step)
+                            <li>{!! $step !!}</li>
+                            @endforeach
+                        @else
                         <li>Return materials on the specified due date indicated in the book receipt.</li>
                         <li>
                             Drop the returned material(s) in the Return Drop Box located outside
@@ -178,6 +225,7 @@
                             Notices will be posted at the Guard House for instructions.
                         </li>
                         <li>You will receive an email confirmation once the returned material(s) are recorded.</li>
+                        @endif
                     </ol>
                 </div>
             </div>

@@ -352,7 +352,7 @@
                             <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}" href="{{ route('libraries.college') }}">College Library</a></li>
                             <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
                             @auth
-                            <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online E-Libraries</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online Libraries</a></li>
                             @endauth
                         </ul>
                     </li>

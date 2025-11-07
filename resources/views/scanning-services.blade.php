@@ -96,35 +96,78 @@
 </head>
 <body>
     @include('navbar')
-    <div class="header-text">Scanning Service</div>
+    <div class="header-text">{{ $settings->title }}</div>
     <div class="container py-5">
         <div class="divider"></div>
+        
+        @if($settings->images && count($settings->images) > 0)
+        <!-- Image Slideshow -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-lg-8">
+                <div id="scanningServiceCarousel" class="carousel slide" data-bs-ride="carousel">
+                    <div class="carousel-indicators">
+                        @foreach($settings->images as $index => $image)
+                        <button type="button" data-bs-target="#scanningServiceCarousel" data-bs-slide-to="{{ $index }}" 
+                            class="{{ $index === 0 ? 'active' : '' }}" 
+                            aria-current="{{ $index === 0 ? 'true' : 'false' }}" 
+                            aria-label="Slide {{ $index + 1 }}"></button>
+                        @endforeach
+                    </div>
+                    <div class="carousel-inner rounded shadow-sm" style="border: 2px solid #e83e8c;">
+                        @foreach($settings->images as $index => $image)
+                        <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
+                            <img src="{{ asset('storage/' . $image) }}" class="d-block w-100" alt="Scanning Service Image {{ $index + 1 }}" style="height: 450px; object-fit: cover;">
+                        </div>
+                        @endforeach
+                    </div>
+                    @if(count($settings->images) > 1)
+                    <button class="carousel-control-prev" type="button" data-bs-target="#scanningServiceCarousel" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Previous</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#scanningServiceCarousel" data-bs-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Next</span>
+                    </button>
+                    @endif
+                </div>
+            </div>
+        </div>
+        @endif
+        
         <div class="row justify-content-center">
             <div class="col-lg-8">
-                <div class="instructions">
+                                <div class="instructions">
                     <ol>
+                        @if($settings->steps && count($settings->steps) > 0)
+                            @foreach($settings->steps as $step)
+                            <li>{!! $step !!}</li>
+                            @endforeach
+                        @else
                         <li>Log in using your <strong>@lccdo.edu.ph</strong> email.</li>
                         <li>Search the catalog you want to scan:
                             <a href="{{ route('dashboard') }}" target="_blank">Search Here</a>
                         </li>
                         <li>
-                            Select your desired catalog/book and press <em>“Request Scan”</em> button.
+                            Select your desired catalog/book and press <em>"Request Scan"</em> button.
                             This will redirect you to the LiRA Web Form with fields pre-filled.<br>
                         <li style="color:#e83e8c;">An email will be sent confirming the request as well as the Table of Contents so that you can choose the specific chapter/article needed</li>
                         <li style="color:#e83e8c;">When the digital file is available, an email notification will be sent with a link for downloading.<br>
                         <span style="color:#333;">The library will aim to provide you with a copy of the item in digital format within an average of three working days from the date it is requested.<br>
                         Exact time may vary based on the size of the file to be scanned.</span></li>
+                        @endif
                     </ol>
+                    @if($settings->important_note)
                     <div class="important">Important:</div>
                     <div class="important-details">
-                        The Library Scanning Service is available only to the Lourdes College community.<br><br>
-                        Scanning request applies only to books and journals available at the Learning Commons, including the Graduate Library and Integrated Basic Education Libraries.
+                        {!! $settings->important_note !!}
                     </div>
+                    @endif
+                    @if($settings->extract_limits)
                     <div class="extract-limits">
-                        <strong>Normal extract limits pursuant to Fair Use</strong><br>
-                        <em>Up to one chapter of a book or 10% of the total, whichever is greater</em><br>
-                        <em>Up to one article from one journal issue or 10% of the total, whichever is greater</em>
+                        {!! $settings->extract_limits !!}
                     </div>
+                    @endif
                 </div>
             </div>
         </div>

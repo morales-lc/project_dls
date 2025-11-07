@@ -31,11 +31,12 @@ def log_message(message, also_print=True):
         print(message)
 
 # === MYSQL CONNECTION ===
+# Use environment variables for database credentials (passed from Laravel)
 conn = mysql.connector.connect(
-    host="127.0.0.1",
-    user="root",
-    password="",
-    database="dls_project"
+    host=os.getenv("DB_HOST", "127.0.0.1"),
+    user=os.getenv("DB_USERNAME", "root"),
+    password=os.getenv("DB_PASSWORD", ""),
+    database=os.getenv("DB_DATABASE", "dls_project")
 )
 cursor = conn.cursor()
 

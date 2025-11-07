@@ -42,6 +42,13 @@ use App\Http\Controllers\ELibraryController;
 // LiRA Jotform
 use App\Http\Controllers\LiRAController;
 
+// Book Borrowing page
+use App\Http\Controllers\BookBorrowingController;
+use App\Http\Controllers\NetzoneController;
+use App\Http\Controllers\LearningSpaceController;
+
+use App\Http\Controllers\AlinetController;
+
 
 
 Route::get('/about', [HomeController::class, 'about'])->name('about');
@@ -253,6 +260,22 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/library-content/learning-space/section/item', [LibraryContentController::class, 'updateLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.update');
         Route::delete('/library-content/learning-space/section/item', [LibraryContentController::class, 'deleteLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.delete');
         
+        // Book Borrowing management routes
+        Route::post('/library-content/book-borrowing', [LibraryContentController::class, 'updateBookBorrowing'])->name('library.content.book-borrowing.update');
+        Route::post('/library-content/book-borrowing/image', [LibraryContentController::class, 'addBookBorrowingImage'])->name('library.content.book-borrowing.image.add');
+        Route::delete('/library-content/book-borrowing/image', [LibraryContentController::class, 'deleteBookBorrowingImage'])->name('library.content.book-borrowing.image.delete');
+        Route::post('/library-content/book-borrowing/step', [LibraryContentController::class, 'addBookBorrowingStep'])->name('library.content.book-borrowing.step.add');
+        Route::put('/library-content/book-borrowing/step', [LibraryContentController::class, 'updateBookBorrowingStep'])->name('library.content.book-borrowing.step.update');
+        Route::delete('/library-content/book-borrowing/step', [LibraryContentController::class, 'deleteBookBorrowingStep'])->name('library.content.book-borrowing.step.delete');
+        
+        // Scanning Service management routes
+        Route::post('/library-content/scanning-service', [LibraryContentController::class, 'updateScanningService'])->name('library.content.scanning-service.update');
+        Route::post('/library-content/scanning-service/image', [LibraryContentController::class, 'addScanningServiceImage'])->name('library.content.scanning-service.image.add');
+        Route::delete('/library-content/scanning-service/image', [LibraryContentController::class, 'deleteScanningServiceImage'])->name('library.content.scanning-service.image.delete');
+        Route::post('/library-content/scanning-service/step', [LibraryContentController::class, 'addScanningServiceStep'])->name('library.content.scanning-service.step.add');
+        Route::put('/library-content/scanning-service/step', [LibraryContentController::class, 'updateScanningServiceStep'])->name('library.content.scanning-service.step.update');
+        Route::delete('/library-content/scanning-service/step', [LibraryContentController::class, 'deleteScanningServiceStep'])->name('library.content.scanning-service.step.delete');
+        
         Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
 
         // import routes
@@ -379,6 +402,23 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/library-content/learning-space/section/item', [LibraryContentController::class, 'addLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.add');
         Route::put('/library-content/learning-space/section/item', [LibraryContentController::class, 'updateLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.update');
         Route::delete('/library-content/learning-space/section/item', [LibraryContentController::class, 'deleteLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.delete');
+        
+        // Book Borrowing management routes
+        Route::post('/library-content/book-borrowing', [LibraryContentController::class, 'updateBookBorrowing'])->name('library.content.book-borrowing.update');
+        Route::post('/library-content/book-borrowing/image', [LibraryContentController::class, 'addBookBorrowingImage'])->name('library.content.book-borrowing.image.add');
+        Route::delete('/library-content/book-borrowing/image', [LibraryContentController::class, 'deleteBookBorrowingImage'])->name('library.content.book-borrowing.image.delete');
+        Route::post('/library-content/book-borrowing/step', [LibraryContentController::class, 'addBookBorrowingStep'])->name('library.content.book-borrowing.step.add');
+        Route::put('/library-content/book-borrowing/step', [LibraryContentController::class, 'updateBookBorrowingStep'])->name('library.content.book-borrowing.step.update');
+        Route::delete('/library-content/book-borrowing/step', [LibraryContentController::class, 'deleteBookBorrowingStep'])->name('library.content.book-borrowing.step.delete');
+        
+        // Scanning Service management routes
+        Route::post('/library-content/scanning-service', [LibraryContentController::class, 'updateScanningService'])->name('library.content.scanning-service.update');
+        Route::post('/library-content/scanning-service/image', [LibraryContentController::class, 'addScanningServiceImage'])->name('library.content.scanning-service.image.add');
+        Route::delete('/library-content/scanning-service/image', [LibraryContentController::class, 'deleteScanningServiceImage'])->name('library.content.scanning-service.image.delete');
+        Route::post('/library-content/scanning-service/step', [LibraryContentController::class, 'addScanningServiceStep'])->name('library.content.scanning-service.step.add');
+        Route::put('/library-content/scanning-service/step', [LibraryContentController::class, 'updateScanningServiceStep'])->name('library.content.scanning-service.step.update');
+        Route::delete('/library-content/scanning-service/step', [LibraryContentController::class, 'deleteScanningServiceStep'])->name('library.content.scanning-service.step.delete');
+        
         Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
         
         // Post Management routes
@@ -391,8 +431,8 @@ Route::middleware(['auth'])->group(function () {
 
         Route::get('/sidlak/manage', [App\Http\Controllers\SidlakJournalController::class, 'manage'])->name('sidlak.manage');
 
-        // (Moved: Library content management routes moved to admin-only group)
-        // (Moved: sidlak article download route will be registered in public routes so downloads are available to all users)
+        // ( Library content management routes moved to admin-only group)
+        // ( sidlak article download route will be registered in public routes so downloads are available to all users)
         // Sidlak create/store for librarians/admins
         Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
         Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store');
@@ -465,13 +505,10 @@ Route::get('/information-literacy', [InformationLiteracyController::class, 'inde
 Route::get('/alert-services', [AlertServiceController::class, 'index'])->name('alert-services.index');
 Route::get('/alert-services/{year}/{month}/{group}/{value}', [AlertServiceController::class, 'group'])->name('alert-services.group');
 
-use App\Http\Controllers\AlinetController;
+
 // ALINET Appointment
 Route::get('/alinet', [AlinetController::class, 'showForm'])->name('alinet.form');
 Route::post('/alinet', [AlinetController::class, 'submitForm'])->name('alinet.submit');
-
-
-// ALINET Appointment Management (protected for librarian/admin)
 
 // Learning Spaces page
 Route::get('/learning-spaces', function () {
@@ -496,8 +533,6 @@ Route::get('/lira/jotform', [App\Http\Controllers\LiRAController::class, 'showFo
 
 // Admin management for LiRA requests (librarian + admin)
 Route::middleware(['auth', 'role:librarian,admin'])->group(function () {});
-
-
 
 // Library department routes
 Route::get('/libraries/college', [LibraryStaffController::class, 'index'])->defaults('department', 'college')->name('libraries.college');
@@ -525,9 +560,6 @@ Route::middleware('auth')->group(function () {
 });
 
 
-
-
-
 // E-Libraries management (admin/librarian)
 Route::middleware(['auth'])->group(function () {
     Route::group(['middleware' => function ($request, $next) {
@@ -537,10 +569,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 
-// Book Borrowing page
-use App\Http\Controllers\BookBorrowingController;
-use App\Http\Controllers\NetzoneController;
-use App\Http\Controllers\LearningSpaceController;
+
 
 Route::get('/book-borrowing', [BookBorrowingController::class, 'show'])->name('book.borrowing');
 

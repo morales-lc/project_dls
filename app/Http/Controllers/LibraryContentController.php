@@ -10,6 +10,8 @@ use App\Models\ContactInfo;
 use App\Models\LibrarySlideshowImage;
 use App\Models\NetzoneSettings;
 use App\Models\LearningSpaceSettings;
+use App\Models\BookBorrowingSettings;
+use App\Models\ScanningServiceSettings;
 
 class LibraryContentController extends Controller
 {
@@ -21,6 +23,8 @@ class LibraryContentController extends Controller
         $slideshowImages = LibrarySlideshowImage::ordered()->get();
         $netzoneSettings = NetzoneSettings::get();
         $learningSpaceSettings = LearningSpaceSettings::get();
+        $bookBorrowingSettings = BookBorrowingSettings::get();
+        $scanningServiceSettings = ScanningServiceSettings::get();
         
         return view('library-content-management', compact(
             'settings', 
@@ -28,7 +32,9 @@ class LibraryContentController extends Controller
             'contact', 
             'slideshowImages',
             'netzoneSettings',
-            'learningSpaceSettings'
+            'learningSpaceSettings',
+            'bookBorrowingSettings',
+            'scanningServiceSettings'
         ));
     }
 
@@ -550,5 +556,273 @@ class LibraryContentController extends Controller
             return response()->json(['message' => 'Item deleted.']);
         }
         return back()->with('success', 'Item deleted.');
+    }
+
+    // Book Borrowing Management Methods
+    public function updateBookBorrowing(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+        ]);
+
+        $settings = BookBorrowingSettings::get();
+        $settings->update([
+            'title' => $request->title,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Book Borrowing settings updated.']);
+        }
+        return back()->with('success', 'Book Borrowing settings updated.');
+    }
+
+    public function addBookBorrowingImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ]);
+
+        $settings = BookBorrowingSettings::get();
+        $path = $request->file('image')->store('book-borrowing', 'public');
+        
+        $images = $settings->images ?? [];
+        $images[] = $path;
+        $settings->images = $images;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Book Borrowing image added.']);
+        }
+        return back()->with('success', 'Book Borrowing image added.');
+    }
+
+    public function deleteBookBorrowingImage(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = BookBorrowingSettings::get();
+        $images = $settings->images ?? [];
+        
+        if (isset($images[$request->index])) {
+            Storage::disk('public')->delete($images[$request->index]);
+            unset($images[$request->index]);
+            $settings->images = array_values($images);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Book Borrowing image deleted.']);
+        }
+        return back()->with('success', 'Book Borrowing image deleted.');
+    }
+
+    public function addBookBorrowingStep(Request $request)
+    {
+        $request->validate([
+            'step' => 'required|string',
+            'type' => 'required|in:borrowing,returning',
+        ]);
+
+        $settings = BookBorrowingSettings::get();
+        $type = $request->type;
+        $steps = $type === 'borrowing' ? ($settings->borrowing_steps ?? []) : ($settings->returning_steps ?? []);
+        
+        $steps[] = $request->step;
+        
+        if ($type === 'borrowing') {
+            $settings->borrowing_steps = $steps;
+        } else {
+            $settings->returning_steps = $steps;
+        }
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Step added.']);
+        }
+        return back()->with('success', 'Step added.');
+    }
+
+    public function updateBookBorrowingStep(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+            'step' => 'required|string',
+            'type' => 'required|in:borrowing,returning',
+        ]);
+
+        $settings = BookBorrowingSettings::get();
+        $type = $request->type;
+        $steps = $type === 'borrowing' ? ($settings->borrowing_steps ?? []) : ($settings->returning_steps ?? []);
+        
+        if (isset($steps[$request->index])) {
+            $steps[$request->index] = $request->step;
+            if ($type === 'borrowing') {
+                $settings->borrowing_steps = $steps;
+            } else {
+                $settings->returning_steps = $steps;
+            }
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Step updated.']);
+        }
+        return back()->with('success', 'Step updated.');
+    }
+
+    public function deleteBookBorrowingStep(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+            'type' => 'required|in:borrowing,returning',
+        ]);
+
+        $settings = BookBorrowingSettings::get();
+        $type = $request->type;
+        $steps = $type === 'borrowing' ? ($settings->borrowing_steps ?? []) : ($settings->returning_steps ?? []);
+        
+        if (isset($steps[$request->index])) {
+            unset($steps[$request->index]);
+            $steps = array_values($steps);
+            if ($type === 'borrowing') {
+                $settings->borrowing_steps = $steps;
+            } else {
+                $settings->returning_steps = $steps;
+            }
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Step deleted.']);
+        }
+        return back()->with('success', 'Step deleted.');
+    }
+
+    // Scanning Service Management Methods
+    public function updateScanningService(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'important_note' => 'nullable|string',
+            'extract_limits' => 'nullable|string',
+        ]);
+
+        $settings = ScanningServiceSettings::get();
+        $settings->update([
+            'title' => $request->title,
+            'important_note' => $request->important_note,
+            'extract_limits' => $request->extract_limits,
+        ]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Scanning Service settings updated.']);
+        }
+        return back()->with('success', 'Scanning Service settings updated.');
+    }
+
+    public function addScanningServiceImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ]);
+
+        $settings = ScanningServiceSettings::get();
+        $path = $request->file('image')->store('scanning-service', 'public');
+        
+        $images = $settings->images ?? [];
+        $images[] = $path;
+        $settings->images = $images;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Scanning Service image added.']);
+        }
+        return back()->with('success', 'Scanning Service image added.');
+    }
+
+    public function deleteScanningServiceImage(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = ScanningServiceSettings::get();
+        $images = $settings->images ?? [];
+        
+        if (isset($images[$request->index])) {
+            Storage::disk('public')->delete($images[$request->index]);
+            unset($images[$request->index]);
+            $settings->images = array_values($images);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Scanning Service image deleted.']);
+        }
+        return back()->with('success', 'Scanning Service image deleted.');
+    }
+
+    public function addScanningServiceStep(Request $request)
+    {
+        $request->validate([
+            'step' => 'required|string',
+        ]);
+
+        $settings = ScanningServiceSettings::get();
+        $steps = $settings->steps ?? [];
+        
+        $steps[] = $request->step;
+        $settings->steps = $steps;
+        $settings->save();
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Step added.']);
+        }
+        return back()->with('success', 'Step added.');
+    }
+
+    public function updateScanningServiceStep(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+            'step' => 'required|string',
+        ]);
+
+        $settings = ScanningServiceSettings::get();
+        $steps = $settings->steps ?? [];
+        
+        if (isset($steps[$request->index])) {
+            $steps[$request->index] = $request->step;
+            $settings->steps = $steps;
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Step updated.']);
+        }
+        return back()->with('success', 'Step updated.');
+    }
+
+    public function deleteScanningServiceStep(Request $request)
+    {
+        $request->validate([
+            'index' => 'required|integer',
+        ]);
+
+        $settings = ScanningServiceSettings::get();
+        $steps = $settings->steps ?? [];
+        
+        if (isset($steps[$request->index])) {
+            unset($steps[$request->index]);
+            $settings->steps = array_values($steps);
+            $settings->save();
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['message' => 'Step deleted.']);
+        }
+        return back()->with('success', 'Step deleted.');
     }
 }

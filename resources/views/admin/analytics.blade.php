@@ -14,6 +14,7 @@
 @section('title', 'Admin Analytics')
 
 @section('content')
+
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h3 class="fw-bold"> Analytics — Resource Usage</h3>
@@ -278,14 +279,14 @@
     </div>
 </div>
 
-@php
-$chartLabels = $programs->pluck('name')->toArray();
-$chartTotals = [];
-foreach ($programs as $p) {
-$group = isset($programCounts) ? $programCounts->get($p->name) : collect();
-$chartTotals[] = $group ? $group->sum('total') : 0;
-}
-@endphp
+    @php
+    $chartLabels = $programs->pluck('name')->toArray();
+    $chartTotals = [];
+    foreach ($programs as $p) {
+    $group = isset($programCounts) ? $programCounts->get($p->name) : collect();
+    $chartTotals[] = $group ? $group->sum('total') : 0;
+    }
+    @endphp
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -392,7 +393,12 @@ $chartTotals[] = $group ? $group->sum('total') : 0;
         let monthlyChart = null;
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-        function buildMonthlyDataset(values) {
+        function buildMonthlyDataset(values, programName) {
+            // Find the program index to use the same color
+            const programIndex = chartLabels.indexOf(programName);
+            const programColor = programIndex >= 0 ? backgroundColors[programIndex] : 'rgba(54, 162, 235, 0.8)';
+            const programBorderColor = programIndex >= 0 ? borderColors[programIndex] : 'rgba(54, 162, 235, 1)';
+            
             return {
                 type: 'line',
                 data: {
@@ -400,8 +406,8 @@ $chartTotals[] = $group ? $group->sum('total') : 0;
                     datasets: [{
                         label: 'Monthly Total',
                         data: values,
-                        backgroundColor: 'rgba(54, 162, 235, 1)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
+                        backgroundColor: programColor,
+                        borderColor: programBorderColor,
                         borderWidth: 2,
                         fill: true,
                         tension: 0.3
@@ -433,7 +439,7 @@ $chartTotals[] = $group ? $group->sum('total') : 0;
             const target = document.getElementById('programMonthlyChart');
             if (!target) return;
             if (monthlyChart) monthlyChart.destroy();
-            monthlyChart = new Chart(target.getContext('2d'), buildMonthlyDataset(values));
+            monthlyChart = new Chart(target.getContext('2d'), buildMonthlyDataset(values, programName));
         }
 
         if (isYearMode) {

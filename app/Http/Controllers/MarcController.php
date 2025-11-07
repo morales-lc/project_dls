@@ -43,15 +43,21 @@ class MarcController extends Controller
         // Python script path
         $pythonScript = base_path('scripts/import_marc.py');
 
-        // Prefer the Windows Python Launcher `py` by default; allow override via env
-        $pythonSpec = env('PYTHON_EXE'); // e.g., "py -3.10" or "C:\\Path\\to\\python.exe"
+        // Get Python executable from environment or use platform defaults
+        $pythonSpec = env('PYTHON_EXE'); // e.g., "py -3" or "python3" or full path
         $cmd = [];
         if (!empty($pythonSpec)) {
-            // Split on whitespace to support simple "py -3" specs
+            // Split on whitespace to support "py -3" or "python3"
             $cmd = preg_split('/\s+/', trim($pythonSpec));
         } else {
-            // Use Python launcher targeting Python 3
-            $cmd = ['py', '-3'];
+            // Platform-specific defaults
+            if (DIRECTORY_SEPARATOR === '\\') {
+                // Windows: use Python launcher
+                $cmd = ['py', '-3'];
+            } else {
+                // Linux/Unix: use python3
+                $cmd = ['python3'];
+            }
         }
 
         // Append script and argument
@@ -63,11 +69,15 @@ class MarcController extends Controller
 
         $process = new Process($cmd);
 
-        // Provide environment variables
+        // Provide environment variables including database credentials
         $env = array_merge($_ENV, getenv() ?: [], [
             'SystemRoot' => getenv('SystemRoot') ?: (DIRECTORY_SEPARATOR === '\\' ? 'C:\\Windows' : '/'),
             'PATH' => getenv('PATH'),
             'PYTHONHASHSEED' => '0',
+            'DB_HOST' => config('database.connections.mysql.host'),
+            'DB_USERNAME' => config('database.connections.mysql.username'),
+            'DB_PASSWORD' => config('database.connections.mysql.password'),
+            'DB_DATABASE' => config('database.connections.mysql.database'),
         ]);
         $process->setEnv($env);
 

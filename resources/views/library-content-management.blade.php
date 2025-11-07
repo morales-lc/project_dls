@@ -580,6 +580,316 @@
         </div>
     </div>
 
+    <!-- Book Borrowing Management Section -->
+    <div class="row g-4 mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h3 class="text-pink fw-bold mb-1">Book Borrowing Settings</h3>
+                    <small class="text-muted">Manage Book Borrowing page content and images</small>
+                    
+                    <form action="{{ route('library.content.book-borrowing.update') }}" method="POST" class="mt-4">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Page Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $bookBorrowingSettings->title }}" required>
+                        </div>
+                        <button type="submit" class="btn btn-outline-pink">Update Title</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Book Borrowing Images (Slideshow)</h6>
+                    <form action="{{ route('library.content.book-borrowing.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <button type="submit" class="btn btn-pink">Add Image</button>
+                        </div>
+                    </form>
+
+                    <div class="row g-3">
+                        @forelse($bookBorrowingSettings->images ?? [] as $index => $imagePath)
+                        <div class="col-md-3">
+                            <div class="card">
+                                <img src="{{ asset('storage/' . $imagePath) }}" class="card-img-top" alt="Book Borrowing Image" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <form action="{{ route('library.content.book-borrowing.image.delete') }}" method="POST" onsubmit="return confirm('Delete this image?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">No images uploaded yet.</div>
+                        </div>
+                        @endforelse
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Borrowing Steps</h6>
+                    <form action="{{ route('library.content.book-borrowing.step.add') }}" method="POST" class="mb-3">
+                        @csrf
+                        <input type="hidden" name="type" value="borrowing">
+                        <div class="input-group">
+                            <textarea name="step" class="form-control" placeholder="Enter a new borrowing step (HTML allowed)" rows="2" required></textarea>
+                            <button type="submit" class="btn btn-pink">Add Step</button>
+                        </div>
+                        <small class="text-muted">HTML tags allowed for formatting</small>
+                    </form>
+
+                    <ul class="list-group">
+                        @forelse($bookBorrowingSettings->borrowing_steps ?? [] as $index => $step)
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>{{ $index + 1 }}.</strong> {!! $step !!}
+                            </div>
+                            <div class="btn-group btn-group-sm ms-2">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editBorrowingStepModal{{ $index }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ route('library.content.book-borrowing.step.delete') }}" method="POST" onsubmit="return confirm('Delete this step?')" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="index" value="{{ $index }}">
+                                    <input type="hidden" name="type" value="borrowing">
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editBorrowingStepModal{{ $index }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="{{ route('library.content.book-borrowing.step.update') }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <input type="hidden" name="type" value="borrowing">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Borrowing Step {{ $index + 1 }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <textarea name="step" class="form-control" rows="3" required>{{ $step }}</textarea>
+                                            <small class="text-muted">HTML tags allowed for formatting</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-pink">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <li class="list-group-item text-muted">No borrowing steps yet.</li>
+                        @endforelse
+                    </ul>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Returning Steps</h6>
+                    <form action="{{ route('library.content.book-borrowing.step.add') }}" method="POST" class="mb-3">
+                        @csrf
+                        <input type="hidden" name="type" value="returning">
+                        <div class="input-group">
+                            <textarea name="step" class="form-control" placeholder="Enter a new returning step (HTML allowed)" rows="2" required></textarea>
+                            <button type="submit" class="btn btn-pink">Add Step</button>
+                        </div>
+                        <small class="text-muted">HTML tags allowed for formatting</small>
+                    </form>
+
+                    <ul class="list-group">
+                        @forelse($bookBorrowingSettings->returning_steps ?? [] as $index => $step)
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>{{ $index + 1 }}.</strong> {!! $step !!}
+                            </div>
+                            <div class="btn-group btn-group-sm ms-2">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editReturningStepModal{{ $index }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ route('library.content.book-borrowing.step.delete') }}" method="POST" onsubmit="return confirm('Delete this step?')" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="index" value="{{ $index }}">
+                                    <input type="hidden" name="type" value="returning">
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editReturningStepModal{{ $index }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="{{ route('library.content.book-borrowing.step.update') }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <input type="hidden" name="type" value="returning">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Returning Step {{ $index + 1 }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <textarea name="step" class="form-control" rows="3" required>{{ $step }}</textarea>
+                                            <small class="text-muted">HTML tags allowed for formatting</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-pink">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <li class="list-group-item text-muted">No returning steps yet.</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanning Service Management Section -->
+    <div class="row g-4 mt-5">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h3 class="text-pink fw-bold mb-1">Scanning Service Settings</h3>
+                    <small class="text-muted">Manage Scanning Service page content and images</small>
+                    
+                    <form action="{{ route('library.content.scanning-service.update') }}" method="POST" class="mt-4">
+                        @csrf
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Page Title</label>
+                            <input type="text" name="title" class="form-control" value="{{ $scanningServiceSettings->title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Important Note</label>
+                            <textarea name="important_note" class="form-control" rows="3">{{ $scanningServiceSettings->important_note }}</textarea>
+                            <small class="text-muted">HTML allowed (e.g., &lt;br&gt; for line breaks)</small>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Extract Limits</label>
+                            <textarea name="extract_limits" class="form-control" rows="3">{{ $scanningServiceSettings->extract_limits }}</textarea>
+                            <small class="text-muted">HTML allowed (e.g., &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;)</small>
+                        </div>
+                        <button type="submit" class="btn btn-outline-pink">Update Settings</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Scanning Service Images (Slideshow)</h6>
+                    <form action="{{ route('library.content.scanning-service.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
+                        @csrf
+                        <div class="input-group">
+                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <button type="submit" class="btn btn-pink">Add Image</button>
+                        </div>
+                    </form>
+
+                    <div class="row g-3">
+                        @forelse($scanningServiceSettings->images ?? [] as $index => $imagePath)
+                        <div class="col-md-3">
+                            <div class="card">
+                                <img src="{{ asset('storage/' . $imagePath) }}" class="card-img-top" alt="Scanning Service Image" style="height: 150px; object-fit: cover;">
+                                <div class="card-body p-2">
+                                    <form action="{{ route('library.content.scanning-service.image.delete') }}" method="POST" onsubmit="return confirm('Delete this image?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <div class="col-12">
+                            <div class="alert alert-info mb-0">No images uploaded yet.</div>
+                        </div>
+                        @endforelse
+                    </div>
+
+                    <hr class="my-4">
+
+                    <h6 class="fw-semibold mb-3">Scanning Steps</h6>
+                    <form action="{{ route('library.content.scanning-service.step.add') }}" method="POST" class="mb-3">
+                        @csrf
+                        <div class="input-group">
+                            <textarea name="step" class="form-control" placeholder="Enter a new scanning step (HTML allowed)" rows="2" required></textarea>
+                            <button type="submit" class="btn btn-pink">Add Step</button>
+                        </div>
+                        <small class="text-muted">HTML tags allowed for formatting</small>
+                    </form>
+
+                    <ul class="list-group">
+                        @forelse($scanningServiceSettings->steps ?? [] as $index => $step)
+                        <li class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                                <strong>{{ $index + 1 }}.</strong> {!! $step !!}
+                            </div>
+                            <div class="btn-group btn-group-sm ms-2">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editScanningStepModal{{ $index }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ route('library.content.scanning-service.step.delete') }}" method="POST" onsubmit="return confirm('Delete this step?')" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <input type="hidden" name="index" value="{{ $index }}">
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+
+                        <!-- Edit Modal -->
+                        <div class="modal fade" id="editScanningStepModal{{ $index }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form action="{{ route('library.content.scanning-service.step.update') }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="index" value="{{ $index }}">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Scanning Step {{ $index + 1 }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <textarea name="step" class="form-control" rows="3" required>{{ $step }}</textarea>
+                                            <small class="text-muted">HTML tags allowed for formatting</small>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-pink">Save Changes</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        @empty
+                        <li class="list-group-item text-muted">No scanning steps yet.</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Contact Information Section -->
     <div class="row g-4 mt-5">
         <div class="col-12">

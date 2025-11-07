@@ -48,7 +48,7 @@
         </li>
         <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('e-libraries.manage') ? 'active' : '' }}" href="{{ route('e-libraries.manage') }}">
-                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i> <span>Manage E-libraries</span>
+                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i> <span>Manage Online Libraries</span>
             </a>
         </li>
 
