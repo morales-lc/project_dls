@@ -139,7 +139,7 @@
         }
     </style>
 </head>
-
+    <!-- THE CONTENT OF THIS PAGE IS MANAGE IN LIBRARY CONTENT IN ADMIN -->
 <body>
     @include('navbar')
 
@@ -195,8 +195,8 @@
                             @endforeach
                         @else
                         <li>Log in using your <strong>@lccdo.edu.ph</strong> email.</li>
-                        <li>Search the catalog you want to borrow:
-                            <a href="{{ route('dashboard') }}" target="_blank">Search Here</a>
+                        <li>Search the catalog you want to borrow
+                            
                         </li>
                         <li>
                             Select your desired catalog/book and press <em>"Request Borrow"</em> button.

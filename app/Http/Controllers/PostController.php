@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\LibrarySetting;
 use App\Models\LibraryAnnouncement;
 use App\Models\LibrarySlideshowImage;
+use App\Models\AlertBook;
+
+
 
 class PostController extends Controller
 {
@@ -33,12 +36,32 @@ class PostController extends Controller
         $announcements = LibraryAnnouncement::where('active', true)->orderBy('position')->get();
         $slideshowImages = LibrarySlideshowImage::active()->get();
 
+        // Fetch 20 newest alert books ordered by year and month descending
+        $latestAlertBooks = AlertBook::orderByDesc('year')
+            ->orderByDesc('month')
+            ->limit(20)
+            ->get();
+
+        // Collect bookmarked AlertBook IDs for authenticated users
+        $bookmarkedAlertBookIds = [];
+        if (Auth::check()) {
+            $sf = Auth::user()->studentFaculty ?? null;
+            if ($sf) {
+                $bookmarkedAlertBookIds = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                    ->where('bookmarkable_type', AlertBook::class)
+                    ->pluck('bookmarkable_id')
+                    ->toArray();
+            }
+        }
+
         return view('dashboard', [
             'posts' => $posts,
             'bookmarkedPostIds' => $bookmarkedPostIds,
             'librarySettings' => $settings,
             'libraryAnnouncements' => $announcements,
             'slideshowImages' => $slideshowImages,
+            'latestAlertBooks' => $latestAlertBooks,
+            'bookmarkedAlertBookIds' => $bookmarkedAlertBookIds,
         ]);
     }
 

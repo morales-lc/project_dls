@@ -238,7 +238,7 @@
                     <input name="last_name" id="last_name" class="form-control" value="{{ $sf->last_name ?? '' }}">
                   </div>
                 </div>
-                {{-- Email is not editable here by requirement; show readonly info instead --}}
+                {{-- Email is not editable here --}}
                 <div class="col-md-12 mb-3">
                   <div class="small text-muted">Email: {{ $sf->user->email ?? '' }}</div>
                 </div>

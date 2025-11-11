@@ -1,7 +1,7 @@
 <title>Learning Spaces</title>
 
 @include('navbar')
-
+<!-- THE CONTENT OF THIS PAGE IS MANAGE IN LIBRARY CONTENT IN ADMIN -->
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
