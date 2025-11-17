@@ -352,11 +352,17 @@
     </form>
 
     @if($catalogs->total() > 0)
-    <div class="mb-3 text-muted small">
+    <div class="mb-3 mt-3 text-muted small">
         Showing <strong>{{ $catalogs->firstItem() }}</strong>–<strong>{{ $catalogs->lastItem() }}</strong> of <strong>{{ $catalogs->total() }}</strong> results
     </div>
     @else
-    <div class="mb-3 text-muted small">No results found.</div>
+    <div class="mt-5 mb-5 text-center">
+        <div class="alert alert-light border shadow-sm p-5" style="max-width: 600px; margin: 0 auto; border-radius: 1rem;">
+            <i class="bi bi-search" style="font-size: 4rem; color: #e83e8c; opacity: 0.3;"></i>
+            <h5 class="mt-3 mb-2 fw-bold text-secondary">No Results Found</h5>
+            <p class="text-muted mb-0">We couldn't find any items matching your search. Try different keywords or check your spelling.</p>
+        </div>
+    </div>
     @endif
 
     <!-- Catalog Container -->

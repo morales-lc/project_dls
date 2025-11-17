@@ -1,7 +1,7 @@
 <title>Learning Spaces</title>
 
 @include('navbar')
-<!-- THE CONTENT OF THIS PAGE IS MANAGE IN LIBRARY CONTENT IN ADMIN -->
+<!-- THE CONTENT OF THIS PAGE IS MANAGED IN LIBRARY CONTENT IN ADMIN -->
 <div class="container py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -9,16 +9,16 @@
                 <div class="card-body">
                     <h1 class="mb-3 fw-bold text-center" style="color:#e83e8c;">{{ $settings->title }}</h1>
                     <hr class="mb-4" style="border-top:2px solid #e83e8c;">
-                    
+
                     @if($settings->images && count($settings->images) > 0)
                     <!-- Image Slideshow -->
                     <div class="mb-4">
                         <div id="learningSpaceCarousel" class="carousel slide" data-bs-ride="carousel">
                             <div class="carousel-indicators">
                                 @foreach($settings->images as $index => $image)
-                                <button type="button" data-bs-target="#learningSpaceCarousel" data-bs-slide-to="{{ $index }}" 
-                                    class="{{ $index === 0 ? 'active' : '' }}" 
-                                    aria-current="{{ $index === 0 ? 'true' : 'false' }}" 
+                                <button type="button" data-bs-target="#learningSpaceCarousel" data-bs-slide-to="{{ $index }}"
+                                    class="{{ $index === 0 ? 'active' : '' }}"
+                                    aria-current="{{ $index === 0 ? 'true' : 'false' }}"
                                     aria-label="Slide {{ $index + 1 }}"></button>
                                 @endforeach
                             </div>
@@ -53,60 +53,62 @@
                             </div>
                         </div>
                     </div>
-<style>
-.learning-space-img {
-    transition: transform 0.33s cubic-bezier(.4,1.6,.6,1), box-shadow 0.2s;
-}
-.learning-space-img:hover, .learning-space-img:focus {
-    transform: scale(1.13) rotate(-2deg);
-    z-index: 2;
-    box-shadow: 0 8px 32px rgba(232,62,140,0.18);
-}
-</style>
+                    <style>
+                        .learning-space-img {
+                            transition: transform 0.33s cubic-bezier(.4, 1.6, .6, 1), box-shadow 0.2s;
+                        }
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var imgModal = document.getElementById('imgModal');
-    var modalImg = document.getElementById('modalImg');
-    
-    // Handle carousel image clicks
-    document.querySelectorAll('#learningSpaceCarousel img').forEach(function(img) {
-        img.addEventListener('click', function() {
-            var src = this.getAttribute('data-img');
-            modalImg.src = src;
-        });
-    });
-    
-    // Clear image on modal close
-    imgModal.addEventListener('hidden.bs.modal', function () {
-        modalImg.src = '';
-    });
-});
-</script>
+                        .learning-space-img:hover,
+                        .learning-space-img:focus {
+                            transform: scale(1.13) rotate(-2deg);
+                            z-index: 2;
+                            box-shadow: 0 8px 32px rgba(232, 62, 140, 0.18);
+                        }
+                    </style>
+
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            var imgModal = document.getElementById('imgModal');
+                            var modalImg = document.getElementById('modalImg');
+
+                            // Handle carousel image clicks
+                            document.querySelectorAll('#learningSpaceCarousel img').forEach(function(img) {
+                                img.addEventListener('click', function() {
+                                    var src = this.getAttribute('data-img');
+                                    modalImg.src = src;
+                                });
+                            });
+
+                            // Clear image on modal close
+                            imgModal.addEventListener('hidden.bs.modal', function() {
+                                modalImg.src = '';
+                            });
+                        });
+                    </script>
                     <div class="mb-4">
                         <h4 class="fw-semibold" style="color:#e83e8c;">What are Learning Spaces?</h4>
                         <p class="fs-5">{{ $settings->description }}</p>
                     </div>
-                    
+
                     @if($settings->content_sections && count($settings->content_sections) > 0)
-                        @foreach($settings->content_sections as $section)
-                        <div class="mb-4">
-                            <h4 class="fw-semibold" style="color:#e83e8c;">{{ $section['heading'] }}</h4>
-                            @if($section['type'] === 'list')
-                                <ul class="fs-5">
-                                    @foreach($section['items'] as $item)
-                                        <li>{!! $item !!}</li>
-                                    @endforeach
-                                </ul>
-                            @elseif($section['type'] === 'numbered')
-                                <ol class="fs-5">
-                                    @foreach($section['items'] as $item)
-                                        <li>{{ $item }}</li>
-                                    @endforeach
-                                </ol>
-                            @endif
-                        </div>
-                        @endforeach
+                    @foreach($settings->content_sections as $section)
+                    <div class="mb-4">
+                        <h4 class="fw-semibold" style="color:#e83e8c;">{{ $section['heading'] }}</h4>
+                        @if($section['type'] === 'list')
+                        <ul class="fs-5">
+                            @foreach($section['items'] as $item)
+                            <li>{!! $item !!}</li>
+                            @endforeach
+                        </ul>
+                        @elseif($section['type'] === 'numbered')
+                        <ol class="fs-5">
+                            @foreach($section['items'] as $item)
+                            <li>{{ $item }}</li>
+                            @endforeach
+                        </ol>
+                        @endif
+                    </div>
+                    @endforeach
                     @endif
                     <div class="alert alert-info mt-4" style="background:#f8bbd0; color:#e83e8c; border:1px solid #e83e8c;">
                         <i class="bi bi-info-circle-fill me-2"></i>
@@ -119,4 +121,3 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 @include('footer')
-

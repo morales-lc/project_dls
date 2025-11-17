@@ -15,6 +15,10 @@
 
     <!-- Navbar -->
     @include('navbar')
+    
+    <!-- Profile Completion Reminder -->
+    @include('partials.profile-reminder')
+    
     <!-- Content -->
     <div class="container mt-5 mb-5">
 

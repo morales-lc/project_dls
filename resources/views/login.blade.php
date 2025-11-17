@@ -47,34 +47,76 @@
                 @if(session('status'))
                     <div class="alert alert-info">{{ session('status') }}</div>
                 @endif
-                <form method="POST" action="{{ route('login') }}">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="username" class="form-label" style="color:#6c63ff; font-weight:600;">Username or Email</label>
-                        <input type="text" name="username" id="username" class="form-control" required autofocus value="{{ old('username') }}" style="background:#f8f9fa; border-radius:10px; border:1.5px solid #6c63ff;">
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label d-flex justify-content-between align-items-center" style="color:#6c63ff; font-weight:600;">
-                            <span>Password</span>
-                            <a href="#" class="forgot-link text-decoration-none" style="color:#6c63ff;">Forgot password?</a>
-                        </label>
-                        <input type="password" name="password" id="password" class="form-control" required style="background:#f8f9fa; border-radius:10px; border:1.5px solid #6c63ff;">
-                    </div>
-                    <button type="submit" class="btn w-100 mb-2" style="background:#6c63ff; color:#fff; border-radius:10px; font-weight:600; border:none;">Login</button>
-                </form>
+                
+                <!-- Google Sign-In Button -->
+                <a href="{{ url('auth/google') }}" class="btn w-100 d-flex align-items-center justify-content-center mb-3" style="background:#fff; color:#757575; border:1.5px solid #dadce0; border-radius:10px; font-weight:500; padding:12px; font-size:0.95rem;">
+                    <svg width="18" height="18" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style="margin-right:12px;">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        <path fill="none" d="M0 0h48v48H0z"/>
+                    </svg>
+                    Sign in using @lccdo.edu.ph google account
+                </a>
+
                 <div class="divider" style="text-align:center; margin:1.5rem 0; color:#6c63ff; font-size:1rem;">
                     <span style="display:inline-block; width:40px; height:1px; background:#b8b5ff; vertical-align:middle; margin:0 8px;"></span>
                     or
                     <span style="display:inline-block; width:40px; height:1px; background:#b8b5ff; vertical-align:middle; margin:0 8px;"></span>
                 </div>
-                <a href="{{ url('auth/google') }}">
-                    <img src="https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png" alt="Sign in with Google" class="btn-google" style="display:block; margin:0 auto 1rem auto; border-radius:10px;">
-                </a>
+
+                <!-- Toggle Button for Username/Password Login -->
+                <button type="button" id="toggleLoginForm" class="btn w-100 mb-3" style="background:#f8f9fa; color:#6c63ff; border:1.5px solid #6c63ff; border-radius:10px; font-weight:600;">
+                    Login with Username & Password
+                </button>
+
+                <!-- Username/Password Form (Hidden by Default) -->
+                <form method="POST" action="{{ route('login') }}" id="credentialsForm" style="display:none;">
+                    @csrf
+                    <div class="mb-3">
+                        <label for="username" class="form-label" style="color:#6c63ff; font-weight:600;">Username or Email</label>
+                        <input type="text" name="username" id="username" class="form-control" required value="{{ old('username') }}" style="background:#f8f9fa; border-radius:10px; border:1.5px solid #6c63ff;">
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label d-flex justify-content-between align-items-center" style="color:#6c63ff; font-weight:600;">
+                            <span>Password</span>
+                        
+                        </label>
+                        <input type="password" name="password" id="password" class="form-control" required style="background:#f8f9fa; border-radius:10px; border:1.5px solid #6c63ff;">
+                    </div>
+                    <button type="submit" class="btn w-100 mb-2" style="background:#6c63ff; color:#fff; border-radius:10px; font-weight:600; border:none;">Login</button>
+                </form>
             </div>
             <div style="height: 120px;"></div>
         </div>
         @include('footer')
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('toggleLoginForm').addEventListener('click', function() {
+            const form = document.getElementById('credentialsForm');
+            const button = this;
+            if (form.style.display === 'none') {
+                form.style.display = 'block';
+                button.textContent = 'Hide Username & Password Login';
+                button.style.background = '#6c63ff';
+                button.style.color = '#fff';
+            } else {
+                form.style.display = 'none';
+                button.textContent = 'Login with Username & Password';
+                button.style.background = '#f8f9fa';
+                button.style.color = '#6c63ff';
+            }
+        });
+
+        // If there are validation errors, automatically show the form
+        @if ($errors->any())
+            document.getElementById('credentialsForm').style.display = 'block';
+            document.getElementById('toggleLoginForm').textContent = 'Hide Username & Password Login';
+            document.getElementById('toggleLoginForm').style.background = '#6c63ff';
+            document.getElementById('toggleLoginForm').style.color = '#fff';
+        @endif
+    </script>
 </body>
 </html>

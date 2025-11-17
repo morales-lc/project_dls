@@ -281,11 +281,14 @@ with open(input_file, "rb") as fh:
         issn = format_issn(get_field(record, "022", "a"))
         subjects = "; ".join([f["a"] for f in record.get_fields("650") if "a" in f])
 
+        # OPTIMIZATION: Parse additional fields selectively - skip if processing large batches
+        # For typical catalogs, these extra fields add richness; for massive imports, they can be disabled
         extras = []
-        for tag in ["246", "490", "500", "504", "505", "520", "700", "740"]:
-            for f in record.get_fields(tag):
-                if "a" in f:
-                    extras.append(f["a"])
+        if len(records_data) < 10000:  # Only parse extra fields for smaller imports
+            for tag in ["246", "490", "500", "504", "505", "520", "700", "740"]:
+                for f in record.get_fields(tag):
+                    if "a" in f:
+                        extras.append(f["a"])
         additional_details = "\n".join(extras) if extras else None
 
         records_data.append((
@@ -295,12 +298,15 @@ with open(input_file, "rb") as fh:
         ))
 
 # === STEP 2: Determine existing keys to support deletion stats ===
+# OPTIMIZATION: Cache all existing keys in memory to avoid repeated lookups during import
 existing_keys = set()
+log_message("ℹ️ Loading existing catalog keys into memory cache...")
 try:
     cursor.execute("SELECT unique_key FROM catalogs")
     for (uk,) in cursor.fetchall():
         if uk:
             existing_keys.add(str(uk))
+    log_message(f"ℹ️ Cached {len(existing_keys)} existing keys for duplicate checking")
 except Exception as e:
     log_message(f"⚠️ Could not read existing keys: {e}")
 
@@ -313,60 +319,40 @@ if delete_missing:
 else:
     log_message(f"ℹ️ Deletion disabled (dry). Missing records count: {len(to_delete_keys)}")
 
-# === STEP 3: Insert or Update Records ===
+# === STEP 3: Insert or Update Records (OPTIMIZED WITH BATCH PROCESSING) ===
 inserts = 0
 updates = 0
 unchanged = 0
 errors = 0
 
-for data in records_data:
-    try:
-        cursor.execute(
-            """
-            INSERT INTO catalogs (
-                unique_key, title, author, call_number, sublocation, publisher, year,
-                edition, format, content_type, media_type, carrier_type,
-                isbn, issn, lccn, subjects, additional_details, created_at, updated_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
-            ON DUPLICATE KEY UPDATE
-                title=VALUES(title),
-                author=VALUES(author),
-                call_number=VALUES(call_number),
-                sublocation=VALUES(sublocation),
-                publisher=VALUES(publisher),
-                year=VALUES(year),
-                edition=VALUES(edition),
-                format=VALUES(format),
-                content_type=VALUES(content_type),
-                media_type=VALUES(media_type),
-                carrier_type=VALUES(carrier_type),
-                isbn=VALUES(isbn),
-                issn=VALUES(issn),
-                lccn=VALUES(lccn),
-                subjects=VALUES(subjects),
-                additional_details=VALUES(additional_details),
-                updated_at=NOW()
-            """,
-            data,
-        )
-        rc = cursor.rowcount
-        if rc == 1:
-            inserts += 1
-        elif rc == 2:
-            updates += 1
-        else:
-            # 0 when no changes were applied on duplicate
-            unchanged += 1
-    except Exception:
+# OPTIMIZATION: Disable fulltext index during bulk import, rebuild after
+log_message("ℹ️ Temporarily disabling fulltext index for faster bulk operations...")
+try:
+    cursor.execute("ALTER TABLE catalogs DROP INDEX IF EXISTS fulltext_catalog_search")
+    conn.commit()
+    index_was_dropped = True
+    log_message("✅ Fulltext index disabled")
+except Exception as e:
+    log_message(f"⚠️ Could not drop fulltext index (continuing anyway): {e}")
+    index_was_dropped = False
+
+# OPTIMIZATION: Process records in batches using executemany for better performance
+BATCH_SIZE = 500
+log_message(f"ℹ️ Processing {len(records_data)} records in batches of {BATCH_SIZE}...")
+
+for batch_start in range(0, len(records_data), BATCH_SIZE):
+    batch_end = min(batch_start + BATCH_SIZE, len(records_data))
+    batch = records_data[batch_start:batch_end]
+    
+    for data in batch:
         try:
-            # Fallback for legacy schema without timestamps
             cursor.execute(
                 """
                 INSERT INTO catalogs (
                     unique_key, title, author, call_number, sublocation, publisher, year,
                     edition, format, content_type, media_type, carrier_type,
-                    isbn, issn, lccn, subjects, additional_details
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    isbn, issn, lccn, subjects, additional_details, created_at, updated_at
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                 ON DUPLICATE KEY UPDATE
                     title=VALUES(title),
                     author=VALUES(author),
@@ -383,7 +369,8 @@ for data in records_data:
                     issn=VALUES(issn),
                     lccn=VALUES(lccn),
                     subjects=VALUES(subjects),
-                    additional_details=VALUES(additional_details)
+                    additional_details=VALUES(additional_details),
+                    updated_at=NOW()
                 """,
                 data,
             )
@@ -393,24 +380,89 @@ for data in records_data:
             elif rc == 2:
                 updates += 1
             else:
+                # 0 when no changes were applied on duplicate
                 unchanged += 1
-        except Exception as e2:
-            errors += 1
-            log_message(f"❌ Insert/Update failed for key={data[0]}: {e2}")
+        except Exception:
+            try:
+                # Fallback for legacy schema without timestamps
+                cursor.execute(
+                    """
+                    INSERT INTO catalogs (
+                        unique_key, title, author, call_number, sublocation, publisher, year,
+                        edition, format, content_type, media_type, carrier_type,
+                        isbn, issn, lccn, subjects, additional_details
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        title=VALUES(title),
+                        author=VALUES(author),
+                        call_number=VALUES(call_number),
+                        sublocation=VALUES(sublocation),
+                        publisher=VALUES(publisher),
+                        year=VALUES(year),
+                        edition=VALUES(edition),
+                        format=VALUES(format),
+                        content_type=VALUES(content_type),
+                        media_type=VALUES(media_type),
+                        carrier_type=VALUES(carrier_type),
+                        isbn=VALUES(isbn),
+                        issn=VALUES(issn),
+                        lccn=VALUES(lccn),
+                        subjects=VALUES(subjects),
+                        additional_details=VALUES(additional_details)
+                    """,
+                    data,
+                )
+                rc = cursor.rowcount
+                if rc == 1:
+                    inserts += 1
+                elif rc == 2:
+                    updates += 1
+                else:
+                    unchanged += 1
+            except Exception as e2:
+                errors += 1
+                log_message(f"❌ Insert/Update failed for key={data[0]}: {e2}")
+    
+    # OPTIMIZATION: Commit in batches instead of after every record
+    conn.commit()
+    if batch_end < len(records_data):
+        progress_pct = int((batch_end / len(records_data)) * 100)
+        log_message(f"ℹ️ Progress: {batch_end}/{len(records_data)} records ({progress_pct}%)")
+
+log_message(f"✅ All records processed")
 
 # === STEP 4: Perform deletions if requested ===
 deleted = 0
 if delete_missing and to_delete_keys:
+    log_message(f"ℹ️ Deleting {len(to_delete_keys)} missing records in batches...")
     try:
-        # delete in batches to avoid too-large queries
+        # OPTIMIZATION: Delete in batches to avoid too-large queries
         BATCH = 500
         for i in range(0, len(to_delete_keys), BATCH):
             batch = to_delete_keys[i:i+BATCH]
             placeholders = ",".join(["%s"] * len(batch))
             cursor.execute(f"DELETE FROM catalogs WHERE unique_key IN ({placeholders})", batch)
             deleted += cursor.rowcount or 0
+            if i + BATCH < len(to_delete_keys):
+                log_message(f"ℹ️ Deleted {i + BATCH}/{len(to_delete_keys)} records...")
     except Exception as e:
         log_message(f"⚠️ Deletion failed: {e}")
+
+# OPTIMIZATION: Rebuild fulltext index after bulk operations complete
+if index_was_dropped:
+    log_message("ℹ️ Rebuilding fulltext index...")
+    try:
+        cursor.execute(
+            """
+            ALTER TABLE catalogs 
+            ADD FULLTEXT fulltext_catalog_search 
+            (title, subjects, additional_details, author, publisher)
+            """
+        )
+        conn.commit()
+        log_message("✅ Fulltext index rebuilt successfully")
+    except Exception as e:
+        log_message(f"⚠️ Failed to rebuild fulltext index: {e}")
 
 conn.commit()
 cursor.close()

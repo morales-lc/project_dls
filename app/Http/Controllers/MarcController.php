@@ -23,7 +23,7 @@ class MarcController extends Controller
         $expectsJson = $request->wantsJson() || $request->ajax() || str_contains($request->header('Accept') ?? '', 'application/json');
 
         $request->validate([
-            'marc_file' => 'required|file',
+            'marc_file' => 'required|file|marc_file|max:102400',
             'delete_missing' => 'nullable|boolean'
         ]);
 
@@ -31,6 +31,18 @@ class MarcController extends Controller
         $path = $request->file('marc_file')->store('marc_uploads');
         $fullPath = storage_path('app/private/marc_uploads/' . basename($path));
 
+        // Additional validation: check file extension
+        $originalName = $request->file('marc_file')->getClientOriginalName();
+        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        if (!in_array($extension, ['001', 'mrc', 'marc'])) {
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+            }
+            if ($expectsJson) {
+                return response()->json(['success' => false, 'message' => 'Invalid file type. Only .001, .mrc, or .marc files are allowed.'], 422);
+            }
+            return redirect()->back()->withErrors(['marc_file' => 'Invalid file type. Only .001, .mrc, or .marc files are allowed.']);
+        }
 
         // Verify that the file exists before running Python
         if (!file_exists($fullPath)) {
@@ -99,6 +111,16 @@ class MarcController extends Controller
         if (!$process->isSuccessful()) {
             $err = $process->getErrorOutput();
             Log::error('MARC import python error: ' . $err);
+            
+            // Clean up the uploaded file on failure
+            try {
+                if (file_exists($fullPath)) {
+                    unlink($fullPath);
+                }
+            } catch (\Throwable $e) {
+                Log::warning('Failed to delete uploaded MARC file after error: ' . $e->getMessage());
+            }
+            
             if ($expectsJson) return response()->json(['success' => false, 'message' => 'Import failed', 'error' => trim(substr($err, 0, 2000))], 500);
             return redirect()->back()->withErrors(['marc_file' => 'Import failed: ' . trim(substr($err, 0, 1000))]);
         }
@@ -178,6 +200,16 @@ class MarcController extends Controller
             }
         }
         
+        // Clean up: delete the uploaded MARC file after successful import
+        try {
+            if (file_exists($fullPath)) {
+                unlink($fullPath);
+                Log::info('Deleted uploaded MARC file after import: ' . basename($fullPath));
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to delete uploaded MARC file: ' . $e->getMessage());
+        }
+
         // respond based on request type
         if ($expectsJson) {
             return response()->json([

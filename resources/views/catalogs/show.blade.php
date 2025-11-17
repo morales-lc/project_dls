@@ -1,4 +1,5 @@
 @include('navbar')
+<title>{{ $catalog->title }}</title>
 
 <style>
     /* --- Page Layout --- */
