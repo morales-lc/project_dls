@@ -62,6 +62,18 @@
                     <input type="text" name="address" class="form-control" value="{{ old('address') }}">
                 </div>
                 <div class="col-md-6">
+                    <label class="form-label">Account Status</label>
+                    <select name="guest_account_status" class="form-select">
+                        <option value="active" selected>Active</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Expiration Date (Optional)</label>
+                    <input type="datetime-local" name="guest_expires_at" class="form-control" value="{{ old('guest_expires_at') }}">
+                    <small class="text-muted">Leave empty for no expiration. Auto-set to 7 days for ALINET online approvals.</small>
+                </div>
+                <div class="col-md-6">
                     <label class="form-label">Password</label>
                     <div class="input-group">
                         <input type="password" name="password" id="guestPassword" class="form-control" required
@@ -75,7 +87,7 @@
                         Must be at least 6 characters with 1 uppercase, 1 lowercase, and 1 number.
                     </div>
                     <div class="alert alert-info mt-2 py-2 px-3" role="alert" style="font-size: 0.9rem;">
-                        Note: This password will be emailed to requesters for Online (Virtual) ALINET appointments.
+                        <strong>Note:</strong> Guest accounts created via ALINET online approval will automatically expire after 7 days. Manual guest accounts can have custom expiration dates.
                     </div>
                 </div>
             </div>

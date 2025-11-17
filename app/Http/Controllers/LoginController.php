@@ -26,6 +26,21 @@ class LoginController extends Controller
             ->first();
 
         if ($user && Hash::check($request->password, $user->password)) {
+            // Check if guest account has expired
+            if ($user->role === 'guest') {
+                if ($user->guest_account_status === 'expired' || 
+                    ($user->guest_expires_at && $user->guest_expires_at->isPast())) {
+                    // Mark as expired if not already
+                    if ($user->guest_account_status !== 'expired') {
+                        $user->guest_account_status = 'expired';
+                        $user->save();
+                    }
+                    return back()->withErrors([
+                        'username' => 'Your guest account has expired. Please submit a new ALINET request to get temporary access.',
+                    ]);
+                }
+            }
+            
             Auth::login($user);
             $request->session()->regenerate();
             // Optional role-based redirection

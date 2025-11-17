@@ -33,12 +33,29 @@
                 <div style="background:#f1f7ff; border:1px solid #cfe3ff; padding:12px 14px; border-radius:6px; margin:12px 0;">
                     <div><strong>Email:</strong> {{ $guestEmail ?? config('services.alinet.guest_email', 'guest@example.com') }}</div>
                     <div><strong>Password:</strong> {{ $guestPassword ?? config('services.alinet.guest_password', 'guest12345') }}</div>
+                    @if(isset($expiresAt))
+                    <div style="margin-top:8px; padding-top:8px; border-top:1px solid #cfe3ff; color:#d97706; font-weight:bold;">
+                        ⚠️ Account expires on: {{ $expiresAt }}
+                    </div>
+                    <div style="font-size:13px; color:#6b7280; margin-top:4px;">
+                        This guest account is valid for 7 days. After expiration, you'll need to submit a new ALINET request.
+                    </div>
+                    @endif
                 </div>
+                <div style="text-align:center; margin:20px 0;">
+                    <a href="{{ route('login') }}" style="display:inline-block; background:#e83e8c; color:#ffffff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:15px;">Login to Access Resources</a>
+                </div>
+                <p style="font-size:13px; color:#6b7280; text-align:center;">Click the button above to login with your guest account credentials.</p>
             @else
                 <p>Mode: <strong>Onsite</strong></p>
                 @if(!empty($appointment->appointment_date))
                     <p>Please visit us on:</p>
                     <p class="date">{{ \Carbon\Carbon::parse($appointment->appointment_date)->format('F d, Y') }} — 8:00am–3:00pm</p>
+                @endif
+
+                @if(!empty($appointment->titles_or_topics))
+                    <p><strong>Title/s of Resource or Topic/s of Request:</strong></p>
+                    <div style="background:#f9fafb; border-left:3px solid #e83e8c; padding:10px 14px; margin:12px 0; white-space:pre-wrap;">{{ $appointment->titles_or_topics }}</div>
                 @endif
             @endif
 

@@ -76,6 +76,31 @@
             </a>
         </div>
 
+        <!-- Flash Messages -->
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong>Success:</strong> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Error:</strong> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        @if ($errors && $errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Please fix the following:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <!-- Tabs -->
         <ul class="nav nav-pills mb-3" id="userTypeTabs">
             <li class="nav-item">
@@ -162,8 +187,13 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Username</th>
+                            @if ($type === 'guest')
+                            <th>Status</th>
+                            <th>Expires At</th>
+                            @else
                             <th>Contact Number</th>
                             <th>Address</th>
+                            @endif
                             @endif
                             <th>Actions</th>
                         </tr>
@@ -185,8 +215,33 @@
                             <td>{{ $user->name }}</td>
                             <td>{{ $user->email }}</td>
                             <td>{{ $user->username }}</td>
+                            @if ($type === 'guest')
+                            <td>
+                                @if ($user->guest_account_status === 'expired')
+                                    <span class="badge bg-danger">Expired</span>
+                                @elseif ($user->guest_expires_at && \Carbon\Carbon::parse($user->guest_expires_at)->isPast())
+                                    <span class="badge bg-danger">Expired</span>
+                                @else
+                                    <span class="badge bg-success">Active</span>
+                                @endif
+                            </td>
+                            <td>
+                                @if ($user->guest_expires_at)
+                                    {{ \Carbon\Carbon::parse($user->guest_expires_at)->format('M d, Y h:i A') }}
+                                    @php
+                                        $daysRemaining = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($user->guest_expires_at), false);
+                                    @endphp
+                                    @if ($daysRemaining >= 0 && $daysRemaining <= 7)
+                                        <br><small class="text-warning">({{ ceil($daysRemaining) }} day(s) left)</small>
+                                    @endif
+                                @else
+                                    <span class="text-muted">No expiration</span>
+                                @endif
+                            </td>
+                            @else
                             <td>{{ $user->contact_number }}</td>
                             <td>{{ $user->address }}</td>
+                            @endif
                             @endif
                             <td>
                                 <div class="d-flex gap-2 justify-content-center">
@@ -314,6 +369,40 @@
                                                                 <div class="detail-label">Username</div>
                                                                 <div>{{ $user->username }}</div>
                                                             </div>
+                                                            @if ($type === 'guest')
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Account Status</div>
+                                                                <div>
+                                                                    @if ($user->guest_account_status === 'expired')
+                                                                        <span class="badge bg-danger">Expired</span>
+                                                                    @elseif ($user->guest_expires_at && \Carbon\Carbon::parse($user->guest_expires_at)->isPast())
+                                                                        <span class="badge bg-danger">Expired</span>
+                                                                    @else
+                                                                        <span class="badge bg-success">Active</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <div class="detail-label">Expires At</div>
+                                                                <div>
+                                                                    @if ($user->guest_expires_at)
+                                                                        {{ \Carbon\Carbon::parse($user->guest_expires_at)->format('F d, Y h:i A') }}
+                                                                        @php
+                                                                            $daysRemaining = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($user->guest_expires_at), false);
+                                                                        @endphp
+                                                                        @if ($daysRemaining >= 0)
+                                                                            <br><small class="text-{{ $daysRemaining <= 2 ? 'danger' : ($daysRemaining <= 7 ? 'warning' : 'muted') }}">
+                                                                                ({{ ceil($daysRemaining) }} day(s) remaining)
+                                                                            </small>
+                                                                        @else
+                                                                            <br><small class="text-danger">(Expired {{ abs(floor($daysRemaining)) }} day(s) ago)</small>
+                                                                        @endif
+                                                                    @else
+                                                                        <span class="text-muted">No expiration set</span>
+                                                                    @endif
+                                                                </div>
+                                                            </div>
+                                                            @endif
                                                             <div class="col-md-6">
                                                                 <div class="detail-label">Contact Number</div>
                                                                 <div>{{ $user->contact_number }}</div>
@@ -431,6 +520,19 @@
                                                         <div class="col-12">
                                                             <label class="form-label">Address</label>
                                                             <input type="text" name="address" class="form-control" value="{{ $user->address }}">
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Account Status</label>
+                                                            <select name="guest_account_status" class="form-select">
+                                                                <option value="active" {{ $user->guest_account_status === 'active' ? 'selected' : '' }}>Active</option>
+                                                                <option value="expired" {{ $user->guest_account_status === 'expired' ? 'selected' : '' }}>Expired</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-6">
+                                                            <label class="form-label">Expiration Date</label>
+                                                            <input type="datetime-local" name="guest_expires_at" class="form-control" 
+                                                                value="{{ $user->guest_expires_at ? \Carbon\Carbon::parse($user->guest_expires_at)->format('Y-m-d\TH:i') : '' }}">
+                                                            <small class="text-muted">Leave empty for no expiration</small>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label class="form-label">Password (leave blank to keep current)</label>

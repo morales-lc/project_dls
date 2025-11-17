@@ -15,20 +15,34 @@ class AlinetController extends Controller
 
     public function submitForm(Request $request)
     {
-        $validated = $request->validate([
+        // Base validation rules
+        $rules = [
             'prefix' => 'nullable|string|max:10',
             'firstname' => 'required|string|max:255',
             'lastname' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'mode_of_research' => 'required|string|in:Online (Virtual),Onsite (Saturday 8:00am–3:00pm)',
+            'mode_of_research' => 'required|string|in:Online (Virtual),Onsite (Saturday 8:00am3:00pm)',
             'strand_course' => 'nullable|string|max:255',
-            'institution_college' => 'nullable|string|max:255',
-            'titles_or_topics' => 'required|string',
-            'assistance' => 'required|array|min:1',
-            'assistance.*' => 'string',
-            'resource_types' => 'required|array|min:1',
-            'resource_types.*' => 'string',
-        ]);
+            'institution_college' => 'required|string|max:255',
+        ];
+
+        // Conditionally require titles, assistance, and resources only for Onsite mode
+        if (stripos($request->input('mode_of_research', ''), 'Onsite') !== false) {
+            $rules['titles_or_topics'] = 'required|string';
+            $rules['assistance'] = 'required|array|min:1';
+            $rules['assistance.*'] = 'string';
+            $rules['resource_types'] = 'required|array|min:1';
+            $rules['resource_types.*'] = 'string';
+        } else {
+            // Optional for Online mode
+            $rules['titles_or_topics'] = 'nullable|string';
+            $rules['assistance'] = 'nullable|array';
+            $rules['assistance.*'] = 'string';
+            $rules['resource_types'] = 'nullable|array';
+            $rules['resource_types.*'] = 'string';
+        }
+
+        $validated = $request->validate($rules);
 
         // Compute appointment_date for Onsite; Online has no appointment date
         $appointmentDate = null;
@@ -46,7 +60,7 @@ class AlinetController extends Controller
             'appointment_date' => $appointmentDate,
         ]));
 
-        // Send email to librarian's Gmail
+        // Send email to library Gmail
         Mail::send('alinet.email', ['appointment' => $appointment], function ($message) {
             $message->to(env('ALINET_LIBRARIAN_EMAIL'))
                 ->subject('New ALINET Appointment Request');

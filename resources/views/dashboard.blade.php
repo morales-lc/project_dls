@@ -15,6 +15,77 @@
 
     <!-- Navbar -->
     @include('navbar')
+
+    <!-- Access Information Banner -->
+    @guest
+    <div class="container mt-3">
+        <div class="text-center mb-3">
+            <button class="btn btn-outline-primary" id="toggleAccessInfoBtn" type="button" onclick="toggleAccessInfo()">
+                <i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources?
+            </button>
+        </div>
+        <div class="alert alert-info shadow-sm mb-4" id="accessInfoBanner" role="alert" style="display: none; border-left: 5px solid #4a90e2; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border-radius: 0.75rem;">
+            <div class="d-flex align-items-start">
+                <i class="bi bi-info-circle-fill text-primary me-3" style="font-size: 1.75rem;"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="alert-heading fw-bold mb-0">
+                            <i class="bi bi-lock-fill me-2"></i>Access to Electronic Resources
+                        </h5>
+                        <button type="button" class="btn-close" onclick="toggleAccessInfo()" aria-label="Close"></button>
+                    </div>
+                    <p class="mb-3">To access <strong>MIDES Repository</strong>, <strong>SIDLAK Journal</strong>, and <strong>Online Databases</strong>, you need to:</p>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card border-primary h-100" style="background: #fff; border-radius: 0.5rem;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary">
+                                        <i class="bi bi-person-check-fill me-2"></i>Lourdes College Users
+                                    </h6>
+                                    <p class="card-text small mb-2">Log in with your <strong>@lccdo.edu.ph</strong> email account</p>
+                                    <a href="{{ route('login') }}" class="btn btn-primary btn-sm">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i>Login Now
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card border-success h-100" style="background: #fff; border-radius: 0.5rem;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-success">
+                                        <i class="bi bi-building me-2"></i>ALINET Member Institutions
+                                    </h6>
+                                    <p class="card-text small mb-2">From a partner college/institution? Submit an ALINET request</p>
+                                    <a href="{{ route('alinet.form') }}" class="btn btn-success btn-sm">
+                                        <i class="bi bi-send-fill me-1"></i>Submit Request
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleAccessInfo() {
+            const banner = document.getElementById('accessInfoBanner');
+            const btn = document.getElementById('toggleAccessInfoBtn');
+            if (banner.style.display === 'none') {
+                banner.style.display = 'block';
+                btn.innerHTML = '<i class="bi bi-x-circle me-2"></i>Hide Access Information';
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-outline-secondary');
+            } else {
+                banner.style.display = 'none';
+                btn.innerHTML = '<i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources?';
+                btn.classList.remove('btn-outline-secondary');
+                btn.classList.add('btn-outline-primary');
+            }
+        }
+    </script>
+    @endguest
     
 
     
@@ -144,6 +215,8 @@
             </div>
         </div>
         @endif
+
+        
 
         @auth
         <div class="mb-5">
@@ -497,178 +570,8 @@
     </div>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- JavaScript Files. see public/js-->
     <script src="{{ asset('js/dashboard.js') }}"></script>
-
-    <script>
-        // Handle alert book card clicks to view PDF
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.alert-book-card').forEach(function(card) {
-                card.addEventListener('click', function(e) {
-                    // Don't open PDF if clicking on buttons or forms
-                    if (e.target.closest('button') || e.target.closest('form') || e.target.closest('a')) {
-                        return;
-                    }
-                    var pdfUrl = this.getAttribute('data-pdf-url');
-                    if (pdfUrl) {
-                        window.open(pdfUrl, '_blank');
-                    } else {
-                        alert('No PDF available for this book.');
-                    }
-                });
-            });
-
-            // Handle bookmark toggle for alert books
-            document.querySelectorAll('.bookmark-toggle-alert-dashboard').forEach(function(form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    var btn = form.querySelector('button');
-                    if (!btn) return;
-                    var label = btn.querySelector('.label');
-                    var icon = btn.querySelector('i');
-                    var originalHTML = btn.innerHTML;
-                    btn.disabled = true;
-                    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing';
-
-                    var formData = new FormData(form);
-                    var csrfToken = document.querySelector('meta[name="csrf-token"]');
-                    var csrfValue = csrfToken ? csrfToken.getAttribute('content') : '';
-                    
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRF-TOKEN': csrfValue
-                        },
-                        body: formData
-                    }).then(function(res) {
-                        if (!res.ok) throw new Error('Network response was not ok');
-                        return res.json();
-                    }).then(function(data) {
-                        if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
-                            var bookmarked = data.status === 'bookmarked';
-                            var iconClass = bookmarked ? 'bi-bookmark-fill' : 'bi-bookmark';
-                            var labelText = bookmarked ? 'Bookmarked' : 'Bookmark';
-                            var btnClass = bookmarked ? 'btn-success' : 'btn-outline-light';
-                            
-                            btn.className = 'btn btn-sm w-100 ' + btnClass;
-                            btn.innerHTML = '<i class="bi ' + iconClass + '"></i> <span class="label">' + labelText + '</span>';
-                            btn.disabled = false;
-                        } else {
-                            btn.disabled = false;
-                            btn.innerHTML = originalHTML;
-                        }
-                    }).catch(function(err) {
-                        console.error('Error:', err);
-                        alert(err && err.message ? err.message : 'Failed to update bookmark.');
-                        btn.disabled = false;
-                        btn.innerHTML = originalHTML;
-                    });
-                });
-            });
-
-            // Initialize alert books carousel manually
-            var alertCarousel = document.getElementById('alert-books-carousel');
-            if (alertCarousel) {
-                var wrap = alertCarousel.closest('.news-carousel-wrap');
-                var leftBtn = wrap.querySelector('.carousel-btn.left');
-                var rightBtn = wrap.querySelector('.carousel-btn.right');
-                var dotsWrap = document.getElementById('alert-books-carousel-dots');
-                var cards = alertCarousel.querySelectorAll('.carousel-card');
-                var visibleCards = 3;
-                var cardWidth = 0;
-                var gap = 0;
-                var total = cards.length;
-                var pos = 0;
-
-                function recalcCardWidth() {
-                    if (window.innerWidth < 992) {
-                        cardWidth = alertCarousel.querySelector('.carousel-card')?.offsetWidth || 220;
-                        visibleCards = 1;
-                        gap = 0;
-                    } else {
-                        cardWidth = alertCarousel.querySelector('.carousel-card')?.offsetWidth || 220;
-                        visibleCards = 3;
-                        if (cards.length > 1) {
-                            var style = window.getComputedStyle(cards[1]);
-                            gap = parseFloat(style.marginLeft || 0);
-                        } else {
-                            gap = 0;
-                        }
-                    }
-                }
-
-                function getDotCount() {
-                    return Math.max(1, total - visibleCards + 1);
-                }
-
-                function renderDots() {
-                    var dotCount = getDotCount();
-                    dotsWrap.innerHTML = '';
-                    for (let i = 0; i < dotCount; i++) {
-                        var dot = document.createElement('span');
-                        dot.className = 'carousel-dot' + (i === pos ? ' active' : '');
-                        dot.setAttribute('tabindex', '0');
-                        dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
-                        dot.addEventListener('click', function() {
-                            scrollToIdx(i);
-                        });
-                        dot.addEventListener('keydown', function(e) {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                scrollToIdx(i);
-                            }
-                        });
-                        dotsWrap.appendChild(dot);
-                    }
-                }
-
-                function updateDots() {
-                    var dots = dotsWrap.querySelectorAll('.carousel-dot');
-                    dots.forEach(function(dot, i) {
-                        dot.classList.toggle('active', i === pos);
-                    });
-                }
-
-                function scrollToIdx(idx) {
-                    pos = idx;
-                    var scrollAmount = (cardWidth + gap) * pos;
-                    alertCarousel.scrollTo({
-                        left: scrollAmount,
-                        behavior: 'smooth'
-                    });
-                    updateDots();
-                    updateBtns();
-                }
-
-                function updateBtns() {
-                    var dotCount = getDotCount();
-                    leftBtn.disabled = pos === 0;
-                    rightBtn.disabled = pos >= dotCount - 1;
-                }
-                
-                leftBtn.addEventListener('click', function() {
-                    if (pos > 0) scrollToIdx(pos - 1);
-                });
-                
-                rightBtn.addEventListener('click', function() {
-                    if (pos < getDotCount() - 1) scrollToIdx(pos + 1);
-                });
-                
-                window.addEventListener('resize', function() {
-                    recalcCardWidth();
-                    renderDots();
-                    updateDots();
-                    updateBtns();
-                    scrollToIdx(pos);
-                });
-                
-                recalcCardWidth();
-                renderDots();
-                scrollToIdx(0);
-            }
-        });
-    </script>
 
     @include('footer')
 </body>

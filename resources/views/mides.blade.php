@@ -46,8 +46,8 @@
             </div>
 
             <!-- Dropdowns below search bar -->
-            <div class="row justify-content-center g-2 g-md-3">
-                <div class="col-12 col-md-3">
+            <div class="row justify-content-center g-2">
+                <div class="col-12 col-md-4">
                     <select class="form-select" name="type" id="mides-type-select">
                         <option value="">SELECT TYPE</option>
                         @if(isset($types))
@@ -57,7 +57,7 @@
                         @endif
                     </select>
                 </div>
-                <div class="col-12 col-md-3" id="mides-program-col" style="display: none;">
+                <div class="col-12 col-md-4" id="mides-program-col" style="display: {{ (isset($type) && $type && !str_contains(strtolower($type), 'faculty') && !str_contains(strtolower($type), 'dissertation')) ? 'block' : 'none' }};">
                     <select class="form-select" name="program" id="mides-program-select">
                         <option value="">SELECT PROGRAM</option>
                         @if(isset($programs))
@@ -67,7 +67,7 @@
                         @endif
                     </select>
                 </div>
-                <div class="col-12 col-md-3" id="mides-year-col">
+                <div class="col-12 col-md-4">
                     <input
                         type="text"
                         inputmode="numeric"
@@ -75,7 +75,7 @@
                         maxlength="4"
                         class="form-control"
                         name="year"
-                        placeholder="ENTER YEAR (e.g., 2024)"
+                        placeholder="YEAR (e.g., 2024)"
                         value="{{ request('year') ?? '' }}"
                         aria-label="Filter by year"
                     >
@@ -91,8 +91,8 @@
                     var progSel = document.getElementById('mides-program-select');
                     var typeLower = (type || '').toString().toLowerCase();
 
-                    // Hide for Faculty/Theses/Dissertations
-                    if (typeLower.indexOf('faculty') !== -1 || typeLower.indexOf('dissertation') !== -1) {
+                    // Hide for Faculty/Theses/Dissertations or when no type selected
+                    if (!type || typeLower.indexOf('faculty') !== -1 || typeLower.indexOf('dissertation') !== -1) {
                         col.style.display = 'none';
                         if (progSel) progSel.value = '';
                         return;
@@ -106,16 +106,18 @@
                         })
                         .then(function(data) {
                             if (progSel) {
+                                // Store current selection
+                                var currentValue = progSel.value;
                                 progSel.innerHTML = '<option value="">SELECT PROGRAM</option>';
                                 if (Array.isArray(data.programs)) {
-                                    data.programs.forEach(function(p) {
+                                    data.programs.forEach(function(prog) {
                                         var opt = document.createElement('option');
-                                        if (typeof p === 'object' && p !== null) {
-                                            opt.value = p.id;
-                                            opt.textContent = p.name;
-                                        } else {
-                                            opt.value = p;
-                                            opt.textContent = p;
+                                        // Always use name as value for backward compatibility
+                                        opt.value = prog.name;
+                                        opt.textContent = prog.name;
+                                        // Restore selection if it matches
+                                        if (currentValue && prog.name == currentValue) {
+                                            opt.selected = true;
                                         }
                                         progSel.appendChild(opt);
                                     });
@@ -129,9 +131,14 @@
                     typeSelect.addEventListener('change', function() {
                         updateProgramDropdown(typeSelect.value);
                     });
-                    document.addEventListener('DOMContentLoaded', function() {
+                    // Initialize on page load
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', function() {
+                            updateProgramDropdown(typeSelect.value);
+                        });
+                    } else {
                         updateProgramDropdown(typeSelect.value);
-                    });
+                    }
                 }
             })();
         </script>

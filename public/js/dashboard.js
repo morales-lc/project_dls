@@ -1,4 +1,170 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Handle alert book card clicks to view PDF
+    document.querySelectorAll('.alert-book-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Don't open PDF if clicking on buttons or forms
+            if (e.target.closest('button') || e.target.closest('form') || e.target.closest('a')) {
+                return;
+            }
+            var pdfUrl = this.getAttribute('data-pdf-url');
+            if (pdfUrl) {
+                window.open(pdfUrl, '_blank');
+            } else {
+                alert('No PDF available for this book.');
+            }
+        });
+    });
+
+    // Handle bookmark toggle for alert books
+    document.querySelectorAll('.bookmark-toggle-alert-dashboard').forEach(function(form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var btn = form.querySelector('button');
+            if (!btn) return;
+            var label = btn.querySelector('.label');
+            var icon = btn.querySelector('i');
+            var originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing';
+
+            var formData = new FormData(form);
+            var csrfToken = document.querySelector('meta[name="csrf-token"]');
+            var csrfValue = csrfToken ? csrfToken.getAttribute('content') : '';
+            
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': csrfValue
+                },
+                body: formData
+            }).then(function(res) {
+                if (!res.ok) throw new Error('Network response was not ok');
+                return res.json();
+            }).then(function(data) {
+                if (data && (data.status === 'removed' || data.status === 'bookmarked')) {
+                    var bookmarked = data.status === 'bookmarked';
+                    var iconClass = bookmarked ? 'bi-bookmark-fill' : 'bi-bookmark';
+                    var labelText = bookmarked ? 'Bookmarked' : 'Bookmark';
+                    var btnClass = bookmarked ? 'btn-success' : 'btn-outline-light';
+                    
+                    btn.className = 'btn btn-sm w-100 ' + btnClass;
+                    btn.innerHTML = '<i class="bi ' + iconClass + '"></i> <span class="label">' + labelText + '</span>';
+                    btn.disabled = false;
+                } else {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                }
+            }).catch(function(err) {
+                console.error('Error:', err);
+                alert(err && err.message ? err.message : 'Failed to update bookmark.');
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            });
+        });
+    });
+
+    // Initialize alert books carousel manually
+    var alertCarousel = document.getElementById('alert-books-carousel');
+    if (alertCarousel) {
+        var wrap = alertCarousel.closest('.news-carousel-wrap');
+        var leftBtn = wrap.querySelector('.carousel-btn.left');
+        var rightBtn = wrap.querySelector('.carousel-btn.right');
+        var dotsWrap = document.getElementById('alert-books-carousel-dots');
+        var cards = alertCarousel.querySelectorAll('.carousel-card');
+        var visibleCards = 3;
+        var cardWidth = 0;
+        var gap = 0;
+        var total = cards.length;
+        var pos = 0;
+
+        function recalcCardWidth() {
+            if (window.innerWidth < 992) {
+                cardWidth = alertCarousel.querySelector('.carousel-card')?.offsetWidth || 220;
+                visibleCards = 1;
+                gap = 0;
+            } else {
+                cardWidth = alertCarousel.querySelector('.carousel-card')?.offsetWidth || 220;
+                visibleCards = 3;
+                if (cards.length > 1) {
+                    var style = window.getComputedStyle(cards[1]);
+                    gap = parseFloat(style.marginLeft || 0);
+                } else {
+                    gap = 0;
+                }
+            }
+        }
+
+        function getDotCount() {
+            return Math.max(1, total - visibleCards + 1);
+        }
+
+        function renderDots() {
+            var dotCount = getDotCount();
+            dotsWrap.innerHTML = '';
+            for (let i = 0; i < dotCount; i++) {
+                var dot = document.createElement('span');
+                dot.className = 'carousel-dot' + (i === pos ? ' active' : '');
+                dot.setAttribute('tabindex', '0');
+                dot.setAttribute('aria-label', 'Go to slide ' + (i + 1));
+                dot.addEventListener('click', function() {
+                    scrollToIdx(i);
+                });
+                dot.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        scrollToIdx(i);
+                    }
+                });
+                dotsWrap.appendChild(dot);
+            }
+        }
+
+        function updateDots() {
+            var dots = dotsWrap.querySelectorAll('.carousel-dot');
+            dots.forEach(function(dot, i) {
+                dot.classList.toggle('active', i === pos);
+            });
+        }
+
+        function scrollToIdx(idx) {
+            pos = idx;
+            var scrollAmount = (cardWidth + gap) * pos;
+            alertCarousel.scrollTo({
+                left: scrollAmount,
+                behavior: 'smooth'
+            });
+            updateDots();
+            updateBtns();
+        }
+
+        function updateBtns() {
+            var dotCount = getDotCount();
+            leftBtn.disabled = pos === 0;
+            rightBtn.disabled = pos >= dotCount - 1;
+        }
+        
+        leftBtn.addEventListener('click', function() {
+            if (pos > 0) scrollToIdx(pos - 1);
+        });
+        
+        rightBtn.addEventListener('click', function() {
+            if (pos < getDotCount() - 1) scrollToIdx(pos + 1);
+        });
+        
+        window.addEventListener('resize', function() {
+            recalcCardWidth();
+            renderDots();
+            updateDots();
+            updateBtns();
+            scrollToIdx(pos);
+        });
+        
+        recalcCardWidth();
+        renderDots();
+        scrollToIdx(0);
+    }
+
     // Modal logic
     var postModal = new bootstrap.Modal(document.getElementById('postModal'));
     document.querySelectorAll('.card-clickable').forEach(function(card) {

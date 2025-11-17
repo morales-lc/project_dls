@@ -64,6 +64,11 @@
                         <li>{{ $item }}</li>
                         @endforeach
                     </ul>
+
+                    <div style="text-align:center; margin:24px 0 12px 0;">
+                        <a href="{{ route('alinet.manage') }}" style="display:inline-block; background:#e83e8c; color:#ffffff; text-decoration:none; padding:12px 28px; border-radius:6px; font-weight:600; font-size:15px;">Manage ALINET Appointments</a>
+                    </div>
+                    <p style="font-size:12px; color:#6b7280; text-align:center; margin:0;">Login required to view and manage appointments.</p>
                 </td></tr>
                 <tr><td class="footer">Automated notification from LC Learning Commons</td></tr>
             </table>

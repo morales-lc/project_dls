@@ -25,6 +25,8 @@ class User extends Authenticatable
         'address',
         'password',
         'guest_plain_password',
+        'guest_expires_at',
+        'guest_account_status',
         'role',
     ];
 
@@ -48,6 +50,7 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'guest_expires_at' => 'datetime',
             'password' => 'hashed',
         ];
     }

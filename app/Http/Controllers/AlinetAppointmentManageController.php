@@ -52,9 +52,65 @@ class AlinetAppointmentManageController extends Controller
         }
         $appointment->save();
 
+        $guestUser = null;
+        // If accepting an Online request, create or update a temporary guest account with 7-day expiration
+        if ($request->status === 'accepted' && (stripos($appointment->mode_of_research, 'Online') !== false)) {
+            // Check if a guest user already exists for this email
+            $guestUser = \App\Models\User::where('email', $appointment->email)
+                                         ->where('role', 'guest')
+                                         ->first();
+            
+            // Generate random password
+            $plainPassword = \Illuminate\Support\Str::random(10);
+            
+            // Build full name from appointment fields
+            $fullName = trim(($appointment->prefix ? $appointment->prefix . ' ' : '') . 
+                            $appointment->firstname . ' ' . 
+                            $appointment->lastname);
+
+            if ($guestUser) {
+                // Update existing guest user: extend expiration, reactivate, and reset password
+                $guestUser->name = $fullName;
+                $guestUser->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
+                $guestUser->guest_plain_password = \Illuminate\Support\Facades\Crypt::encryptString($plainPassword);
+                $guestUser->guest_expires_at = \Carbon\Carbon::now('Asia/Manila')->addDays(7);
+                $guestUser->guest_account_status = 'active';
+                $guestUser->save();
+            } else {
+                // Generate a username derived from email (ensure uniqueness)
+                $email = (string) $appointment->email;
+                $baseUsername = $email && str_contains($email, '@')
+                    ? explode('@', $email)[0]
+                    : 'guest';
+                $baseUsername = preg_replace('/[^A-Za-z0-9_\.\-]/', '_', $baseUsername) ?: 'guest';
+                $candidate = $baseUsername;
+                $suffix = 1;
+                while (\App\Models\User::where('username', $candidate)->exists()) {
+                    $candidate = $baseUsername . '_' . $suffix;
+                    $suffix++;
+                    if ($suffix > 9999) { // safety break
+                        $candidate = $baseUsername . '_' . \Illuminate\Support\Str::lower(\Illuminate\Support\Str::random(5));
+                        break;
+                    }
+                }
+                
+                // Create new guest user account
+                $guestUser = \App\Models\User::create([
+                    'name' => $fullName,
+                    'email' => $appointment->email,
+                    'username' => $candidate,
+                    'password' => \Illuminate\Support\Facades\Hash::make($plainPassword),
+                    'role' => 'guest',
+                    'guest_plain_password' => \Illuminate\Support\Facades\Crypt::encryptString($plainPassword),
+                    'guest_expires_at' => \Carbon\Carbon::now('Asia/Manila')->addDays(7),
+                    'guest_account_status' => 'active',
+                ]);
+            }
+        }
+
         // Send email to requester using Mailable classes
         if ($request->status === 'accepted') {
-            Mail::to($appointment->email)->send(new AlinetAppointmentAccepted($appointment));
+            Mail::to($appointment->email)->send(new AlinetAppointmentAccepted($appointment, $guestUser));
         } else {
             Mail::to($appointment->email)->send(new AlinetAppointmentRejected($appointment, $request->input('reason')));
         }

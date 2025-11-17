@@ -104,8 +104,13 @@ class UserManagementController extends Controller
     public function update(Request $request, $id)
     {
         $returnUrl = $request->input('return_url');
-        // Determine whether the id belongs to a student_faculty or a user (admin/librarian)
-        $sf = StudentFaculty::find($id);
+        // If this request is NOT explicitly for a user role (admin/librarian/guest),
+        // then and only then try updating a Student/Faculty record. This avoids
+        // accidental collisions when a users.id matches a student_faculty.id.
+        $sf = null;
+        if (!$request->has('role')) {
+            $sf = StudentFaculty::find($id);
+        }
 
         if ($sf) {
             // Updating a student/faculty record
@@ -162,6 +167,15 @@ class UserManagementController extends Controller
             'address' => 'nullable|string|max:255',
             'role' => 'required|in:admin,librarian,guest',
             'password' => 'nullable|string|min:6',
+            'guest_expires_at' => 'nullable|date',
+            'guest_account_status' => 'nullable|in:active,expired',
+        ]);
+
+        // Log incoming request data for debugging
+        Log::info('Updating user ' . $id . ' with data:', [
+            'guest_expires_at' => $request->guest_expires_at,
+            'guest_account_status' => $request->guest_account_status,
+            'role' => $request->role
         ]);
 
         $user->name = $request->name;
@@ -171,6 +185,25 @@ class UserManagementController extends Controller
         $user->address = $request->address;
         $user->role = $request->role;
 
+        // Handle guest-specific fields
+        if ($request->role === 'guest') {
+            // Update expiration date - handle both filled and empty values
+            if ($request->filled('guest_expires_at')) {
+                $user->guest_expires_at = $request->guest_expires_at;
+                Log::info('Setting guest_expires_at to: ' . $request->guest_expires_at);
+            } elseif ($request->has('guest_expires_at') && empty($request->guest_expires_at)) {
+                // Explicitly set to null if field exists but is empty
+                $user->guest_expires_at = null;
+                Log::info('Clearing guest_expires_at (set to null)');
+            }
+            
+            // Update account status
+            if ($request->filled('guest_account_status')) {
+                $user->guest_account_status = $request->guest_account_status;
+                Log::info('Setting guest_account_status to: ' . $request->guest_account_status);
+            }
+        }
+
         if ($request->filled('password')) {
             $user->password = bcrypt($request->password);
             // If guest, keep encrypted plaintext for email purposes
@@ -179,12 +212,27 @@ class UserManagementController extends Controller
             }
         }
 
-        // If role is changed away from guest, clear the encrypted guest password
+        // If role is changed away from guest, clear the guest-related fields
         if ($request->role !== 'guest') {
             $user->guest_plain_password = null;
+            $user->guest_expires_at = null;
+            $user->guest_account_status = 'active';
         }
 
+        Log::info('About to save user with:', [
+            'guest_expires_at' => $user->guest_expires_at,
+            'guest_account_status' => $user->guest_account_status
+        ]);
+
         $user->save();
+        
+        Log::info('User saved. Reloading from DB...');
+        $user->refresh();
+        
+        Log::info('After save - DB values:', [
+            'guest_expires_at' => $user->guest_expires_at,
+            'guest_account_status' => $user->guest_account_status
+        ]);
 
         return $returnUrl
             ? redirect($returnUrl)->with('success', ucfirst($user->role) . ' updated successfully!')

@@ -95,11 +95,20 @@
         }
 
         .no-results {
-            padding: 2rem;
+            padding: 3rem 2rem;
             background: #fff;
             border-radius: 0.75rem;
             border: 1px solid #e0e0e0;
             color: #555;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .results-container {
+            min-height: calc(100vh - 600px);
         }
     </style>
 </head>
@@ -128,41 +137,50 @@
         </div>
 
         <!-- Search Form -->
-        <form class="row g-2 mb-4" method="GET" action="{{ route('mides.search') }}">
-            <div class="col-12 col-md-5">
-                <input class="form-control" type="search" name="q" value="{{ $search ?? '' }}" placeholder="Search again..." aria-label="Search">
+        <form class="mb-4" method="GET" action="{{ route('mides.search') }}">
+            <div class="row g-2 mb-2">
+                <div class="col-12 col-md-8">
+                    <input class="form-control" type="search" name="q" value="{{ $search ?? '' }}" placeholder="Search again..." aria-label="Search">
+                </div>
+                <div class="col-12 col-md-4">
+                    <button class="btn btn-dark w-100" type="submit">Search</button>
+                </div>
             </div>
-            <div class="col-12 col-md-3">
-                <select class="form-select" name="type" id="mides-type-select-2">
-                    <option value="">SELECT TYPE</option>
-                    @foreach($types as $t)
-                    <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-md-3" id="mides-program-col-2" style="display:none; min-width:180px;">
-                <select class="form-select" name="program" id="mides-program-select-2">
-                    <option value="">SELECT PROGRAM</option>
-                    @foreach($programs as $p)
-                    <option value="{{ $p }}" {{ (isset($program) && $program == $p) ? 'selected' : '' }}>{{ $p }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-md-2">
-                <select class="form-select" name="year">
-                    <option value="">SELECT YEAR</option>
-                    @foreach($years as $y)
-                    <option value="{{ $y }}" {{ (request('year') == $y) ? 'selected' : '' }}>{{ $y }}</option>
-                    @endforeach
-                </select>
-            </div>
-            <div class="col-12 col-md-1 d-grid">
-                <button class="btn btn-dark" type="submit">Search</button>
+            <div class="row g-2">
+                <div class="col-12 col-md-4">
+                    <select class="form-select" name="type" id="mides-type-select-2">
+                        <option value="">SELECT TYPE</option>
+                        @foreach($types as $t)
+                        <option value="{{ $t }}" {{ (isset($type) && $type == $t) ? 'selected' : '' }}>{{ $t }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-4" id="mides-program-col-2" style="display:{{ (isset($type) && $type && !str_contains(strtolower($type), 'faculty') && !str_contains(strtolower($type), 'dissertation')) ? 'block' : 'none' }};">
+                    <select class="form-select" name="program" id="mides-program-select-2">
+                        <option value="">SELECT PROGRAM</option>
+                        @foreach($programs as $p)
+                        <option value="{{ $p }}" {{ (isset($program) && $program == $p) ? 'selected' : '' }}>{{ $p }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <input
+                        type="text"
+                        inputmode="numeric"
+                        pattern="\d{4}"
+                        maxlength="4"
+                        class="form-control"
+                        name="year"
+                        placeholder="YEAR (e.g., 2024)"
+                        value="{{ request('year') ?? '' }}"
+                        aria-label="Filter by year"
+                    >
+                </div>
             </div>
         </form>
 
         @if($documents->count())
-        <div id="search-results" class="row g-4 grid-view">
+        <div id="search-results" class="row g-4 grid-view results-container">
             @foreach($documents as $doc)
             <div class="col-lg-4 col-md-6 col-sm-12">
                 <div class="card h-100 shadow-sm">
@@ -224,9 +242,15 @@
             {{ $documents->onEachSide(1)->links('pagination::bootstrap-5') }}
         </div>
         @else
-        <div class="no-results text-center">
-            <i class="bi bi-search fs-3 text-secondary"></i>
-            <p class="mt-2 mb-0">No results found for your search.</p>
+        <div class="results-container">
+            <div class="no-results">
+                <i class="bi bi-search fs-1 text-secondary mb-3"></i>
+                <h4 class="mb-2">No results found</h4>
+                <p class="text-muted mb-3">We couldn't find any documents matching your search criteria.</p>
+                <a href="{{ route('mides.dashboard') }}" class="btn btn-pink">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                </a>
+            </div>
         </div>
         @endif
     </div>
@@ -235,6 +259,64 @@
     @include('footer')
 
     <script>
+        // JS for dynamic program dropdown
+        (function() {
+            function updateProgramDropdown(type) {
+                var col = document.getElementById('mides-program-col-2');
+                var progSel = document.getElementById('mides-program-select-2');
+                var typeLower = (type || '').toString().toLowerCase();
+
+                // Hide for Faculty/Theses/Dissertations or when no type selected
+                if (!type || typeLower.indexOf('faculty') !== -1 || typeLower.indexOf('dissertation') !== -1) {
+                    col.style.display = 'none';
+                    if (progSel) progSel.value = '';
+                    return;
+                }
+
+                // Show for other types and fetch programs
+                col.style.display = 'block';
+                fetch('/mides/programs?type=' + encodeURIComponent(type))
+                    .then(function(resp) {
+                        return resp.json();
+                    })
+                    .then(function(data) {
+                        if (progSel) {
+                            // Store current selection
+                            var currentValue = progSel.value;
+                            progSel.innerHTML = '<option value="">SELECT PROGRAM</option>';
+                            if (Array.isArray(data.programs)) {
+                                data.programs.forEach(function(prog) {
+                                    var opt = document.createElement('option');
+                                    // Always use name as value for backward compatibility
+                                    opt.value = prog.name;
+                                    opt.textContent = prog.name;
+                                    // Restore selection if it matches
+                                    if (currentValue && prog.name == currentValue) {
+                                        opt.selected = true;
+                                    }
+                                    progSel.appendChild(opt);
+                                });
+                            }
+                        }
+                    });
+            }
+
+            var typeSelect = document.getElementById('mides-type-select-2');
+            if (typeSelect) {
+                typeSelect.addEventListener('change', function() {
+                    updateProgramDropdown(typeSelect.value);
+                });
+                // Initialize on page load
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                        updateProgramDropdown(typeSelect.value);
+                    });
+                } else {
+                    updateProgramDropdown(typeSelect.value);
+                }
+            }
+        })();
+
         // Toggle between Grid and List views
         document.addEventListener('DOMContentLoaded', function() {
             const gridBtn = document.getElementById('grid-view-btn');

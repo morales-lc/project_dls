@@ -72,18 +72,21 @@ class MidesDashboardController extends Controller
                 $q->where('name', 'like', "%$search%");
             });
         }
-        if ($type) $query->where(function ($q) use ($type) {
-            $q->where('type', $type)
-                ->orWhereHas('midesCategory', function ($q2) use ($type) {
-                    $q2->where('type', $type);
-                });
-        });
+        
+        // Exact match for type filter
+        if ($type) {
+            $query->where('type', $type);
+        }
+        
         if ($category) {
             if (is_numeric($category)) {
                 $query->where('mides_category_id', $category);
             } else {
-                $query->where('category', $category)->orWhereHas('midesCategory', function ($q2) use ($category) {
-                    $q2->where('name', $category);
+                $query->where(function($q) use ($category) {
+                    $q->where('category', $category)
+                        ->orWhereHas('midesCategory', function ($q2) use ($category) {
+                            $q2->where('name', $category);
+                        });
                 });
             }
         }
@@ -91,8 +94,11 @@ class MidesDashboardController extends Controller
             if (is_numeric($program)) {
                 $query->where('mides_category_id', $program);
             } else {
-                $query->where('program', $program)->orWhereHas('midesCategory', function ($q2) use ($program) {
-                    $q2->where('name', $program);
+                $query->where(function($q) use ($program) {
+                    $q->where('program', $program)
+                        ->orWhereHas('midesCategory', function ($q2) use ($program) {
+                            $q2->where('name', $program);
+                        });
                 });
             }
         }
@@ -100,24 +106,13 @@ class MidesDashboardController extends Controller
 
         $documents = $query->orderBy('year', 'desc')->paginate(12);
         $types = MidesCategory::select('type')->distinct()->pluck('type');
-        $categories = MidesCategory::whereRaw('lower(type) like ?', ["%" . strtolower($type ?: 'graduate') . "%"])->pluck('name');
-
-        // Determine programs list based on selected type (substring mapping)
+        
+        // Get categories/programs based on selected type
+        $categories = collect();
         $programs = collect();
         if ($type) {
-            $t = strtolower($type);
-            if (str_contains($t, 'graduate')) {
-                $programs = MidesCategory::whereRaw('lower(type) like ?', ['%graduate%'])->pluck('name');
-            } elseif (str_contains($t, 'undergrad') || str_contains($t, 'undergraduate') || str_contains($t, 'baby')) {
-                $programs = MidesCategory::whereRaw('lower(type) like ?', ['%undergrad%'])->orWhereRaw('lower(type) like ?', ['%undergraduate%'])->orWhereRaw('lower(type) like ?', ['%baby%'])->pluck('name');
-            } elseif (str_contains($t, 'senior') || str_contains($t, 'high') || str_contains($t, 'school')) {
-                $programs = MidesCategory::whereRaw('lower(type) like ?', ['%senior%'])->orWhereRaw('lower(type) like ?', ['%high%'])->orWhereRaw('lower(type) like ?', ['%school%'])->pluck('name');
-            }
-        }
-
-        // If no specific type selected, default to undergraduate programs for convenience
-        if ($programs->isEmpty()) {
-            $programs = MidesCategory::whereRaw('lower(type) like ?', ['%undergrad%'])->orWhereRaw('lower(type) like ?', ['%undergraduate%'])->orWhereRaw('lower(type) like ?', ['%baby%'])->pluck('name');
+            $categories = MidesCategory::where('type', $type)->pluck('name');
+            $programs = MidesCategory::where('type', $type)->pluck('name');
         }
 
         $years = MidesDocument::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
@@ -143,26 +138,22 @@ class MidesDashboardController extends Controller
                     ->orWhere('type', 'like', "%$search%");
             });
         }
+        
+        // Exact match for type filter
         if ($type) {
-            $typeLower = strtolower($type);
-            if (str_contains($typeLower, 'graduate')) {
-                $query->where('type', 'Graduate Theses');
-            } elseif (str_contains($typeLower, 'undergrad') || str_contains($typeLower, 'undergraduate') || str_contains($typeLower, 'baby')) {
-                $query->where('type', 'Undergraduate Baby Theses');
-            } elseif (str_contains($typeLower, 'senior') || str_contains($typeLower, 'high') || str_contains($typeLower, 'school')) {
-                $query->where('type', 'Senior High School Research Paper');
-            } elseif (str_contains($typeLower, 'faculty') || str_contains($typeLower, 'dissertation')) {
-                $query->where('type', 'Faculty/Theses/Dissertations');
-            } else {
-                $query->where('type', $type);
-            }
+            $query->where('type', $type);
         }
+        
         if ($program) {
             if (is_numeric($program)) {
                 $query->where('mides_category_id', $program);
             } else {
-                $query->where('category', $program)->orWhere('program', $program)->orWhereHas('midesCategory', function ($q2) use ($program) {
-                    $q2->where('name', $program);
+                $query->where(function($q) use ($program) {
+                    $q->where('category', $program)
+                        ->orWhere('program', $program)
+                        ->orWhereHas('midesCategory', function ($q2) use ($program) {
+                            $q2->where('name', $program);
+                        });
                 });
             }
         }
@@ -170,8 +161,11 @@ class MidesDashboardController extends Controller
             if (is_numeric($category)) {
                 $query->where('mides_category_id', $category);
             } else {
-                $query->where('category', $category)->orWhereHas('midesCategory', function ($q2) use ($category) {
-                    $q2->where('name', $category);
+                $query->where(function($q) use ($category) {
+                    $q->where('category', $category)
+                        ->orWhereHas('midesCategory', function ($q2) use ($category) {
+                            $q2->where('name', $category);
+                        });
                 });
             }
         }
@@ -181,23 +175,15 @@ class MidesDashboardController extends Controller
         $types = MidesCategory::select('type')->distinct()->pluck('type');
 
         // categories based on type
-        $categories = MidesCategory::whereRaw('lower(type) like ?', ["%" . strtolower($type ?: 'graduate') . "%"])->pluck('name');
+        $categories = collect();
+        if ($type) {
+            $categories = MidesCategory::where('type', $type)->pluck('name');
+        }
 
-        // Determine programs list based on selected type (substring mapping)
+        // Determine programs list based on selected type
         $programs = collect();
         if ($type) {
-            $t = strtolower($type);
-            if (str_contains($t, 'graduate')) {
-                $programs = MidesCategory::whereRaw('lower(type) like ?', ['%graduate%'])->pluck('name');
-            } elseif (str_contains($t, 'undergrad') || str_contains($t, 'undergraduate') || str_contains($t, 'baby')) {
-                $programs = MidesCategory::whereRaw('lower(type) like ?', ['%undergrad%'])->orWhereRaw('lower(type) like ?', ['%undergraduate%'])->orWhereRaw('lower(type) like ?', ['%baby%'])->pluck('name');
-            } elseif (str_contains($t, 'senior') || str_contains($t, 'high') || str_contains($t, 'school')) {
-                $programs = MidesCategory::whereRaw('lower(type) like ?', ['%senior%'])->orWhereRaw('lower(type) like ?', ['%high%'])->orWhereRaw('lower(type) like ?', ['%school%'])->pluck('name');
-            }
-        }
-        // fallback to undergraduate programs
-        if ($programs->isEmpty()) {
-            $programs = MidesCategory::whereRaw('lower(type) like ?', ['%undergrad%'])->orWhereRaw('lower(type) like ?', ['%undergraduate%'])->orWhereRaw('lower(type) like ?', ['%baby%'])->pluck('name');
+            $programs = MidesCategory::where('type', $type)->pluck('name');
         }
 
         $years = MidesDocument::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
