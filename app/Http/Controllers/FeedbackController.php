@@ -71,7 +71,7 @@ class FeedbackController extends Controller
         return view('feedback.followup', compact('feedback'));
     }
 
-    public function delete($id)
+    public function destroy($id)
     {
         $feedback = Feedback::findOrFail($id);
         $feedback->delete();

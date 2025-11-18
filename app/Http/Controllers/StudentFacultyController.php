@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\StudentFaculty;
 use App\Models\User;
+use App\Models\Program;
 use Illuminate\Validation\Rule;
 
 class StudentFacultyController extends Controller
@@ -22,7 +23,12 @@ class StudentFacultyController extends Controller
         $user = $sf->user;
         $returnUrl = $request->input('return_url');
 
-        $request->validate([
+        // Get program name to determine if course is required
+        $program = Program::find($request->program_id);
+        $programName = $program ? $program->name : '';
+        
+        // Build validation rules
+        $rules = [
             'school_id' => ['required', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -30,11 +36,19 @@ class StudentFacultyController extends Controller
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user ? $user->id : null)],
             'role_type' => 'required|in:student,faculty',
             'program_id' => 'required|exists:programs,id',
-            'course' => 'nullable|string|max:255',
             'yrlvl' => 'nullable|string|max:255',
             'birthdate' => 'nullable|date',
             'password' => 'nullable|string|min:6',
-        ]);
+        ];
+        
+        // Course is not required for Junior High School
+        if ($programName === 'Junior High School') {
+            $rules['course'] = 'nullable|string|max:255';
+        } else {
+            $rules['course'] = 'nullable|string|max:255';
+        }
+        
+        $request->validate($rules);
 
         $sf->school_id = $request->school_id;
         $sf->first_name = $request->first_name;

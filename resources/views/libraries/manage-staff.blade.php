@@ -8,6 +8,17 @@
 @section('title', 'Manage Library Staff')
 
 @section('content')
+<style>
+    .staff-row {
+        cursor: pointer;
+        transition: background-color 0.2s ease, transform 0.2s ease;
+    }
+    .staff-row:hover {
+        background-color: #fff0f5;
+        transform: translateY(-2px);
+    }
+</style>
+
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1100px; background: #fff;">
         <div class="d-flex align-items-center justify-content-between mb-4">
@@ -40,16 +51,19 @@
                     </thead>
                     <tbody>
                         @foreach($staff as $s)
-                        <tr>
+                        <tr class="staff-row" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#staffModal{{ $s->id }}"
+                            data-staff-id="{{ $s->id }}">
                             <td>
                                 <img src="{{ $s->photo ? asset('storage/' . $s->photo) : asset('images/placeholder.jpg') }}" class="rounded-circle" style="width:60px;height:60px;object-fit:cover;">
                             </td>
                             <td>{{ $s->prefix }} {{ $s->first_name }} {{ $s->middlename ? $s->middlename . ' ' : '' }}{{ $s->last_name }}</td>
                             <td>{{ $s->role }}</td>
-                            <td><a href="mailto:{{ $s->email }}" class="text-pink">{{ $s->email }}</a></td>
+                            <td><a href="mailto:{{ $s->email }}" class="text-pink" onclick="event.stopPropagation();">{{ $s->email }}</a></td>
                             <td>{{ ucfirst(str_replace('_', ' ', $s->department)) }}</td>
-                            <td>{{ $s->description }}</td>
-                            <td>
+                            <td>{{ Str::limit($s->description, 50) }}</td>
+                            <td onclick="event.stopPropagation();">
                                 <a href="{{ route('libraries.staff.edit', $s->id) }}" class="btn btn-sm btn-warning">Edit</a>
                                 <form action="{{ route('libraries.staff.destroy', $s->id) }}" method="POST" style="display:inline-block;">
                                     @csrf
@@ -58,6 +72,61 @@
                                 </form>
                             </td>
                         </tr>
+
+                        <!-- Staff Details Modal -->
+                        <div class="modal fade" id="staffModal{{ $s->id }}" tabindex="-1" aria-labelledby="staffModalLabel{{ $s->id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-lg">
+                                <div class="modal-content border-0 shadow-lg">
+                                    <div class="modal-header" style="background: linear-gradient(135deg, #f8bbd0, #f48fb1); color: #4a0033;">
+                                        <h5 class="modal-title fw-bold" id="staffModalLabel{{ $s->id }}">Staff Information</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body p-4">
+                                        <div class="text-center mb-4">
+                                            <img src="{{ $s->photo ? asset('storage/' . $s->photo) : asset('images/placeholder.jpg') }}" 
+                                                 class="rounded-circle shadow-sm mb-3" 
+                                                 style="width:150px;height:150px;object-fit:cover;">
+                                            <h4 class="fw-bold mb-1" style="color:#880e4f;">
+                                                {{ $s->prefix }} {{ $s->first_name }} {{ $s->middlename ? $s->middlename . ' ' : '' }}{{ $s->last_name }}
+                                            </h4>
+                                            <div class="text-muted mb-2">{{ $s->role }}</div>
+                                        </div>
+                                        <hr>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <div class="small text-uppercase text-muted mb-1">Email</div>
+                                                <div><a href="mailto:{{ $s->email }}" class="text-pink">{{ $s->email }}</a></div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="small text-uppercase text-muted mb-1">Department</div>
+                                                <div class="fw-semibold">{{ ucfirst(str_replace('_', ' ', $s->department)) }}</div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="small text-uppercase text-muted mb-1">Description of Work</div>
+                                                <div class="p-3 rounded" style="background-color: #f8f9fa;">
+                                                    {{ $s->description ?: 'No description provided.' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer d-flex justify-content-between">
+                                        <div>
+                                            <a href="{{ route('libraries.staff.edit', $s->id) }}" class="btn btn-warning">
+                                                <i class="bi bi-pencil"></i> Edit
+                                            </a>
+                                            <form action="{{ route('libraries.staff.destroy', $s->id) }}" method="POST" style="display:inline-block;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this staff member?')">
+                                                    <i class="bi bi-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         @endforeach
                     </tbody>
                 </table>

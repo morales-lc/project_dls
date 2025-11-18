@@ -325,6 +325,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/backup', [\App\Http\Controllers\BackupController::class, 'index'])->name('admin.backup');
         Route::post('/admin/backup/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backup.run');
         Route::get('/admin/backup/download/{file}', [\App\Http\Controllers\BackupController::class, 'download'])->name('admin.backup.download');
+        Route::get('/admin/backup/download-auto/{file}', [\App\Http\Controllers\BackupController::class, 'downloadAndDelete'])->name('admin.backup.download.auto');
         // // Sidlak create/store for admin (shared with librarian)
         // // Keep original route names so views using `sidlak.create` / `sidlak.store` still work
         // Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
@@ -526,6 +527,16 @@ Route::get('/api/programs', function () {
 Route::get('/api/programs/{id}/courses', function ($id) {
     return \App\Models\Course::where('program_id', $id)->orderBy('name')->get();
 })->name('api.programs.courses');
+
+Route::get('/api/programs/{id}/year-levels', function ($id) {
+    try {
+        $yearLevels = \App\Models\YearLevel::where('program_id', $id)->orderBy('order')->get();
+        return response()->json($yearLevels);
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error('Year levels API error: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+})->name('api.programs.year-levels');
 
 
 

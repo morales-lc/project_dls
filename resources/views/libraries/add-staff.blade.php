@@ -20,6 +20,17 @@
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
 
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('libraries.staff.store') }}" enctype="multipart/form-data" class="row g-4">
                 @csrf
 
@@ -27,65 +38,65 @@
                     <label class="form-label">Prefix <span class="text-danger">*</span></label>
                     <select name="prefix" class="form-select form-select-lg" required>
                         <option value="">Select Prefix</option>
-                        <option>Mr.</option>
-                        <option>Ms.</option>
-                        <option>Mrs.</option>
-                        <option>Dr.</option>
-                        <option>Prof.</option>
-                        <option>Engr.</option>
-                        <option>Rev.</option>
+                        <option {{ old('prefix') == 'Mr.' ? 'selected' : '' }}>Mr.</option>
+                        <option {{ old('prefix') == 'Ms.' ? 'selected' : '' }}>Ms.</option>
+                        <option {{ old('prefix') == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
+                        <option {{ old('prefix') == 'Dr.' ? 'selected' : '' }}>Dr.</option>
+                        <option {{ old('prefix') == 'Prof.' ? 'selected' : '' }}>Prof.</option>
+                        <option {{ old('prefix') == 'Engr.' ? 'selected' : '' }}>Engr.</option>
+                        <option {{ old('prefix') == 'Rev.' ? 'selected' : '' }}>Rev.</option>
                     </select>
                 </div>
 
                 <div class="col-md-9">
                     <label class="form-label">First Name <span class="text-danger">*</span></label>
-                    <input type="text" name="first_name" class="form-control form-control-lg" required>
+                    <input type="text" name="first_name" class="form-control form-control-lg" value="{{ old('first_name') }}" required>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Middle Name</label>
-                    <input type="text" name="middlename" class="form-control form-control-lg">
+                    <input type="text" name="middlename" class="form-control form-control-lg" value="{{ old('middlename') }}">
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" name="last_name" class="form-control form-control-lg" required>
+                    <input type="text" name="last_name" class="form-control form-control-lg" value="{{ old('last_name') }}" required>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Role/Position <span class="text-danger">*</span></label>
                     <select name="role" class="form-select form-select-lg" required>
                         <option value="">-- Select Role/Position --</option>
-                        <option value="Library Coordinator">Library Coordinator</option>
-                        <option value="Collections & Processing Librarian">Collections & Processing Librarian</option>
-                        <option value="Reference & Users Services Assistant">Reference & Users Services Assistant</option>
-                        <option value="Collection & Processing Clerk">Collection & Processing Clerk</option>
-                        <option value="AV In-Charge">AV In-Charge</option>
-                        <option value="Librarian">Librarian</option>
-                        <option value="Junior High School Librarian">Junior High School Librarian</option>
-                        <option value="Grade School Library In-Charge">Grade School Library In-Charge</option>
+                        <option value="Library Coordinator" {{ old('role') == 'Library Coordinator' ? 'selected' : '' }}>Library Coordinator</option>
+                        <option value="Collections & Processing Librarian" {{ old('role') == 'Collections & Processing Librarian' ? 'selected' : '' }}>Collections & Processing Librarian</option>
+                        <option value="Reference & Users Services Assistant" {{ old('role') == 'Reference & Users Services Assistant' ? 'selected' : '' }}>Reference & Users Services Assistant</option>
+                        <option value="Collection & Processing Clerk" {{ old('role') == 'Collection & Processing Clerk' ? 'selected' : '' }}>Collection & Processing Clerk</option>
+                        <option value="AV In-Charge" {{ old('role') == 'AV In-Charge' ? 'selected' : '' }}>AV In-Charge</option>
+                        <option value="Librarian" {{ old('role') == 'Librarian' ? 'selected' : '' }}>Librarian</option>
+                        <option value="Junior High School Librarian" {{ old('role') == 'Junior High School Librarian' ? 'selected' : '' }}>Junior High School Librarian</option>
+                        <option value="Grade School Library In-Charge" {{ old('role') == 'Grade School Library In-Charge' ? 'selected' : '' }}>Grade School Library In-Charge</option>
                     </select>
                 </div>
 
                 <div class="col-md-7">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
-                    <input type="email" name="email" class="form-control form-control-lg" required>
+                    <input type="email" name="email" class="form-control form-control-lg" value="{{ old('email') }}" required>
                 </div>
 
                 <div class="col-md-5">
                     <label class="form-label">Department <span class="text-danger">*</span></label>
                     <select name="department" class="form-select form-select-lg" required>
                         <option value="">Select Department</option>
-                        <option value="college">College Library</option>
-                        <option value="graduate">Graduate Library</option>
-                        <option value="senior_high">Senior High School Library</option>
-                        <option value="ibed">IBED Library</option>
+                        <option value="college" {{ old('department') == 'college' ? 'selected' : '' }}>College Library</option>
+                        <option value="graduate" {{ old('department') == 'graduate' ? 'selected' : '' }}>Graduate Library</option>
+                        <option value="senior_high" {{ old('department') == 'senior_high' ? 'selected' : '' }}>Senior High School Library</option>
+                        <option value="ibed" {{ old('department') == 'ibed' ? 'selected' : '' }}>IBED Library</option>
                     </select>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Description of Work</label>
-                    <textarea name="description" class="form-control form-control-lg" rows="3"></textarea>
+                    <textarea name="description" class="form-control form-control-lg" rows="3">{{ old('description') }}</textarea>
                 </div>
 
                 <div class="col-12">

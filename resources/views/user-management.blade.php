@@ -204,8 +204,16 @@
                             @if ($type === 'student')
                             <td>{{ $user->school_id }}</td>
                             <td>{{ $user->first_name }} {{ $user->last_name }}</td>
-
-                            <td>{{ $user->course }}{{ $user->yrlvl ? ' - Yr ' . $user->yrlvl : '' }}</td>
+                            @php
+                                $programName = $user->program ? $user->program->name : '';
+                                $isJuniorHighSchool = $programName === 'Junior High School';
+                            @endphp
+                            <td>
+                                @if(!$isJuniorHighSchool && $user->course)
+                                    {{ $user->course }}{{ $user->yrlvl ? ' - ' : '' }}
+                                @endif
+                                {{ $user->yrlvl }}
+                            </td>
                             @elseif ($type === 'faculty')
                             <td>{{ $user->school_id }}</td>
                             <td>{{ $user->first_name }} {{ $user->last_name }}</td>
@@ -327,12 +335,20 @@
                                                                 <div class="detail-label">Program</div>
                                                                 <div>{{ $user->program ? $user->program->name : '' }}</div>
                                                             </div>
+                                                            @php
+                                                                $programName = $user->program ? $user->program->name : '';
+                                                                $isJuniorHighSchool = $programName === 'Junior High School';
+                                                                $isHighSchool = in_array($programName, ['Junior High School', 'Senior High School']);
+                                                                $levelLabel = $isHighSchool ? 'Grade Level' : 'Year Level';
+                                                            @endphp
+                                                            @if(!$isJuniorHighSchool)
                                                             <div class="col-md-6">
                                                                 <div class="detail-label">Course</div>
                                                                 <div>{{ $user->course }}</div>
                                                             </div>
+                                                            @endif
                                                             <div class="col-md-6">
-                                                                <div class="detail-label">Year Level</div>
+                                                                <div class="detail-label">{{ $levelLabel }}</div>
                                                                 <div>{{ $user->yrlvl }}</div>
                                                             </div>
                                                             <div class="col-md-6">
@@ -609,6 +625,8 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const programsEndpoint = "{{ route('api.programs') }}";
+        var modalProgramNamesById = {};
+        
         // When a modal is shown, populate dropdowns and select values
         document.querySelectorAll('.modal').forEach(function(modal) {
             function populateProgramSelect() {
@@ -622,6 +640,9 @@
                 fetch(programsEndpoint).then(r => r.json()).then(programs => {
                     const currentProgram = programSel.dataset.currentProgram;
                     programs.forEach(p => {
+                        // Track program names
+                        modalProgramNamesById[String(p.id)] = p.name;
+                        
                         // Exclude Non-Teaching Staff when role is student
                         if (isStudent && String(p.name).toLowerCase() === 'non-teaching staff') return;
                         const o = document.createElement('option');
@@ -654,6 +675,19 @@
 
         function loadCourses(programId, courseSel, currentCourse = '') {
             if (!programId) return;
+            
+            // Check if Junior High School - hide course field
+            const programName = modalProgramNamesById[String(programId)] || '';
+            const courseWrapper = courseSel.closest('.col-md-6, .mb-3');
+            
+            if (programName === 'Junior High School') {
+                if (courseWrapper) courseWrapper.style.display = 'none';
+                courseSel.innerHTML = '<option value="">-- Select Course --</option>';
+                return;
+            } else {
+                if (courseWrapper) courseWrapper.style.display = 'block';
+            }
+            
             fetch('/api/programs/' + programId + '/courses').then(r => r.json()).then(courses => {
                 courseSel.innerHTML = '<option value="">-- Select Course --</option>';
                 courses.forEach(c => {

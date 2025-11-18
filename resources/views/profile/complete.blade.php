@@ -219,7 +219,7 @@
           </div>
 
           <div class="col-12 col-md-6 mx-md-auto" id="yearField" style="display: none;">
-            <label for="yrlvl" class="form-label">Year Level</label>
+            <label for="yrlvl" class="form-label" id="yearLevelLabel">Year Level</label>
             <select name="yrlvl" id="yrlvl" class="form-select">
               <option value="">-- Select Year Level --</option>
               <option value="1">1st Year</option>
@@ -264,7 +264,13 @@
     function toggleRoleFields() {
       var role = document.getElementById('role').value;
       document.getElementById('studentFields').style.display = role === 'student' ? 'block' : 'none';
-      document.getElementById('courseField').style.display = role === 'student' ? 'block' : 'none';
+      
+      // Handle course field visibility based on program selection
+      const progStudent = document.getElementById('program');
+      const programName = progStudent && progStudent.value ? (window.programNamesById ? window.programNamesById[String(progStudent.value)] : '') : '';
+      const isJuniorHighSchool = programName === 'Junior High School';
+      
+      document.getElementById('courseField').style.display = (role === 'student' && !isJuniorHighSchool) ? 'block' : 'none';
       document.getElementById('yearField').style.display = role === 'student' ? 'block' : 'none';
       document.getElementById('facultyFields').style.display = role === 'faculty' ? 'block' : 'none';
 
@@ -335,6 +341,18 @@
           courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
           return;
         }
+        
+        // Check if program is Junior High School - if so, hide course field
+        const programName = window.programNamesById ? window.programNamesById[String(programId)] : '';
+        const courseField = document.getElementById('courseField');
+        if (programName === 'Junior High School') {
+          if (courseField) courseField.style.display = 'none';
+          courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+          return;
+        } else {
+          if (courseField && roleSelect.value === 'student') courseField.style.display = 'block';
+        }
+        
         const url = courseEndpointBase + programId + '/courses';
         fetch(url)
           .then(r => r.json())
@@ -390,6 +408,7 @@
     // Update Year Level options based on selected program
     function updateYearOptions(programId, selectedValue = '') {
       const yrSel = document.getElementById('yrlvl');
+      const yrLabel = document.getElementById('yearLevelLabel');
       if (!yrSel) return;
       const programName = (programId && typeof programId !== 'undefined') ? (window.programNamesById ? window.programNamesById[String(programId)] : null) : null;
       // Access the local map if in closure
@@ -400,11 +419,26 @@
 
       // Build options
       const buildOpt = (val, label) => `<option value="${val}">${label}</option>`;
-      let html = '<option value="">-- Select Year Level --</option>';
-      if (name === 'Senior High School') {
-        html += buildOpt('Junior High', 'Junior High');
-        html += buildOpt('Senior High', 'Senior High');
+      let html = '';
+      
+      if (name === 'Junior High School') {
+        // Junior High School: Grade 7-10
+        if (yrLabel) yrLabel.textContent = 'Grade Level';
+        html = '<option value="">-- Select Grade Level --</option>';
+        html += buildOpt('Grade 7', 'Grade 7');
+        html += buildOpt('Grade 8', 'Grade 8');
+        html += buildOpt('Grade 9', 'Grade 9');
+        html += buildOpt('Grade 10', 'Grade 10');
+      } else if (name === 'Senior High School') {
+        // Senior High School: Grade 11-12
+        if (yrLabel) yrLabel.textContent = 'Grade Level';
+        html = '<option value="">-- Select Grade Level --</option>';
+        html += buildOpt('Grade 11', 'Grade 11');
+        html += buildOpt('Grade 12', 'Grade 12');
       } else {
+        // Regular programs: Year levels
+        if (yrLabel) yrLabel.textContent = 'Year Level';
+        html = '<option value="">-- Select Year Level --</option>';
         html += buildOpt('1', '1st Year');
         html += buildOpt('2', '2nd Year');
         html += buildOpt('3', '3rd Year');

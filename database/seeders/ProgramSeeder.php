@@ -59,6 +59,9 @@ class ProgramSeeder extends Seeder
                 'Science and Technology, Engineering, and Mathematics (STEM)',
                 'Technical Vocational Livelihood (TVL) - Culinary and ICT',
             ],
+            'Junior High School' => [
+                // No courses for Junior High School
+            ],
         ];
 
         foreach ($programs as $programName => $courses) {

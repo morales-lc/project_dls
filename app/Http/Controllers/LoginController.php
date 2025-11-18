@@ -41,9 +41,14 @@ class LoginController extends Controller
                         'username' => 'Your guest account has expired. Please submit a new ALINET request to get temporary access.',
                     ]);
                 }
+                
+                // Guest accounts bypass OTP - log them in directly
+                Auth::login($user);
+                $request->session()->regenerate();
+                return redirect()->intended(route('guest.dashboard'));
             }
             
-            // Generate 6-digit OTP
+            // Generate 6-digit OTP for non-guest users
             $otp = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
             
             // Store OTP and expiration time (5 minutes)

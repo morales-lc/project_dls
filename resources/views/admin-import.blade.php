@@ -66,12 +66,6 @@
                         <div class="form-text">Only .001, .mrc, or .marc files are accepted. Files are automatically deleted after import. Only import logs are retained.</div>
                     </div>
                     
-                    <div class="alert alert-info small mb-3">
-                        <i class="bi bi-info-circle me-1"></i>
-                        <strong>Performance Optimizations:</strong> The import process uses batch database operations (500 records per batch), 
-                        in-memory caching of existing catalog keys, deferred full-text index rebuilding, and selective field parsing to 
-                        minimize processing time. Typical files with 1,000-5,000 records complete in under 60 seconds.
-                    </div>
                     
                     <div class="form-check form-switch mb-3">
                         <input class="form-check-input" type="checkbox" role="switch" id="delete_missing" name="delete_missing">

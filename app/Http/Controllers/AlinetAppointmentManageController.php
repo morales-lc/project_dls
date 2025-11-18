@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\AlinetAppointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 use App\Mail\AlinetAppointmentAccepted;
 use App\Mail\AlinetAppointmentRejected;
 
@@ -55,10 +56,8 @@ class AlinetAppointmentManageController extends Controller
         $guestUser = null;
         // If accepting an Online request, create or update a temporary guest account with 7-day expiration
         if ($request->status === 'accepted' && (stripos($appointment->mode_of_research, 'Online') !== false)) {
-            // Check if a guest user already exists for this email
-            $guestUser = \App\Models\User::where('email', $appointment->email)
-                                         ->where('role', 'guest')
-                                         ->first();
+            // Check if any user already exists for this email
+            $existingUser = \App\Models\User::where('email', $appointment->email)->first();
             
             // Generate random password
             $plainPassword = \Illuminate\Support\Str::random(10);
@@ -68,14 +67,25 @@ class AlinetAppointmentManageController extends Controller
                             $appointment->firstname . ' ' . 
                             $appointment->lastname);
 
-            if ($guestUser) {
-                // Update existing guest user: extend expiration, reactivate, and reset password
-                $guestUser->name = $fullName;
-                $guestUser->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
-                $guestUser->guest_plain_password = \Illuminate\Support\Facades\Crypt::encryptString($plainPassword);
-                $guestUser->guest_expires_at = \Carbon\Carbon::now('Asia/Manila')->addDays(7);
-                $guestUser->guest_account_status = 'active';
-                $guestUser->save();
+            if ($existingUser) {
+                if ($existingUser->role === 'guest') {
+                    // Update existing guest user: extend expiration, reactivate, and reset password
+                    $existingUser->name = $fullName;
+                    $existingUser->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
+                    $existingUser->guest_plain_password = \Illuminate\Support\Facades\Crypt::encryptString($plainPassword);
+                    $existingUser->guest_expires_at = \Carbon\Carbon::now('Asia/Manila')->addDays(7);
+                    $existingUser->guest_account_status = 'active';
+                    $existingUser->save();
+                    $guestUser = $existingUser;
+                } else {
+                    // Email belongs to a regular/admin user - skip guest account creation
+                    // The email will still be sent but without guest credentials
+                    Log::info('Skipping guest account creation - email belongs to existing non-guest user', [
+                        'email' => $appointment->email,
+                        'existing_role' => $existingUser->role,
+                    ]);
+                    $guestUser = null;
+                }
             } else {
                 // Generate a username derived from email (ensure uniqueness)
                 $email = (string) $appointment->email;
@@ -109,10 +119,32 @@ class AlinetAppointmentManageController extends Controller
         }
 
         // Send email to requester using Mailable classes
-        if ($request->status === 'accepted') {
-            Mail::to($appointment->email)->send(new AlinetAppointmentAccepted($appointment, $guestUser));
-        } else {
-            Mail::to($appointment->email)->send(new AlinetAppointmentRejected($appointment, $request->input('reason')));
+        try {
+            if ($request->status === 'accepted') {
+                Log::info('Attempting to send acceptance email', [
+                    'appointment_id' => $appointment->id,
+                    'email' => $appointment->email,
+                    'mode' => $appointment->mode_of_research,
+                    'has_guest_user' => $guestUser !== null,
+                ]);
+                Mail::to($appointment->email)->send(new AlinetAppointmentAccepted($appointment, $guestUser));
+                Log::info('Acceptance email sent successfully', ['appointment_id' => $appointment->id]);
+            } else {
+                Log::info('Attempting to send rejection email', [
+                    'appointment_id' => $appointment->id,
+                    'email' => $appointment->email,
+                ]);
+                Mail::to($appointment->email)->send(new AlinetAppointmentRejected($appointment, $request->input('reason')));
+                Log::info('Rejection email sent successfully', ['appointment_id' => $appointment->id]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to send ALINET email', [
+                'appointment_id' => $appointment->id,
+                'status' => $request->status,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            // Continue with redirect even if email fails
         }
 
         $returnUrl = $request->input('return_url');

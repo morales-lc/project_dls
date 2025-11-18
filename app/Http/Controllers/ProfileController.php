@@ -41,9 +41,20 @@ class ProfileController extends Controller
         $rules['program_id'][] = 'required';
     }
     if ($request->input('role') === 'student') {
-        // Students must also provide course and year level
-        $rules['course'][] = 'required';
+        // Year level is required for all students
         $rules['yrlvl'][] = 'required';
+        
+        // Course is only required if NOT Junior High School
+        $programId = $request->input('program_id');
+        if ($programId) {
+            $program = Program::find($programId);
+            if ($program && $program->name !== 'Junior High School') {
+                $rules['course'][] = 'required';
+            }
+        } else {
+            // If no program selected yet, keep course required (will fail program validation first)
+            $rules['course'][] = 'required';
+        }
     }
 
     $messages = [

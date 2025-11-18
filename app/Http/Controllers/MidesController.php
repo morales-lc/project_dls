@@ -149,10 +149,16 @@ class MidesController extends Controller
 
         // Sorting
         $sort = request('sort', 'year');
-        $direction = request('direction', 'desc');
-        $query->orderBy($sort, $direction);
+        if ($sort === 'latest') {
+            $query->orderBy('created_at', 'desc');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $direction = request('direction', 'desc');
+            $query->orderBy($sort, $direction);
+        }
 
-        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(request()->query());
+        $documents = $query->paginate(12)->appends(request()->query());
         $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
 
         // Build lookup arrays for type and category/program names
@@ -163,7 +169,7 @@ class MidesController extends Controller
             $categoryNames[$cat->type][$cat->id] = $cat->name;
         }
 
-        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'direction', 'typeNames', 'categoryNames'));
+        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'typeNames', 'categoryNames'));
     }
 
     public function create()

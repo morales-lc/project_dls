@@ -46,7 +46,7 @@ return [
                  * Set to `null` to include complete absolute path
                  * Example: base_path()
                  */
-                'relative_path' => null,
+                'relative_path' => base_path(),
             ],
 
             /*
@@ -157,8 +157,8 @@ return [
                 'local',
             ],
 
-            // Store backups in a simple 'backups' folder for easy access
-            'path' => 'backups',
+            // Store backups in Laravel folder
+            'path' => 'Laravel',
         ],
 
         /*

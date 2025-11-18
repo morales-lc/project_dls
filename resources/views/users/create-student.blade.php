@@ -89,15 +89,22 @@
 
             {{-- Student-Only Fields --}}
             <div id="studentFields" class="row g-4">
-                <div class="col-md-8">
+                <div class="col-md-8" id="courseFieldWrapper">
                     <label class="form-label">Course</label>
                     <select name="course" id="courseSelect" class="form-select form-select-lg">
                         <option value="">-- Select Course --</option>
                     </select>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label">Year Level</label>
-                    <input type="text" name="yrlvl" class="form-control form-control-lg" value="{{ old('yrlvl') }}">
+                    <label class="form-label" id="yearLevelLabel">Year Level</label>
+                    <select name="yrlvl" id="yrlvlSelect" class="form-select form-select-lg">
+                        <option value="">-- Select Year Level --</option>
+                        <option value="1">1st Year</option>
+                        <option value="2">2nd Year</option>
+                        <option value="3">3rd Year</option>
+                        <option value="4">4th Year</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
             </div>
 
@@ -112,10 +119,25 @@
 
         {{-- Script --}}
         <script>
+            var programNamesById = {};
+            
             function toggleStudentFields() {
                 var role = document.getElementById('roleTypeSelect').value;
                 var studentFields = document.getElementById('studentFields');
                 studentFields.style.display = (role === 'faculty') ? 'none' : 'flex';
+                
+                // Check if Junior High School is selected to hide course field
+                if (role === 'student') {
+                    var programSelect = document.getElementById('programSelect');
+                    var programId = programSelect ? programSelect.value : '';
+                    var programName = programNamesById[String(programId)] || '';
+                    var courseWrapper = document.getElementById('courseFieldWrapper');
+                    if (programName === 'Junior High School') {
+                        if (courseWrapper) courseWrapper.style.display = 'none';
+                    } else {
+                        if (courseWrapper) courseWrapper.style.display = 'block';
+                    }
+                }
             }
             document.addEventListener('DOMContentLoaded', function() {
                 toggleStudentFields();
@@ -130,6 +152,9 @@
                     fetch(programsEndpoint).then(r => r.json()).then(programs => {
                         const isStudent = roleSelect && roleSelect.value === 'student';
                         programs.forEach(p => {
+                            // Track program names
+                            programNamesById[String(p.id)] = p.name;
+                            
                             // Exclude Non-Teaching Staff for students
                             if (isStudent && String(p.name).toLowerCase() === 'non-teaching staff') return;
                             const o = document.createElement('option');
@@ -140,6 +165,7 @@
                         });
                         if (programSelect.value) {
                             loadCourses(programSelect.value, "{{ old('course') }}");
+                            updateYearLevelOptions(programSelect.value, "{{ old('yrlvl') }}");
                         } else {
                             // If previously selected program was filtered out, clear courses
                             courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
@@ -151,6 +177,8 @@
 
                 programSelect.addEventListener('change', function() {
                     loadCourses(this.value);
+                    updateYearLevelOptions(this.value);
+                    toggleStudentFields();
                 });
 
                 // Re-populate programs when role changes to reflect visibility of Non-Teaching Staff
@@ -164,6 +192,18 @@
                         courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
                         return;
                     }
+                    
+                    // Check if Junior High School - hide course field
+                    const programName = programNamesById[String(programId)] || '';
+                    const courseWrapper = document.getElementById('courseFieldWrapper');
+                    if (programName === 'Junior High School') {
+                        if (courseWrapper) courseWrapper.style.display = 'none';
+                        courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+                        return;
+                    } else {
+                        if (courseWrapper && roleSelect.value === 'student') courseWrapper.style.display = 'block';
+                    }
+                    
                     fetch('/api/programs/' + programId + '/courses').then(r => r.json()).then(courses => {
                         courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
                         courses.forEach(c => {
@@ -174,6 +214,42 @@
                             courseSelect.appendChild(o);
                         });
                     });
+                }
+                
+                function updateYearLevelOptions(programId, selectedValue = '') {
+                    const yrSel = document.getElementById('yrlvlSelect');
+                    const yrLabel = document.getElementById('yearLevelLabel');
+                    if (!yrSel) return;
+                    
+                    const programName = programNamesById[String(programId)] || '';
+                    const buildOpt = (val, label) => `<option value="${val}">${label}</option>`;
+                    let html = '';
+                    
+                    if (programName === 'Junior High School') {
+                        if (yrLabel) yrLabel.textContent = 'Grade Level';
+                        html = '<option value="">-- Select Grade Level --</option>';
+                        html += buildOpt('Grade 7', 'Grade 7');
+                        html += buildOpt('Grade 8', 'Grade 8');
+                        html += buildOpt('Grade 9', 'Grade 9');
+                        html += buildOpt('Grade 10', 'Grade 10');
+                    } else if (programName === 'Senior High School') {
+                        if (yrLabel) yrLabel.textContent = 'Grade Level';
+                        html = '<option value="">-- Select Grade Level --</option>';
+                        html += buildOpt('Grade 11', 'Grade 11');
+                        html += buildOpt('Grade 12', 'Grade 12');
+                    } else {
+                        if (yrLabel) yrLabel.textContent = 'Year Level';
+                        html = '<option value="">-- Select Year Level --</option>';
+                        html += buildOpt('1', '1st Year');
+                        html += buildOpt('2', '2nd Year');
+                        html += buildOpt('3', '3rd Year');
+                        html += buildOpt('4', '4th Year');
+                        html += buildOpt('Other', 'Other');
+                    }
+                    yrSel.innerHTML = html;
+                    if (selectedValue) {
+                        yrSel.value = selectedValue;
+                    }
                 }
             });
         </script>

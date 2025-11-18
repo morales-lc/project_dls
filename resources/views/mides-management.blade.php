@@ -36,6 +36,8 @@
             </div>
             <div class="col-md-3">
                 <select name="sort" class="form-select">
+                    <option value="latest" {{ $sort == 'latest' ? 'selected' : '' }}>Latest</option>
+                    <option value="oldest" {{ $sort == 'oldest' ? 'selected' : '' }}>Oldest</option>
                     <option value="year" {{ $sort == 'year' ? 'selected' : '' }}>Year</option>
                     <option value="author" {{ $sort == 'author' ? 'selected' : '' }}>Author</option>
                     <option value="title" {{ $sort == 'title' ? 'selected' : '' }}>Title</option>

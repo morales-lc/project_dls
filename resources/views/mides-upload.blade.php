@@ -21,6 +21,17 @@
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <strong>Please fix the following errors:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('mides.store') }}" enctype="multipart/form-data" class="row g-4">
             @csrf
             <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">
@@ -30,7 +41,7 @@
                 <select name="type" id="type" class="form-select form-select-lg" required onchange="toggleFields()">
                     <option value="">-- Select Type --</option>
                     @foreach($types as $type)
-                        <option value="{{ $type }}">{{ $type }}</option>
+                        <option value="{{ $type }}" {{ old('type') == $type ? 'selected' : '' }}>{{ $type }}</option>
                     @endforeach
                 </select>
             </div>
@@ -41,7 +52,7 @@
                 <select name="mides_category_id" id="mides_category_id" class="form-select form-select-lg">
                     <option value="">-- Select Category --</option>
                     @foreach($graduateCategories as $cat)
-                        <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        <option value="{{ $cat->id }}" {{ old('mides_category_id') == $cat->id ? 'selected' : '' }}>{{ $cat->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -52,7 +63,7 @@
                 <select name="mides_category_id" id="mides_category_id_undergrad" class="form-select form-select-lg">
                     <option value="">-- Select Program --</option>
                     @foreach($undergradPrograms as $prog)
-                        <option value="{{ $prog->id }}">{{ $prog->name }}</option>
+                        <option value="{{ $prog->id }}" {{ old('mides_category_id') == $prog->id ? 'selected' : '' }}>{{ $prog->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -63,23 +74,23 @@
                 <select name="mides_category_id" id="mides_category_id_sh" class="form-select form-select-lg">
                     <option value="">-- Select Program --</option>
                     @foreach($seniorHighPrograms as $sh)
-                        <option value="{{ $sh->id }}">{{ $sh->name }}</option>
+                        <option value="{{ $sh->id }}" {{ old('mides_category_id') == $sh->id ? 'selected' : '' }}>{{ $sh->name }}</option>
                     @endforeach
                 </select>
             </div>
 
             <div class="col-12">
                 <label class="form-label">Author <span class="text-danger">*</span></label>
-                <input type="text" name="author" id="author" class="form-control form-control-lg" required>
+                <input type="text" name="author" id="author" class="form-control form-control-lg" value="{{ old('author') }}" required>
             </div>
             <div class="col-md-9">
                 <label class="form-label">Title of Thesis/Paper <span class="text-danger">*</span></label>
-                <input type="text" name="title" id="title" class="form-control form-control-lg" required>
+                <input type="text" name="title" id="title" class="form-control form-control-lg" value="{{ old('title') }}" required>
             </div>
 
             <div class="col-md-3">
                 <label class="form-label">Year <span class="text-danger">*</span></label>
-                <input type="number" name="year" id="year" class="form-control form-control-lg" min="1980" max="{{ date('Y') }}" required>
+                <input type="number" name="year" id="year" class="form-control form-control-lg" min="1980" max="{{ date('Y') }}" value="{{ old('year') }}" required>
             </div>
 
 
@@ -103,6 +114,11 @@
 <script>
 function toggleFields() {
     var type = document.getElementById('type').value;
+    // On page load, check old input to show the correct section
+    if (!type) {
+        var oldType = '{{ old("type") }}';
+        if (oldType) type = oldType;
+    }
     var gradCatDiv = document.getElementById('graduateCategory');
     var undergradProgDiv = document.getElementById('undergradProgram');
     var seniorHighProgDiv = document.getElementById('seniorHighProgram');

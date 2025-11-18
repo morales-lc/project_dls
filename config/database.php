@@ -62,10 +62,11 @@ return [
             ]) : [],
             // Spatie backup: specify mysqldump path and options
             'dump' => [
-                'dump_binary_path' => 'C:/Program Files/MySQL/MySQL Server 8.0/bin', // Adjust if your path is different
+                'dump_binary_path' => 'C:/Program Files/MySQL/MySQL Server 8.0/bin',
                 'use_single_transaction' => true,
                 'timeout' => 300,
-                'add_extra_option' => '--column-statistics=0',
+                // Force TCP protocol and disable column statistics for compatibility
+                'add_extra_option' => '--protocol=TCP --column-statistics=0',
             ],
         ],
 

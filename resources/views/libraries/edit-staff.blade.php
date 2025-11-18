@@ -57,17 +57,17 @@
 
             <div class="col-md-6">
                 <label class="form-label">First Name <span class="text-danger">*</span></label>
-                <input type="text" name="first_name" class="form-control form-control-lg" value="{{ $staff->first_name }}" required>
+                <input type="text" name="first_name" class="form-control form-control-lg" value="{{ old('first_name', $staff->first_name) }}" required>
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Middle Name</label>
-                <input type="text" name="middlename" class="form-control form-control-lg" value="{{ $staff->middlename }}">
+                <input type="text" name="middlename" class="form-control form-control-lg" value="{{ old('middlename', $staff->middlename) }}">
             </div>
 
             <div class="col-md-6">
                 <label class="form-label">Last Name <span class="text-danger">*</span></label>
-                <input type="text" name="last_name" class="form-control form-control-lg" value="{{ $staff->last_name }}" required>
+                <input type="text" name="last_name" class="form-control form-control-lg" value="{{ old('last_name', $staff->last_name) }}" required>
             </div>
 
             <div class="col-12">
@@ -87,7 +87,7 @@
 
             <div class="col-md-6">
                 <label class="form-label">Email <span class="text-danger">*</span></label>
-                <input type="email" name="email" class="form-control form-control-lg" value="{{ $staff->email }}" required>
+                <input type="email" name="email" class="form-control form-control-lg" value="{{ old('email', $staff->email) }}" required>
             </div>
 
             <div class="col-md-6">
@@ -103,7 +103,7 @@
 
             <div class="col-12">
                 <label class="form-label">Description of Work</label>
-                <textarea name="description" class="form-control form-control-lg" rows="3">{{ $staff->description }}</textarea>
+                <textarea name="description" class="form-control form-control-lg" rows="3">{{ old('description', $staff->description) }}</textarea>
             </div>
 
             <div class="col-12">

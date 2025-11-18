@@ -11,20 +11,22 @@
         [ 'route' => 'user.management', 'icon' => 'bi-people', 'label' => 'User Management' ],
         [ 'route' => 'libraries.staff.manage', 'icon' => 'bi-person-badge', 'label' => 'Manage Library Staff' ],
         [ 'route' => 'mides.management', 'icon' => 'bi-journal-text', 'label' => 'MIDES Management' ],
-        ['route' => 'library.content.manage','icon' => 'bi-pen','label' => 'Library Content' ],
-        ['route' => 'information_literacy.manage','icon' => 'bi-book','label' => 'Information Literacy Management' ],
-        [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],
-        [ 'route' => 'alinet.manage', 'icon' => 'bi-calendar-check', 'label' => 'ALINET Appointments' ],
-        [ 'route' => 'feedback.admin', 'icon' => 'bi-chat-dots', 'label' => 'Feedback' ],
-        [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
         [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'SIDLAK Journals' ],
         [ 'route' => 'e-libraries.manage', 'icon' => 'bi-globe-americas', 'label' => 'Manage Online Libraries' ],
+        [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],
+        ['route' => 'library.content.manage','icon' => 'bi-pen','label' => 'Library Content' ],
+        ['route' => 'information_literacy.manage','icon' => 'bi-book','label' => 'Information Literacy Management' ],
+
+        [ 'route' => 'alinet.manage', 'icon' => 'bi-calendar-check', 'label' => 'ALINET Appointments' ],
         [ 'route' => 'lira.manage', 'icon' => 'bi-journal', 'label' => 'Manage LIRA Requests' ],
+        [ 'route' => 'feedback.admin', 'icon' => 'bi-chat-dots', 'label' => 'Feedback' ],
+        [ 'route' => 'post.management', 'icon' => 'bi-file-earmark-post', 'label' => 'Post Management' ],
+
         [ 'route' => 'admin.analytics', 'icon' => 'bi-bar-chart', 'label' => 'Analytics' ],
         [ 'route' => 'marc.import.form', 'icon' => 'bi-file-earmark-arrow-up', 'label' => 'Import Catalog' ],
         [ 'route' => 'admin.backup', 'icon' => 'bi-database', 'label' => 'System Backup' ],
 
-            
+
         ];
 
 

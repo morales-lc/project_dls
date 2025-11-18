@@ -59,8 +59,21 @@ class LibraryStaffController extends Controller
             'email' => 'required|email|max:255',
             'description' => 'nullable|string',
             'department' => 'required|in:college,graduate,senior_high,ibed',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|max:4096',
         ]);
+        
+        // Check if trying to add Library Coordinator to college department
+        if ($validated['role'] === 'Library Coordinator' && $validated['department'] === 'college') {
+            $existingCoordinator = LibraryStaff::where('role', 'Library Coordinator')
+                                               ->where('department', 'college')
+                                               ->exists();
+            if ($existingCoordinator) {
+                return redirect()->back()
+                    ->withErrors(['role' => 'A Library Coordinator already exists for the College Library. Only one Library Coordinator is allowed per department.'])
+                    ->withInput();
+            }
+        }
+        
         if ($request->hasFile('photo')) {
             $validated['photo'] = $request->file('photo')->store('library_staff', 'public');
         }
@@ -82,6 +95,20 @@ class LibraryStaffController extends Controller
             'department' => 'required|in:college,graduate,senior_high,ibed',
             'photo' => 'nullable|image|max:2048',
         ]);
+        
+        // Check if trying to change role to Library Coordinator for college department
+        if ($validated['role'] === 'Library Coordinator' && $validated['department'] === 'college') {
+            $existingCoordinator = LibraryStaff::where('role', 'Library Coordinator')
+                                               ->where('department', 'college')
+                                               ->where('id', '!=', $id)
+                                               ->exists();
+            if ($existingCoordinator) {
+                return redirect()->back()
+                    ->withErrors(['role' => 'A Library Coordinator already exists for the College Library. Only one Library Coordinator is allowed per department.'])
+                    ->withInput();
+            }
+        }
+        
         if ($request->hasFile('photo')) {
             $validated['photo'] = $request->file('photo')->store('library_staff', 'public');
         }

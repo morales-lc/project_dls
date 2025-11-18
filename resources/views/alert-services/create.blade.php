@@ -17,6 +17,18 @@
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
+            
+            @if($errors->any())
+                <div class="alert alert-danger">
+                    <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+            
             <form method="POST" action="{{ route('alert-services.store') }}" enctype="multipart/form-data" class="row g-4">
                 @csrf
                 <input type="hidden" name="return_url" value="{{ request('return', url()->previous()) }}">

@@ -165,18 +165,29 @@
                   <div class="col-sm-6 profile-value">{{ $sf->school_id ?? '-' }}</div>
                 </div>
                 @if($sf->role === 'student')
+                @php
+                  $programName = $sf->program ? $sf->program->name : '';
+                  $isJuniorHighSchool = $programName === 'Junior High School';
+                @endphp
+                @if(!$isJuniorHighSchool)
                 <div class="profile-row row">
                   <div class="col-sm-6 profile-label">Course</div>
                   <div class="col-sm-6 profile-value">{{ $sf->course ?? '-' }}</div>
                 </div>
+                @endif
                 @endif
                 <div class="profile-row row">
                   <div class="col-sm-6 profile-label">Program</div>
                   <div class="col-sm-6 profile-value">{{ $sf->program ? $sf->program->name : ($sf->department ?? '-') }}</div>
                 </div>
                 @if($sf->role === 'student')
+                @php
+                  $programName = $sf->program ? $sf->program->name : '';
+                  $isHighSchool = in_array($programName, ['Junior High School', 'Senior High School']);
+                  $levelLabel = $isHighSchool ? 'Grade Level' : 'Year Level';
+                @endphp
                 <div class="profile-row row">
-                  <div class="col-sm-6 profile-label">Year Level</div>
+                  <div class="col-sm-6 profile-label">{{ $levelLabel }}</div>
                   <div class="col-sm-6 profile-value">{{ $sf->yrlvl ?? '-' }}</div>
                 </div>
                 @endif
@@ -251,7 +262,7 @@
                     </select>
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-6" id="courseFieldModal">
                   <div class="mb-3">
                     <label class="form-label">Course</label>
                     <select name="course" id="courseInput" class="form-select" data-current-course="{{ $sf->course ?? '' }}">
@@ -263,8 +274,30 @@
                 @if($sf->role === 'student')
                 <div class="col-md-6">
                   <div class="mb-3">
-                    <label class="form-label">Year level</label>
-                    <input name="yrlvl" id="yrlvlInput" class="form-control" value="{{ $sf->yrlvl ?? '' }}">
+                    @php
+                      $programName = $sf->program ? $sf->program->name : '';
+                      $isHighSchool = in_array($programName, ['Junior High School', 'Senior High School']);
+                      $levelLabel = $isHighSchool ? 'Grade Level' : 'Year Level';
+                    @endphp
+                    <label class="form-label" id="yearLevelModalLabel">{{ $levelLabel }}</label>
+                    <select name="yrlvl" id="yrlvlInput" class="form-select" data-current-yrlvl="{{ $sf->yrlvl ?? '' }}">
+                      <option value="">-- Select {{ $levelLabel }} --</option>
+                      @if($programName === 'Junior High School')
+                        <option value="Grade 7" {{ ($sf->yrlvl ?? '') == 'Grade 7' ? 'selected' : '' }}>Grade 7</option>
+                        <option value="Grade 8" {{ ($sf->yrlvl ?? '') == 'Grade 8' ? 'selected' : '' }}>Grade 8</option>
+                        <option value="Grade 9" {{ ($sf->yrlvl ?? '') == 'Grade 9' ? 'selected' : '' }}>Grade 9</option>
+                        <option value="Grade 10" {{ ($sf->yrlvl ?? '') == 'Grade 10' ? 'selected' : '' }}>Grade 10</option>
+                      @elseif($programName === 'Senior High School')
+                        <option value="Grade 11" {{ ($sf->yrlvl ?? '') == 'Grade 11' ? 'selected' : '' }}>Grade 11</option>
+                        <option value="Grade 12" {{ ($sf->yrlvl ?? '') == 'Grade 12' ? 'selected' : '' }}>Grade 12</option>
+                      @else
+                        <option value="1" {{ ($sf->yrlvl ?? '') == '1' ? 'selected' : '' }}>1st Year</option>
+                        <option value="2" {{ ($sf->yrlvl ?? '') == '2' ? 'selected' : '' }}>2nd Year</option>
+                        <option value="3" {{ ($sf->yrlvl ?? '') == '3' ? 'selected' : '' }}>3rd Year</option>
+                        <option value="4" {{ ($sf->yrlvl ?? '') == '4' ? 'selected' : '' }}>4th Year</option>
+                        <option value="Other" {{ ($sf->yrlvl ?? '') == 'Other' ? 'selected' : '' }}>Other</option>
+                      @endif
+                    </select>
                   </div>
                 </div>
                 @endif
@@ -346,6 +379,9 @@
           const selF = document.getElementById('programModalSelectFaculty');
           const current = sel ? sel.dataset.currentProgram : (selF ? selF.dataset.currentProgram : '');
           programs.forEach(p => {
+            // Track program names
+            modalProgramNamesById[String(p.id)] = p.name;
+            
             const opt = document.createElement('option');
             opt.value = p.id;
             opt.textContent = p.name;
@@ -363,15 +399,77 @@
               selF.appendChild(of);
             }
           });
-          // if current program present, load courses
-          if (current && document.getElementById('courseInput')) loadModalCourses(current);
+          // if current program present, load courses and set label
+          if (current && document.getElementById('courseInput')) {
+            loadModalCourses(current);
+            updateModalYearLevelLabel(current);
+          }
         }).catch(err => console.error('Failed to load programs', err));
       }
+      
+      // Update modal year level label and options based on program
+      function updateModalYearLevelLabel(programId) {
+        const labelEl = document.getElementById('yearLevelModalLabel');
+        const yrSel = document.getElementById('yrlvlInput');
+        if (!labelEl || !yrSel) return;
+        
+        const programName = modalProgramNamesById[String(programId)] || '';
+        const currentYrlvl = yrSel.dataset.currentYrlvl || yrSel.value || '';
+        
+        const buildOpt = (val, label, selected) => {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.textContent = label;
+          if (String(val) === String(selected)) opt.selected = true;
+          return opt;
+        };
+        
+        // Clear existing options
+        yrSel.innerHTML = '';
+        
+        if (programName === 'Junior High School') {
+          labelEl.textContent = 'Grade Level';
+          yrSel.appendChild(buildOpt('', '-- Select Grade Level --', ''));
+          yrSel.appendChild(buildOpt('Grade 7', 'Grade 7', currentYrlvl));
+          yrSel.appendChild(buildOpt('Grade 8', 'Grade 8', currentYrlvl));
+          yrSel.appendChild(buildOpt('Grade 9', 'Grade 9', currentYrlvl));
+          yrSel.appendChild(buildOpt('Grade 10', 'Grade 10', currentYrlvl));
+        } else if (programName === 'Senior High School') {
+          labelEl.textContent = 'Grade Level';
+          yrSel.appendChild(buildOpt('', '-- Select Grade Level --', ''));
+          yrSel.appendChild(buildOpt('Grade 11', 'Grade 11', currentYrlvl));
+          yrSel.appendChild(buildOpt('Grade 12', 'Grade 12', currentYrlvl));
+        } else {
+          labelEl.textContent = 'Year Level';
+          yrSel.appendChild(buildOpt('', '-- Select Year Level --', ''));
+          yrSel.appendChild(buildOpt('1', '1st Year', currentYrlvl));
+          yrSel.appendChild(buildOpt('2', '2nd Year', currentYrlvl));
+          yrSel.appendChild(buildOpt('3', '3rd Year', currentYrlvl));
+          yrSel.appendChild(buildOpt('4', '4th Year', currentYrlvl));
+          yrSel.appendChild(buildOpt('Other', 'Other', currentYrlvl));
+        }
+      }
+
+      // Track program names by ID
+      var modalProgramNamesById = {};
 
       function loadModalCourses(programId) {
         if (!programId) return;
+        
+        // Check if program is Junior High School - if so, hide course field
+        const programName = modalProgramNamesById[String(programId)] || '';
+        const courseFieldModal = document.getElementById('courseFieldModal');
+        const courseSel = document.getElementById('courseInput');
+        
+        if (programName === 'Junior High School') {
+          if (courseFieldModal) courseFieldModal.style.display = 'none';
+          if (courseSel) courseSel.innerHTML = '<option value="">-- Select Course --</option>';
+          return;
+        } else {
+          if (courseFieldModal) courseFieldModal.style.display = 'block';
+        }
+        
         fetch('/api/programs/' + programId + '/courses').then(r => r.json()).then(courses => {
-          const courseSel = document.getElementById('courseInput');
           if (!courseSel) return;
           courseSel.innerHTML = '<option value="">-- Select Course --</option>';
           const currentCourse = courseSel.dataset.currentCourse || '';
@@ -388,6 +486,7 @@
       // wire program change in modal
       document.getElementById('programModalSelect')?.addEventListener('change', function() {
         loadModalCourses(this.value);
+        updateModalYearLevelLabel(this.value);
       });
       document.getElementById('programModalSelectFaculty')?.addEventListener('change', function() {
         /* mirror if needed */ });
