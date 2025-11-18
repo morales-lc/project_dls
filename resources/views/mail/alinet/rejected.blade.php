@@ -35,7 +35,7 @@
             </table>
             @if(!empty($reason))
             <div style="background:#fff7f7; border:1px solid #f3d6d6; padding:12px 14px; border-radius:6px; margin:12px 0; color:#8a2a2a;">
-                <div style="font-weight:bold; margin-bottom:6px;">Reason from the librarian</div>
+                <div style="font-weight:bold; margin-bottom:6px;">Reason:</div>
                 <div style="white-space:pre-wrap;">{{ $reason }}</div>
             </div>
             @endif

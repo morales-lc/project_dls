@@ -16,6 +16,11 @@ class GoogleAuthController extends Controller
 
     public function handleGoogleCallback()
     {
+        // Check if user cancelled or an error occurred
+        if (request()->has('error')) {
+            return redirect()->route('login')->with('error', 'Google sign-in was cancelled or failed. Please try again.');
+        }
+
         $googleUser = Socialite::driver('google')->user();
 
         // Restrict to @lccdo.edu.ph emails
