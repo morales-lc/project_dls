@@ -95,6 +95,9 @@ Route::get('/login', function () {
 // Keep the POST login action only for guests
 Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'login'])->name('login');
+    Route::get('/login/verify-otp', [LoginController::class, 'showOtpForm'])->name('login.verify.otp');
+    Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify.otp.submit');
+    Route::post('/login/resend-otp', [LoginController::class, 'resendOtp'])->name('login.resend.otp');
 });
 // Logout route
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

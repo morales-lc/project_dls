@@ -28,6 +28,8 @@ class User extends Authenticatable
         'guest_expires_at',
         'guest_account_status',
         'role',
+        'login_otp',
+        'login_otp_expires_at',
     ];
 
     /**
@@ -51,6 +53,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'guest_expires_at' => 'datetime',
+            'login_otp_expires_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
