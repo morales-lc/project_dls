@@ -38,7 +38,12 @@ class StudentFacultyController extends Controller
             'program_id' => 'required|exists:programs,id',
             'yrlvl' => 'nullable|string|max:255',
             'birthdate' => 'nullable|date',
-            'password' => 'nullable|string|min:6',
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+            ],
         ];
         
         // Course is not required for Junior High School
@@ -48,7 +53,10 @@ class StudentFacultyController extends Controller
             $rules['course'] = 'nullable|string|max:255';
         }
         
-        $request->validate($rules);
+        $request->validate($rules, [
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).'
+        ]);
 
         $sf->school_id = $request->school_id;
         $sf->first_name = $request->first_name;

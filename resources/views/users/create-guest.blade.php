@@ -83,9 +83,9 @@
                         </button>
                         <button class="btn btn-outline-secondary" type="button" id="genPwBtn" tabindex="-1">Generate</button>
                     </div>
-                    <div class="form-text">
-                        Must be at least 6 characters with 1 uppercase, 1 lowercase, and 1 number.
-                    </div>
+                    <small class="text-muted d-block mt-1">
+                        Must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                    </small>
                     <div class="alert alert-info mt-2 py-2 px-3" role="alert" style="font-size: 0.9rem;">
                         <strong>Note:</strong> Guest accounts created via ALINET online approval will automatically expire after 7 days. Manual guest accounts can have custom expiration dates.
                     </div>

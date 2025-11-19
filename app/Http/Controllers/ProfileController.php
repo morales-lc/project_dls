@@ -26,7 +26,13 @@ class ProfileController extends Controller
         'last_name' => ['required', 'string', 'max:255'],
         'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $userId],
         // Password is required on the complete profile page, but optional when editing
-        'password' => [$isEdit ? 'nullable' : 'required', 'string', 'min:6', 'confirmed'],
+        'password' => [
+            $isEdit ? 'nullable' : 'required',
+            'string',
+            'min:8',
+            'confirmed',
+            'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+        ],
         'course' => ['nullable', 'string', 'max:255'],
         'yrlvl' => ['nullable', 'string'],
         'program_id' => ['nullable', 'exists:programs,id'],
@@ -64,11 +70,12 @@ class ProfileController extends Controller
         'last_name.required' => 'Last name is required.',
         'username.required' => 'Username is required.',
         'password.required' => 'Password is required.',
-        'password.min' => 'Password must be at least 6 characters.',
+        'password.min' => 'Password must be at least 8 characters.',
         'password.confirmed' => 'Password confirmation does not match.',
+        'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).',
         'program_id.required' => 'Please select a program.',
         'course.required' => 'Please select a course.',
-        'yrlvl.required' => 'Year level is required for students.', // ✅ Added message
+        'yrlvl.required' => 'Year level is required for students.', 
         'birthdate.required' => 'Birthdate is required.',
     ];
 

@@ -65,8 +65,11 @@
                 <input type="text" name="username" class="form-control form-control-lg" value="{{ old('username') }}" required>
             </div>
             <div class="col-md-6">
-                <label class="form-label">Password</label>
+                <label class="form-label">Password (Optional)</label>
                 <input type="password" name="password" class="form-control form-control-lg" autocomplete="new-password">
+                <small class="text-muted d-block mt-1">
+                    If provided, must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                </small>
             </div>
 
             {{-- Academic Information --}}

@@ -186,7 +186,14 @@
           <div class="col-12 col-md-6">
             <label for="password" class="form-label">Password</label>
             <input type="password" name="password" id="password" class="form-control" required
-              placeholder="Enter your password (min 6 characters)">
+              placeholder="Enter your password (min 8 characters)">
+            <small class="text-muted d-block mt-1">
+              <i class="bi bi-info-circle"></i> Must be at least 8 characters with:<br>
+              • One uppercase letter (A-Z)<br>
+              • One lowercase letter (a-z)<br>
+              • One number (0-9)<br>
+              • One special character (@$!%*?&#)
+            </small>
           </div>
 
           <div class="col-12 col-md-6">

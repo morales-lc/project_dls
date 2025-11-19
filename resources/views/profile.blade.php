@@ -328,6 +328,9 @@
                   <div class="mb-3">
                     <label class="form-label">New password (leave blank to keep current)</label>
                     <input name="password" id="passwordInput" type="password" class="form-control" placeholder="New password">
+                    <small class="text-muted d-block mt-1">
+                      Must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                    </small>
                   </div>
                 </div>
                 <div class="col-md-6">

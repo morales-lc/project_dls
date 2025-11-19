@@ -487,6 +487,9 @@
                                                         <div class="col-md-6">
                                                             <label class="form-label">Password (leave blank to keep current)</label>
                                                             <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                                            <small class="text-muted d-block mt-1">
+                                                                Must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                                                            </small>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -547,12 +550,15 @@
                                                         <div class="col-md-6">
                                                             <label class="form-label">Expiration Date</label>
                                                             <input type="datetime-local" name="guest_expires_at" class="form-control" 
-                                                                value="{{ $user->guest_expires_at ? \Carbon\Carbon::parse($user->guest_expires_at)->format('Y-m-d\TH:i') : '' }}">
+                                                            <input type="datetime-local" name="guest_expires_at" class="form-control" value="{{ $user->guest_expires_at ? \Carbon\Carbon::parse($user->guest_expires_at)->format('Y-m-d\TH:i') : '' }}">
                                                             <small class="text-muted">Leave empty for no expiration</small>
                                                         </div>
                                                         <div class="col-md-6">
                                                             <label class="form-label">Password (leave blank to keep current)</label>
                                                             <input type="password" name="password" class="form-control" autocomplete="new-password">
+                                                            <small class="text-muted d-block mt-1">
+                                                                Must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                                                            </small>
                                                         </div>
                                                     </div>
                                                 </div>

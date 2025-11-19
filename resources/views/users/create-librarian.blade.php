@@ -90,6 +90,9 @@
                 <div class="col-md-6">
                     <label class="form-label">Password</label>
                     <input type="password" name="password" class="form-control" required>
+                    <small class="text-muted d-block mt-1">
+                        Must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                    </small>
                 </div>
             </div>
 

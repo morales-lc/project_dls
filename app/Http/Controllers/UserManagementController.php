@@ -29,7 +29,15 @@ class UserManagementController extends Controller
                 'course' => 'nullable|string|max:255',
                 'yrlvl' => 'nullable|string|max:255',
                 'birthdate' => 'nullable|date',
-                'password' => 'nullable|string|min:6',
+                'password' => [
+                    'nullable',
+                    'string',
+                    'min:8',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+                ],
+            ], [
+                'password.min' => 'Password must be at least 8 characters.',
+                'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).'
             ]);
 
             // Create user in users table
@@ -127,7 +135,15 @@ class UserManagementController extends Controller
                 'yrlvl' => 'nullable|string|max:255',
                 'department' => 'nullable|string|max:255',
                 'birthdate' => 'nullable|date',
-                'password' => 'nullable|string|min:6',
+                'password' => [
+                    'nullable',
+                    'string',
+                    'min:8',
+                    'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+                ],
+            ], [
+                'password.min' => 'Password must be at least 8 characters.',
+                'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).'
             ]);
 
             $sf->school_id = $request->school_id;
@@ -166,9 +182,17 @@ class UserManagementController extends Controller
             'contact_number' => 'nullable|digits:11',
             'address' => 'nullable|string|max:255',
             'role' => 'required|in:admin,librarian,guest',
-            'password' => 'nullable|string|min:6',
+            'password' => [
+                'nullable',
+                'string',
+                'min:8',
+                'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]+$/'
+            ],
             'guest_expires_at' => 'nullable|date',
             'guest_account_status' => 'nullable|in:active,expired',
+        ], [
+            'password.min' => 'Password must be at least 8 characters.',
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).'
         ]);
 
         // Log incoming request data for debugging

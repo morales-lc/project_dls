@@ -81,7 +81,9 @@
                 <div class="col-md-4">
                     <label class="form-label">New Password (optional)</label>
                     <input type="password" name="password" class="form-control" placeholder="Leave blank to keep current" autocomplete="new-password">
-                    <div class="form-text">Min 6 characters.</div>
+                    <small class="text-muted d-block mt-1">
+                        Must be at least 8 characters with one uppercase, lowercase, number, and special character (@$!%*?&#).
+                    </small>
                 </div>
             </div>
 
