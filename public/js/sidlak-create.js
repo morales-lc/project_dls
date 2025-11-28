@@ -2,18 +2,18 @@ let articleIdx = 0;
 let editorIdx = 0;
 let reviewerIdx = 0;
 
-function addEditor() {
+function addEditor(name = '', title = '') {
     const list = document.getElementById('editors-list');
     const row = document.createElement('div');
     row.className = 'row g-3 mb-2';
     row.innerHTML = `
         <div class="col-md-8">
             <label class="form-label">Editor Name</label>
-            <input type="text" name="editors[${editorIdx}][name]" class="form-control" required>
+            <input type="text" name="editors[${editorIdx}][name]" class="form-control" value="${escapeHtml(name)}" required>
         </div>
         <div class="col-md-3">
             <label class="form-label">Title</label>
-            <input type="text" name="editors[${editorIdx}][title]" class="form-control" required>
+            <input type="text" name="editors[${editorIdx}][title]" class="form-control" value="${escapeHtml(title)}" required>
         </div>
         <div class="col-md-1 d-flex align-items-end">
             <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmRemoveEditor(this)">Remove</button>
@@ -23,26 +23,26 @@ function addEditor() {
     editorIdx++;
 }
 
-function addReviewer() {
+function addReviewer(name = '', title = '', institution = '', city = '') {
     const list = document.getElementById('reviewers-list');
     const row = document.createElement('div');
     row.className = 'row g-3 mb-2';
     row.innerHTML = `
         <div class="col-md-8">
             <label class="form-label">Reviewer Name</label>
-            <input type="text" name="peer_reviewers[${reviewerIdx}][name]" class="form-control" required>
+            <input type="text" name="peer_reviewers[${reviewerIdx}][name]" class="form-control" value="${escapeHtml(name)}" required>
         </div>
         <div class="col-md-4">
             <label class="form-label">Title</label>
-            <input type="text" name="peer_reviewers[${reviewerIdx}][title]" class="form-control" required>
+            <input type="text" name="peer_reviewers[${reviewerIdx}][title]" class="form-control" value="${escapeHtml(title)}" required>
         </div>
         <div class="col-md-6">
             <label class="form-label">Institution</label>
-            <input type="text" name="peer_reviewers[${reviewerIdx}][institution]" class="form-control" required>
+            <input type="text" name="peer_reviewers[${reviewerIdx}][institution]" class="form-control" value="${escapeHtml(institution)}" required>
         </div>
         <div class="col-md-5">
             <label class="form-label">City</label>
-            <input type="text" name="peer_reviewers[${reviewerIdx}][city]" class="form-control" required>
+            <input type="text" name="peer_reviewers[${reviewerIdx}][city]" class="form-control" value="${escapeHtml(city)}" required>
         </div>
         <div class="col-md-1 d-flex align-items-end">
             <button type="button" class="btn btn-sm btn-danger w-100" onclick="confirmRemoveReviewer(this)">Remove</button>
@@ -64,7 +64,7 @@ function confirmRemoveReviewer(btn) {
     }
 }
 
-function addArticle() {
+function addArticle(title = '', authors = '') {
     const list = document.getElementById('articles-list');
     const div = document.createElement('div');
     div.className = 'card p-3 mb-3';
@@ -72,21 +72,34 @@ function addArticle() {
         <div class="row mb-2">
             <div class="col-md-6">
                 <label class="form-label">Article Title</label>
-                <input type="text" name="articles[${articleIdx}][title]" class="form-control" required>
+                <input type="text" name="articles[${articleIdx}][title]" class="form-control" value="${escapeHtml(title)}" required>
             </div>
             <div class="col-md-6">
                 <label class="form-label">Authors</label>
-                <input type="text" name="articles[${articleIdx}][authors]" class="form-control" required>
+                <input type="text" name="articles[${articleIdx}][authors]" class="form-control" value="${escapeHtml(authors)}" required>
             </div>
             <div class="col-md-12">
                 <label class="form-label">PDF File</label>
-                <input type="file" name="articles[${articleIdx}][pdf_file]" class="form-control" accept="application/pdf" required>
+                <input type="file" name="articles[${articleIdx}][pdf_file]" class="form-control" accept="application/pdf" ${title ? '' : 'required'}>
+                ${title ? '<small class="text-muted">Leave blank to keep existing file (if re-uploading)</small>' : ''}
             </div>
         </div>
         <button type="button" class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">Remove Article</button>
     `;
     list.appendChild(div);
     articleIdx++;
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return String(text).replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 function previewCover(event) {
@@ -107,25 +120,22 @@ function previewCover(event) {
 
 document.addEventListener('DOMContentLoaded', function() {
     const oldEditors = window.oldEditors || [];
-    oldEditors.forEach((editor, index) => {
-        addEditor();
-        document.querySelector(`[name="editors[${index}][name]"]`).value = editor.name || '';
-        document.querySelector(`[name="editors[${index}][title]"]`).value = editor.title || '';
+    oldEditors.forEach((editor) => {
+        addEditor(editor.name || '', editor.title || '');
     });
 
     const oldReviewers = window.oldReviewers || [];
-    oldReviewers.forEach((reviewer, index) => {
-        addReviewer();
-        document.querySelector(`[name="peer_reviewers[${index}][name]"]`).value = reviewer.name || '';
-        document.querySelector(`[name="peer_reviewers[${index}][title]"]`).value = reviewer.title || '';
-        document.querySelector(`[name="peer_reviewers[${index}][institution]"]`).value = reviewer.institution || '';
-        document.querySelector(`[name="peer_reviewers[${index}][city]"]`).value = reviewer.city || '';
+    oldReviewers.forEach((reviewer) => {
+        addReviewer(
+            reviewer.name || '', 
+            reviewer.title || '', 
+            reviewer.institution || '', 
+            reviewer.city || ''
+        );
     });
 
     const oldArticles = window.oldArticles || [];
-    oldArticles.forEach((article, index) => {
-        addArticle();
-        document.querySelector(`[name="articles[${index}][title]"]`).value = article.title || '';
-        document.querySelector(`[name="articles[${index}][authors]"]`).value = article.authors || '';
+    oldArticles.forEach((article) => {
+        addArticle(article.title || '', article.authors || '');
     });
 });

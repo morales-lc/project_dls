@@ -53,6 +53,31 @@
 
         <h2 class="fw-bold mb-3 text-pink" style="letter-spacing: 1px; font-size: 2rem;">Edit Sidlak Journal</h2>
 
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <h6 class="fw-bold"><i class="bi bi-exclamation-circle me-1"></i> Please fix the following errors:</h6>
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form id="sidlak-edit-form" method="POST" action="{{ route('sidlak.update', $journal->id) }}" enctype="multipart/form-data" class="card border-0 shadow-lg p-4 mb-4 bg-white rounded-4">
             @csrf
             @method('PUT')
@@ -168,6 +193,11 @@
                 @endforeach
             </div>
             <button type="button" class="btn btn-outline-primary mb-3" onclick="addArticle()">Add Article</button>
+            
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ request('return', route('sidlak.manage')) }}" class="btn btn-outline-secondary px-4 shadow-sm">Cancel</a>
+                <button type="submit" class="btn btn-success px-4 shadow-sm">Update Journal & Articles</button>
+            </div>
         </form>
     </div>
 </div>

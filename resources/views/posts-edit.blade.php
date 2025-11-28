@@ -15,6 +15,25 @@
             <span></span>
         </div>
         <h2 class="fw-bold mb-4 text-pink">Edit Post / Announcement</h2>
+        
+        @if (session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+        
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong>Please fix the following errors:</strong>
+                <ul class="mb-0 mt-2">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
 
         <div class="card shadow rounded-4 border-0">
             <div class="card-header bg-white border-bottom-0 pb-0">
@@ -64,42 +83,59 @@
                     <div class="row g-4">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Type</label>
-                            <select name="type" class="form-select" required>
-                                <option value="Announcement" {{ $post->type == 'Announcement' ? 'selected' : '' }}>Announcement</option>
-                                <option value="Event" {{ $post->type == 'Event' ? 'selected' : '' }}>Event</option>
-                                <option value="Update" {{ $post->type == 'Update' ? 'selected' : '' }}>Update</option>
-                                <option value="Post" {{ $post->type == 'Post' ? 'selected' : '' }}>Post</option>
+                            <select name="type" class="form-select @error('type') is-invalid @enderror" required>
+                                <option value="">Select Type</option>
+                                <option value="Announcement" {{ old('type', $post->type) == 'Announcement' ? 'selected' : '' }}>Announcement</option>
+                                <option value="Event" {{ old('type', $post->type) == 'Event' ? 'selected' : '' }}>Event</option>
+                                <option value="Update" {{ old('type', $post->type) == 'Update' ? 'selected' : '' }}>Update</option>
+                                <option value="Post" {{ old('type', $post->type) == 'Post' ? 'selected' : '' }}>Post</option>
                             </select>
+                            @error('type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="col-md-12">
                             <label class="form-label fw-semibold">Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $post->title }}" required>
+                            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $post->title) }}" maxlength="255" required>
+                            @error('title')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="row g-4 mt-1">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control" rows="3">{{ $post->description }}</textarea>
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="5" maxlength="5000" required>{{ old('description', $post->description) }}</textarea>
+                            @error('description')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
 
                     <div class="row g-4 mt-1">
                         <div class="col-md-4">
                             <label class="form-label fw-semibold">Media Type</label>
-                            <select id="mediaType" class="form-select" name="media_type" required onchange="toggleMediaInputs()">
+                            <select id="mediaType" class="form-select @error('media_type') is-invalid @enderror" name="media_type" required onchange="toggleMediaInputs()">
                                 <option value="">Select Media Type</option>
-                                <option value="image" {{ $post->photo ? 'selected' : '' }}>Image</option>
-                                <option value="youtube" {{ $post->youtube_link ? 'selected' : '' }}>YouTube Link</option>
-                                <option value="website" {{ $post->website_link ? 'selected' : '' }}>Website Link</option>
+                                <option value="image" {{ old('media_type', $post->photo ? 'image' : '') == 'image' ? 'selected' : '' }}>Image</option>
+                                <option value="youtube" {{ old('media_type', $post->youtube_link ? 'youtube' : '') == 'youtube' ? 'selected' : '' }}>YouTube Link</option>
+                                <option value="website" {{ old('media_type', $post->website_link ? 'website' : '') == 'website' ? 'selected' : '' }}>Website Link</option>
                             </select>
+                            @error('media_type')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
                         </div>
 
                         <div class="col-md-8">
                             <div id="imageInput" style="display:none;">
-                                <label class="form-label fw-semibold">Photo</label>
-                                <input type="file" name="photo" class="form-control" accept="image/*">
+                                <label class="form-label fw-semibold">Photo (Max: 5MB)</label>
+                                <input type="file" name="photo" class="form-control @error('photo') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif">
+                                <small class="text-muted">Accepted formats: JPEG, PNG, JPG, GIF. Leave empty to keep current image.</small>
+                                @error('photo')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                                 @if($post->photo)
                                     <img src="{{ asset('storage/' . $post->photo) }}" alt="Photo" class="img-fluid rounded mt-2" style="max-height:120px; object-fit:cover;">
                                 @endif
@@ -107,12 +143,18 @@
 
                             <div id="youtubeInput" style="display:none;">
                                 <label class="form-label fw-semibold">YouTube Link</label>
-                                <input type="url" name="youtube_link" class="form-control" value="{{ $post->youtube_link }}" placeholder="https://youtube.com/watch?v=...">
+                                <input type="url" name="youtube_link" class="form-control @error('youtube_link') is-invalid @enderror" value="{{ old('youtube_link', $post->youtube_link) }}" maxlength="500" placeholder="https://youtube.com/watch?v=...">
+                                @error('youtube_link')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div id="websiteInput" style="display:none;">
                                 <label class="form-label fw-semibold">Website Link</label>
-                                <input type="url" name="website_link" class="form-control" value="{{ $post->website_link }}" placeholder="https://example.com">
+                                <input type="url" name="website_link" class="form-control @error('website_link') is-invalid @enderror" value="{{ old('website_link', $post->website_link) }}" maxlength="500" placeholder="https://example.com">
+                                @error('website_link')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>

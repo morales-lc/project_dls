@@ -51,19 +51,16 @@
                     </thead>
                     <tbody>
                         @foreach($staff as $s)
-                        <tr class="staff-row" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#staffModal{{ $s->id }}"
-                            data-staff-id="{{ $s->id }}">
-                            <td>
+                        <tr class="staff-row">
+                            <td data-bs-toggle="modal" data-bs-target="#staffModal{{ $s->id }}" style="cursor: pointer;">
                                 <img src="{{ $s->photo ? asset('storage/' . $s->photo) : asset('images/placeholder.jpg') }}" class="rounded-circle" style="width:60px;height:60px;object-fit:cover;">
                             </td>
-                            <td>{{ $s->prefix }} {{ $s->first_name }} {{ $s->middlename ? $s->middlename . ' ' : '' }}{{ $s->last_name }}</td>
-                            <td>{{ $s->role }}</td>
-                            <td><a href="mailto:{{ $s->email }}" class="text-pink" onclick="event.stopPropagation();">{{ $s->email }}</a></td>
-                            <td>{{ ucfirst(str_replace('_', ' ', $s->department)) }}</td>
-                            <td>{{ Str::limit($s->description, 50) }}</td>
-                            <td onclick="event.stopPropagation();">
+                            <td data-bs-toggle="modal" data-bs-target="#staffModal{{ $s->id }}" style="cursor: pointer;">{{ $s->prefix }} {{ $s->first_name }} {{ $s->middlename ? $s->middlename . ' ' : '' }}{{ $s->last_name }}</td>
+                            <td data-bs-toggle="modal" data-bs-target="#staffModal{{ $s->id }}" style="cursor: pointer;">{{ $s->role }}</td>
+                            <td data-bs-toggle="modal" data-bs-target="#staffModal{{ $s->id }}" style="cursor: pointer;"><a href="mailto:{{ $s->email }}" class="text-pink" onclick="event.stopPropagation();">{{ $s->email }}</a></td>
+                            <td data-bs-toggle="modal" data-bs-target="#staffModal{{ $s->id }}" style="cursor: pointer;">{{ ucfirst(str_replace('_', ' ', $s->department)) }}</td>
+                            <td data-bs-toggle="modal" data-bs-target="#staffModal{{ $s->id }}" style="cursor: pointer;">{{ Str::limit($s->description, 50) }}</td>
+                            <td>
                                 <a href="{{ route('libraries.staff.edit', $s->id) }}" class="btn btn-sm btn-warning">Edit</a>
                                 <form action="{{ route('libraries.staff.destroy', $s->id) }}" method="POST" style="display:inline-block;">
                                     @csrf

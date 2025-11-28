@@ -6,17 +6,46 @@ use App\Models\AlertBook;
 use App\Models\AlertDepartment;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * Alert Service Controller
+ * 
+ * Manages the Alert Services feature which provides monthly book notifications
+ * organized by departments. Books are categorized by year, month, and department
+ * type (e.g., program, department, etc.).
+ * 
+ * @package App\Http\Controllers
+ */
 class AlertServiceController extends Controller
 {
+    /**
+     * Display books for a specific group (department) in a given month/year
+     * 
+     * Shows all alert books belonging to a specific department category for a given
+     * time period. Also includes bookmark status for authenticated users.
+     * 
+     * @param int $year The year (e.g., 2025)
+     * @param int $month The month number (1-12)
+     * @param string $group The department type/group
+     * @param string $value URL-encoded department name
+     * @return \Illuminate\View\View
+     */
     public function group($year, $month, $group, $value)
     {
+        // Decode URL-encoded department name
         $decodedName = urldecode($value);
+        
+        // Find the department by name and type
         $department = AlertDepartment::where('name', $decodedName)->where('type', $group)->first();
+        
+        // Get all books for this department in the specified month/year
         $books = $department
             ? AlertBook::where('year', $year)->where('month', $month)->where('department_id', $department->id)->get()
             : collect();
+        
+        // Prepare display values
         $displayName = $decodedName;
         $displayMonth = \DateTime::createFromFormat('!m', $month)->format('F');
+        
         // Collect bookmarked AlertBook IDs for the authenticated Student/Faculty user
         $bookmarkedIds = [];
         try {
@@ -36,6 +65,19 @@ class AlertServiceController extends Controller
         return view('alert-services.group', compact('books', 'displayName', 'displayMonth', 'year', 'bookmarkedIds'));
     }
 
+    /**
+     * Display the management interface for alert books
+     * 
+     * Shows a paginated, filterable, and sortable list of all alert books.
+     * Supports filtering by search term and department, and sorting by various fields.
+     * 
+     * @param Request $request HTTP request with optional query parameters:
+     *                         - search: search term for title/year
+     *                         - department: filter by department ID
+     *                         - sort: field to sort by (default: year)
+     *                         - direction: sort direction (asc/desc, default: desc)
+     * @return \Illuminate\View\View
+     */
     public function manage(Request $request)
     {
         $query = AlertBook::with('department');
@@ -65,6 +107,13 @@ class AlertServiceController extends Controller
         return view('alert-services.manage', compact('books', 'departments'));
     }
 
+    /**
+     * Show the form for editing an alert book
+     * 
+     * @param int $id Alert book ID
+     * @return \Illuminate\View\View
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function edit($id)
     {
         $book = AlertBook::findOrFail($id);
@@ -72,27 +121,73 @@ class AlertServiceController extends Controller
         return view('alert-services.edit', compact('book', 'departments'));
     }
 
+    /**
+     * Update an existing alert book
+     * 
+     * Validates and updates the book information. Handles file uploads for
+     * PDF files and cover images. Supports returning to a custom URL.
+     * 
+     * @param Request $request HTTP request with book data and optional files
+     * @param int $id Alert book ID to update
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function update(Request $request, $id)
     {
         $book = AlertBook::findOrFail($id);
+        
+        // Validate incoming request data
         $validated = $request->validate([
-            'title' => 'nullable|string|max:255',
-            'call_number' => 'nullable|string|max:255',
-            'author' => 'nullable|string|max:255',
-            'pdf_file' => 'nullable|file|mimes:pdf',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'title' => 'nullable|string|max:500',
+            'call_number' => 'nullable|string|max:100',
+            'author' => 'nullable|string|max:500',
+            'pdf_file' => 'nullable|file|mimes:pdf|max:10240',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'month' => 'required|integer|min:1|max:12',
             'year' => 'required|integer|min:2000|max:2100',
             'department_id' => 'required|exists:alert_departments,id',
+        ], [
+            'title.max' => 'The title cannot exceed 500 characters.',
+            'call_number.max' => 'The call number cannot exceed 100 characters.',
+            'author.max' => 'The author name cannot exceed 500 characters.',
+            'pdf_file.mimes' => 'The file must be a PDF document.',
+            'pdf_file.max' => 'The PDF file size cannot exceed 10MB.',
+            'cover_image.image' => 'The cover must be an image file.',
+            'cover_image.mimes' => 'The cover image must be a file of type: jpeg, png, jpg, gif.',
+            'cover_image.max' => 'The cover image size cannot exceed 2MB.',
+            'month.required' => 'Please select a month.',
+            'month.min' => 'Please select a valid month (1-12).',
+            'month.max' => 'Please select a valid month (1-12).',
+            'year.required' => 'The year is required.',
+            'year.min' => 'The year must be at least 2000.',
+            'year.max' => 'The year cannot exceed 2100.',
+            'department_id.required' => 'Please select a department or category.',
+            'department_id.exists' => 'The selected department is invalid.',
         ]);
+
+        // Validate that the date is not in the future
+        $currentYear = (int)date('Y');
+        $currentMonth = (int)date('n');
+        $inputYear = (int)$validated['year'];
+        $inputMonth = (int)$validated['month'];
+
+        if ($inputYear > $currentYear || ($inputYear == $currentYear && $inputMonth > $currentMonth)) {
+            return back()->withErrors(['year' => 'The date cannot be in the future. Please select a month and year up to the current date.'])->withInput();
+        }
+        
+        // Handle PDF file upload if provided
         if ($request->hasFile('pdf_file')) {
             $pdfPath = $request->file('pdf_file')->store('alert_books', 'public');
             $book->pdf_path = $pdfPath;
         }
+        
+        // Handle cover image upload if provided
         if ($request->hasFile('cover_image')) {
             $coverPath = $request->file('cover_image')->store('alert_books/covers', 'public');
             $book->cover_image = $coverPath;
         }
+        
+        // Update book fields
         $book->call_number = $request->input('call_number');
     $book->author = $request->input('author');
         $book->title = $request->input('title');
@@ -100,12 +195,22 @@ class AlertServiceController extends Controller
         $book->month = $request->input('month');
         $book->year = $request->input('year');
         $book->save();
+        
+        // Redirect to custom URL if provided, otherwise return to management page
         $returnUrl = $request->input('return_url');
         return $returnUrl
             ? redirect($returnUrl)->with('success', 'Book updated successfully!')
             : redirect()->route('alert-services.manage')->with('success', 'Book updated successfully!');
     }
 
+    /**
+     * Delete an alert book
+     * 
+     * @param Request $request HTTP request (may contain return_url)
+     * @param int $id Alert book ID to delete
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function destroy(Request $request, $id)
     {
         $book = AlertBook::findOrFail($id);
@@ -127,24 +232,66 @@ class AlertServiceController extends Controller
         return view('alert-services.index', compact('months', 'departments', 'books'));
     }
 
+    /**
+     * Show the form for creating a new alert book
+     * 
+     * @return \Illuminate\View\View
+     */
     public function create()
     {
         $departments = AlertDepartment::all();
         return view('alert-services.create', compact('departments'));
     }
 
+    /**
+     * Store a newly created alert book
+     * 
+     * Validates input, uploads PDF and optional cover image, and creates
+     * a new alert book record in the database.
+     * 
+     * @param Request $request HTTP request with book data and files
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'title' => 'nullable|string|max:255',
-            'call_number' => 'nullable|string|max:255',
-            'author' => 'nullable|string|max:255',
-            'pdf_file' => 'required|file|mimes:pdf',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif',
+            'title' => 'nullable|string|max:500',
+            'call_number' => 'nullable|string|max:100',
+            'author' => 'nullable|string|max:500',
+            'pdf_file' => 'required|file|mimes:pdf|max:10240',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'month' => 'required|integer|min:1|max:12',
             'year' => 'required|integer|min:2000|max:2100',
             'department_id' => 'required|exists:alert_departments,id',
+        ], [
+            'title.max' => 'The title cannot exceed 500 characters.',
+            'call_number.max' => 'The call number cannot exceed 100 characters.',
+            'author.max' => 'The author name cannot exceed 500 characters.',
+            'pdf_file.required' => 'A PDF file is required.',
+            'pdf_file.mimes' => 'The file must be a PDF document.',
+            'pdf_file.max' => 'The PDF file size cannot exceed 10MB.',
+            'cover_image.image' => 'The cover must be an image file.',
+            'cover_image.mimes' => 'The cover image must be a file of type: jpeg, png, jpg, gif.',
+            'cover_image.max' => 'The cover image size cannot exceed 2MB.',
+            'month.required' => 'Please select a month.',
+            'month.min' => 'Please select a valid month (1-12).',
+            'month.max' => 'Please select a valid month (1-12).',
+            'year.required' => 'The year is required.',
+            'year.min' => 'The year must be at least 2000.',
+            'year.max' => 'The year cannot exceed 2100.',
+            'department_id.required' => 'Please select a department or category.',
+            'department_id.exists' => 'The selected department is invalid.',
         ]);
+
+        // Validate that the date is not in the future
+        $currentYear = (int)date('Y');
+        $currentMonth = (int)date('n');
+        $inputYear = (int)$validated['year'];
+        $inputMonth = (int)$validated['month'];
+
+        if ($inputYear > $currentYear || ($inputYear == $currentYear && $inputMonth > $currentMonth)) {
+            return back()->withErrors(['year' => 'The date cannot be in the future. Please select a month and year up to the current date.'])->withInput();
+        }
         $pdfPath = $request->file('pdf_file')->store('alert_books', 'public');
         $coverPath = $request->file('cover_image') ? $request->file('cover_image')->store('alert_books/covers', 'public') : null;
         AlertBook::create([

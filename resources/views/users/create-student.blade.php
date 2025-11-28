@@ -55,6 +55,12 @@
                 <label class="form-label">School ID <span class="text-danger">*</span></label>
                 <input type="text" name="school_id" class="form-control form-control-lg" placeholder="C22-0171" value="{{ old('school_id') }}" required>
             </div>
+            <div class="col-md-6">
+                <label class="form-label">Birthdate</label>
+                <input type="date" name="birthdate" class="form-control form-control-lg" 
+                    value="{{ old('birthdate') }}" 
+                    max="{{ date('Y-m-d') }}" min="1900-01-01">
+            </div>
 
             {{-- Account Information --}}
             <div class="col-12">

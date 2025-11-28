@@ -68,22 +68,58 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|max:50',
+            'type' => 'required|string|in:Announcement,Event,Update,Post',
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'photo' => 'nullable|image|max:2048',
-            'youtube_link' => 'nullable|url',
-            'website_link' => 'nullable|url',
-            'og_image' => 'nullable|url',
+            'description' => 'required|string|max:5000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'youtube_link' => 'nullable|url|max:500',
+            'website_link' => 'nullable|url|max:500',
+            'media_type' => 'required|in:image,youtube,website',
+        ], [
+            'type.required' => 'Post type is required.',
+            'type.in' => 'Invalid post type selected.',
+            'title.required' => 'Title is required.',
+            'title.max' => 'Title cannot exceed 255 characters.',
+            'description.required' => 'Description is required.',
+            'description.max' => 'Description cannot exceed 5000 characters.',
+            'photo.image' => 'The file must be an image.',
+            'photo.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
+            'photo.max' => 'Image size cannot exceed 5MB.',
+            'youtube_link.url' => 'YouTube link must be a valid URL.',
+            'youtube_link.max' => 'YouTube link cannot exceed 500 characters.',
+            'website_link.url' => 'Website link must be a valid URL.',
+            'website_link.max' => 'Website link cannot exceed 500 characters.',
+            'media_type.required' => 'Please select a media type.',
+            'media_type.in' => 'Invalid media type selected.',
         ]);
-
 
         $photoPath = null;
         $hasPhoto = $request->hasFile('photo');
         $hasYoutube = $request->filled('youtube_link');
         $hasWebsite = $request->filled('website_link');
-        if (!$hasPhoto && !$hasYoutube && !$hasWebsite) {
-            return back()->withInput()->withErrors(['media_type' => 'You must provide an image, YouTube link, or website link.']);
+        
+        // Validate that the appropriate media field is provided based on media_type
+        if ($request->media_type === 'image' && !$hasPhoto) {
+            return back()->withInput()->withErrors(['photo' => 'Please upload an image file.']);
+        }
+        if ($request->media_type === 'youtube' && !$hasYoutube) {
+            return back()->withInput()->withErrors(['youtube_link' => 'Please provide a YouTube link.']);
+        }
+        if ($request->media_type === 'website' && !$hasWebsite) {
+            return back()->withInput()->withErrors(['website_link' => 'Please provide a website link.']);
+        }
+        
+        // Validate YouTube link format if provided
+        if ($hasYoutube) {
+            $videoId = $this->extractYouTubeVideoId($request->youtube_link);
+            if (!$videoId) {
+                return back()->withInput()->withErrors(['youtube_link' => 'Invalid YouTube URL format. Please provide a valid YouTube video link (e.g., https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID).']);
+            }
+            
+            // Check if the YouTube video is accessible
+            if (!$this->isYouTubeVideoAccessible($videoId)) {
+                return back()->withInput()->withErrors(['youtube_link' => 'This YouTube video is unavailable or does not exist. Please check the video ID and try again.']);
+            }
         }
         if ($hasPhoto) {
             $photoPath = $request->file('photo')->store('posts', 'public');
@@ -147,14 +183,43 @@ class PostController extends Controller
     {
         $post = Post::findOrFail($id);
         $request->validate([
-            'type' => 'required|string|max:50',
+            'type' => 'required|string|in:Announcement,Event,Update,Post',
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'photo' => 'nullable|image|max:2048',
-            'youtube_link' => 'nullable|url',
-            'website_link' => 'nullable|url',
-            'og_image' => 'nullable|url',
+            'description' => 'required|string|max:5000',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'youtube_link' => 'nullable|url|max:500',
+            'website_link' => 'nullable|url|max:500',
+            'media_type' => 'required|in:image,youtube,website',
+        ], [
+            'type.required' => 'Post type is required.',
+            'type.in' => 'Invalid post type selected.',
+            'title.required' => 'Title is required.',
+            'title.max' => 'Title cannot exceed 255 characters.',
+            'description.required' => 'Description is required.',
+            'description.max' => 'Description cannot exceed 5000 characters.',
+            'photo.image' => 'The file must be an image.',
+            'photo.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
+            'photo.max' => 'Image size cannot exceed 5MB.',
+            'youtube_link.url' => 'YouTube link must be a valid URL.',
+            'youtube_link.max' => 'YouTube link cannot exceed 500 characters.',
+            'website_link.url' => 'Website link must be a valid URL.',
+            'website_link.max' => 'Website link cannot exceed 500 characters.',
+            'media_type.required' => 'Please select a media type.',
+            'media_type.in' => 'Invalid media type selected.',
         ]);
+        
+        // Validate YouTube link format if provided
+        if ($request->filled('youtube_link')) {
+            $videoId = $this->extractYouTubeVideoId($request->youtube_link);
+            if (!$videoId) {
+                return back()->withInput()->withErrors(['youtube_link' => 'Invalid YouTube URL format. Please provide a valid YouTube video link (e.g., https://www.youtube.com/watch?v=VIDEO_ID or https://youtu.be/VIDEO_ID).']);
+            }
+            
+            // Check if the YouTube video is accessible
+            if (!$this->isYouTubeVideoAccessible($videoId)) {
+                return back()->withInput()->withErrors(['youtube_link' => 'This YouTube video is unavailable or does not exist. Please check the video ID and try again.']);
+            }
+        }
 
         $photoPath = $post->photo;
         if ($request->hasFile('photo')) {
@@ -243,5 +308,87 @@ class PostController extends Controller
             'website_link' => $post->website_link,
             'og_image' => $post->og_image,
         ]);
+    }
+    
+    /**
+     * Extract YouTube video ID from various YouTube URL formats
+     * 
+     * Accepts the following YouTube URL formats:
+     * - https://www.youtube.com/watch?v=VIDEO_ID
+     * - https://youtube.com/watch?v=VIDEO_ID
+     * - http://www.youtube.com/watch?v=VIDEO_ID
+     * - https://youtu.be/VIDEO_ID
+     * - https://www.youtube.com/embed/VIDEO_ID
+     * - https://www.youtube.com/v/VIDEO_ID
+     * 
+     * Video IDs must be 11 characters long (alphanumeric, dash, underscore)
+     * 
+     * @param string $url The YouTube URL
+     * @return string|null The video ID if valid, null otherwise
+     */
+    private function extractYouTubeVideoId($url)
+    {
+        // YouTube video ID pattern: 11 characters, alphanumeric plus dash and underscore
+        $patterns = [
+            // Standard watch URL: youtube.com/watch?v=VIDEO_ID
+            '/^(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:&.*)?$/',
+            // Short URL: youtu.be/VIDEO_ID
+            '/^(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})(?:\?.*)?$/',
+            // Embed URL: youtube.com/embed/VIDEO_ID
+            '/^(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})(?:\?.*)?$/',
+            // Old-style v URL: youtube.com/v/VIDEO_ID
+            '/^(?:https?:\/\/)?(?:www\.)?youtube\.com\/v\/([a-zA-Z0-9_-]{11})(?:\?.*)?$/',
+        ];
+        
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $url, $matches)) {
+                // $matches[1] contains the video ID
+                return $matches[1];
+            }
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Check if a YouTube video is accessible by verifying the oEmbed endpoint
+     * 
+     * Uses YouTube's oEmbed API to verify the video exists and is accessible.
+     * This is more reliable than checking the video page directly.
+     * 
+     * @param string $videoId The YouTube video ID (11 characters)
+     * @return bool True if video is accessible, false otherwise
+     */
+    private function isYouTubeVideoAccessible($videoId)
+    {
+        // Use YouTube oEmbed API to check if video exists and is accessible
+        $oembedUrl = "https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={$videoId}&format=json";
+        
+        try {
+            // Set a short timeout to avoid long waits
+            $context = stream_context_create([
+                'http' => [
+                    'timeout' => 5, // 5 seconds timeout
+                    'ignore_errors' => true,
+                ],
+            ]);
+            
+            $response = @file_get_contents($oembedUrl, false, $context);
+            
+            // Check if we got a valid response
+            if ($response === false) {
+                return false;
+            }
+            
+            // Parse the JSON response
+            $data = json_decode($response, true);
+            
+            // If we got valid data with a title, the video is accessible
+            return !empty($data) && isset($data['title']);
+            
+        } catch (\Exception $e) {
+            // If any error occurs, consider the video inaccessible
+            return false;
+        }
     }
 }

@@ -22,8 +22,8 @@ class ProfileController extends Controller
 
     $rules = [
         'school_id' => ['required'],
-        'first_name' => ['required', 'string', 'max:255'],
-        'last_name' => ['required', 'string', 'max:255'],
+        'first_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
+        'last_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
         'username' => ['required', 'string', 'max:255', 'unique:users,username,' . $userId],
         // Password is required on the complete profile page, but optional when editing
         'password' => [
@@ -36,7 +36,7 @@ class ProfileController extends Controller
         'course' => ['nullable', 'string', 'max:255'],
         'yrlvl' => ['nullable', 'string'],
         'program_id' => ['nullable', 'exists:programs,id'],
-        'birthdate' => ['required', 'date'],
+        'birthdate' => ['required', 'date', 'before_or_equal:today', 'after:1900-01-01'],
         'role' => ['required', 'in:student,faculty'],
         'profile_picture' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:4096'],
     ];
@@ -67,7 +67,9 @@ class ProfileController extends Controller
         'school_id.required' => 'School ID is required.',
         'school_id.regex' => 'School ID format is invalid. Use CXX-XXXX where X are digits.',
         'first_name.required' => 'First name is required.',
+        'first_name.regex' => 'First name can only contain letters, spaces, hyphens, and apostrophes.',
         'last_name.required' => 'Last name is required.',
+        'last_name.regex' => 'Last name can only contain letters, spaces, hyphens, and apostrophes.',
         'username.required' => 'Username is required.',
         'password.required' => 'Password is required.',
         'password.min' => 'Password must be at least 8 characters.',
@@ -77,6 +79,8 @@ class ProfileController extends Controller
         'course.required' => 'Please select a course.',
         'yrlvl.required' => 'Year level is required for students.', 
         'birthdate.required' => 'Birthdate is required.',
+        'birthdate.before_or_equal' => 'Birthdate cannot be in the future.',
+        'birthdate.after' => 'Birthdate must be after January 1, 1900.',
     ];
 
     $validated = $request->validate($rules, $messages);

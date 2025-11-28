@@ -49,14 +49,30 @@
                     <p style="color:#6b7280;">If you have questions, feel free to reply to this email or contact LC Learning Commons.</p>
                     @endif
 
-                    <table width="100%" style="margin-top:16px;font-size:14px;color:#374151;">
+                    <div style="margin-top:20px;font-weight:600;color:#111827;">Your Request Details</div>
+                    <table width="100%" style="margin-top:10px;font-size:14px;color:#374151;">
                         <tr><td width="180" style="color:#6b7280;">Submitted</td><td>{{ optional($lira->created_at)->format('F d, Y g:i A') }}</td></tr>
                         <tr><td style="color:#6b7280;">Action</td><td>{{ $lira->action ?? '-' }}</td></tr>
+                        @if(!empty($lira->assistance_types))
+                        <tr><td style="color:#6b7280;">Assistance types</td>
+                            <td>{{ is_array($lira->assistance_types) ? implode(', ', $lira->assistance_types) : $lira->assistance_types }}</td></tr>
+                        @endif
+                        @if(!empty($lira->resource_types))
+                        <tr><td style="color:#6b7280;">Resource types</td>
+                            <td>{{ is_array($lira->resource_types) ? implode(', ', $lira->resource_types) : $lira->resource_types }}</td></tr>
+                        @endif
+                        @if(!empty($lira->for_borrow_scan))
+                        <tr><td style="color:#6b7280;">For borrow/scan</td><td>{{ $lira->for_borrow_scan }}</td></tr>
+                        @endif
                         @if(!empty($lira->titles_of))
                         <tr><td style="color:#6b7280;">Titles/Topics</td><td>{{ $lira->titles_of }}</td></tr>
                         @endif
                         @if(!empty($lira->for_list))
                         <tr><td style="color:#6b7280;">For list</td><td>{{ $lira->for_list }}</td></tr>
+                        @endif
+                        @if(!empty($lira->for_videos))
+                        <tr><td style="color:#6b7280;">Videos requested</td>
+                            <td>{{ is_array($lira->for_videos) ? implode(', ', $lira->for_videos) : $lira->for_videos }}</td></tr>
                         @endif
                     </table>
 

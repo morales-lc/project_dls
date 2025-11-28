@@ -57,8 +57,27 @@ class MidesController extends Controller
     }
     public function update(Request $request, $id)
     {
+        $validated = $request->validate([
+            'type' => 'required|string',
+            'mides_category_id' => 'nullable|exists:mides_categories,id',
+            'author' => 'required|string|max:255',
+            'year' => 'required|digits:4|integer|min:1980|max:' . date('Y'),
+            'title' => 'required|string|max:500',
+            'pdf' => 'nullable|file|mimes:pdf|max:20480',
+        ], [
+            'author.required' => 'Author name is required.',
+            'author.max' => 'Author name cannot exceed 255 characters.',
+            'year.required' => 'Year is required.',
+            'year.digits' => 'Year must be exactly 4 digits.',
+            'year.min' => 'Year cannot be earlier than 1980.',
+            'year.max' => 'Year cannot be later than the current year.',
+            'title.required' => 'Document title is required.',
+            'title.max' => 'Title cannot exceed 500 characters.',
+            'pdf.mimes' => 'The file must be a PDF document.',
+            'pdf.max' => 'PDF file size cannot exceed 20MB.',
+        ]);
+
         $doc = MidesDocument::findOrFail($id);
-        // Support setting by mides_category_id (preferred) or legacy category_program
         $midesCategoryId = $request->input('mides_category_id');
         if ($midesCategoryId) {
             $cat = \App\Models\MidesCategory::find($midesCategoryId);
@@ -90,16 +109,20 @@ class MidesController extends Controller
                 $doc->program = null;
             }
         }
+        
         $doc->author = $request->author;
         $doc->year = $request->year;
         $doc->title = $request->title;
+        
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
             $originalName = $pdf->getClientOriginalName();
             $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
             $doc->pdf_path = $pdfPath;
         }
+        
         $doc->save();
+        
         $returnUrl = $request->input('return_url');
         return $returnUrl
             ? redirect($returnUrl)->with('success', 'Document updated successfully!')
@@ -115,6 +138,7 @@ class MidesController extends Controller
             ? redirect($returnUrl)->with('success', 'Document deleted successfully!')
             : redirect()->back()->with('success', 'Document deleted successfully!');
     }
+    
     public function index()
     {
         $query = MidesDocument::with('midesCategory');

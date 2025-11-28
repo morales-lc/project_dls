@@ -326,6 +326,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/backup/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backup.run');
         Route::get('/admin/backup/download/{file}', [\App\Http\Controllers\BackupController::class, 'download'])->name('admin.backup.download');
         Route::get('/admin/backup/download-auto/{file}', [\App\Http\Controllers\BackupController::class, 'downloadAndDelete'])->name('admin.backup.download.auto');
+        Route::post('/admin/backup/schedule', [\App\Http\Controllers\BackupController::class, 'storeSchedule'])->name('admin.backup.schedule.store');
+        Route::put('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'updateSchedule'])->name('admin.backup.schedule.update');
+        Route::delete('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'destroySchedule'])->name('admin.backup.schedule.destroy');
+        Route::post('/admin/backup/schedule/{id}/toggle', [\App\Http\Controllers\BackupController::class, 'toggleSchedule'])->name('admin.backup.schedule.toggle');
         // // Sidlak create/store for admin (shared with librarian)
         // // Keep original route names so views using `sidlak.create` / `sidlak.store` still work
         // Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');

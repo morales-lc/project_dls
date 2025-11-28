@@ -89,7 +89,8 @@
             <h4 class="fw-bold mb-3">Research Articles</h4>
             <div id="articles-list"></div>
             <button type="button" class="btn btn-outline-primary mb-3" onclick="addArticle()">Add Article</button>
-            <div class="d-flex justify-content-end mt-4">
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ request('return', route('sidlak.manage')) }}" class="btn btn-outline-secondary px-4 shadow-sm">Cancel</a>
                 <button type="submit" class="btn btn-success px-4 shadow-sm">Save Journal & Articles</button>
             </div>
         </form>

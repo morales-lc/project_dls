@@ -20,6 +20,12 @@
                 Alert Services
             </h2>
 
+            <div class="alert-description mb-4 p-3 rounded" style="background: #f0f7ff; border-left: 4px solid #4a90e2;">
+                <p class="mb-0" style="color: #333; line-height: 1.6; font-size: 1rem;">
+                    <strong>Alert Services</strong> showcases newly acquired books by the Learning Commons that are specifically selected for various programs at Lourdes College. This service helps students and faculty stay informed about the latest resources available in their field of study, ensuring they have access to current and relevant materials to support their academic research, coursework, and professional development.
+                </p>
+            </div>
+
             <style>
                 .alert-card {
                     box-shadow: 0 6px 36px 0 rgba(216, 27, 96, 0.12);

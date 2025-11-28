@@ -401,12 +401,24 @@ class LiRAController extends Controller
     // Queue the decision email
     Mail::to($lira->email)->queue(new LiraDecision($lira, $lira->status, $lira->decision_reason));
 
+        $successMessage = $lira->status === 'accepted' 
+            ? 'Request accepted successfully. An email notification has been sent to the requester.' 
+            : 'Request rejected successfully. An email notification has been sent to the requester.';
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage
+            ]);
+        }
+
         // Redirect back to the filtered/paginated page if provided
         $returnUrl = $request->input('return_url');
         if ($returnUrl) {
-            return redirect($returnUrl)->with('status', 'Decision recorded.');
+            return redirect($returnUrl)->with('status', $successMessage);
         }
-        return redirect()->back()->with('status', 'Decision recorded.');
+        return redirect()->back()->with('status', $successMessage);
     }
 
     // Send a custom response to the requester (post-acceptance)
@@ -443,12 +455,22 @@ class LiRAController extends Controller
         $lira->responded_by = Auth::id();
         $lira->save();
 
+        $successMessage = 'Response sent successfully to the requester.';
+
+        // Return JSON for AJAX requests
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage
+            ]);
+        }
+
         // Redirect back to the filtered/paginated page if provided
         $returnUrl = $request->input('return_url');
         if ($returnUrl) {
-            return redirect($returnUrl)->with('status', 'Response sent to requester.');
+            return redirect($returnUrl)->with('status', $successMessage);
         }
-        return redirect()->back()->with('status', 'Response sent to requester.');
+        return redirect()->back()->with('status', $successMessage);
     }
 
     //delete a LiRA request
@@ -468,9 +490,9 @@ class LiRAController extends Controller
         }
 
         if ($request->ajax() || $request->wantsJson()) {
-            return response()->json(['success' => true, 'message' => 'Deleted', 'id' => $id]);
+            return response()->json(['success' => true, 'message' => 'LiRA request deleted successfully.', 'id' => $id]);
         }
 
-        return redirect()->route('lira.manage')->with('status', 'Request deleted.');
+        return redirect()->route('lira.manage')->with('status', 'LiRA request deleted successfully.');
     }
 }

@@ -6,13 +6,36 @@ use App\Models\AlinetAppointment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * ALINET Public Form Controller
+ * 
+ * Handles the public-facing ALINET appointment request form for external users
+ * who need temporary library access (online or onsite).
+ * 
+ * @package App\Http\Controllers
+ */
 class AlinetController extends Controller
 {
+    /**
+     * Display the ALINET appointment request form
+     * 
+     * @return \Illuminate\View\View
+     */
     public function showForm()
     {
         return view('alinet.form');
     }
 
+    /**
+     * Process the ALINET appointment request form submission
+     * 
+     * Validates input based on mode (onsite requires more fields than online),
+     * calculates appointment date for onsite requests, and sends email
+     * notification to library staff.
+     * 
+     * @param Request $request HTTP request with form data
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function submitForm(Request $request)
     {
         // Base validation rules

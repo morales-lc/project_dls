@@ -79,15 +79,30 @@ class SidlakJournalController extends Controller
         if ($request->has('articles') && is_array($request->articles)) {
             foreach ($request->articles as $i => $article) {
                 $rules["articles.$i.pdf_file"] = (!empty($article['id']))
-                    ? 'nullable|file|mimes:pdf'
-                    : 'required|file|mimes:pdf';
+                    ? 'nullable|file|mimes:pdf|max:10240'
+                    : 'required|file|mimes:pdf|max:10240';
             }
         }
 
-        $request->validate($rules, [
-            'print_issn.regex' => 'The Print ISSN must follow the format ####-#### (e.g. 2350-8337).',
-        ]);
-
+        try {
+            $request->validate($rules, [
+                'print_issn.regex' => 'The Print ISSN must follow the format ####-#### (e.g. 2350-8337).',
+                'cover_photo.max' => 'Cover photo must not exceed 2MB.',
+                'articles.*.title.required' => 'All articles must have a title.',
+                'articles.*.authors.required' => 'All articles must have authors.',
+                'articles.*.pdf_file.required' => 'New articles must have a PDF file.',
+                'articles.*.pdf_file.mimes' => 'Article files must be PDF format.',
+                'articles.*.pdf_file.max' => 'Article PDF files must not exceed 10MB.',
+                'editors.*.name.required_with' => 'Editor name is required when title is provided.',
+                'editors.*.title.required_with' => 'Editor title is required when name is provided.',
+                'peer_reviewers.*.name.required_with' => 'Reviewer name is required.',
+                'peer_reviewers.*.title.required_with' => 'Reviewer title is required.',
+                'peer_reviewers.*.institution.required_with' => 'Reviewer institution is required.',
+                'peer_reviewers.*.city.required_with' => 'Reviewer city is required.',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->validator)->withInput();
+        }
 
         // Split month_year (YYYY-MM) into month and year
         $month = '';
@@ -236,7 +251,7 @@ class SidlakJournalController extends Controller
                 'cover_photo' => 'nullable|image|max:2048',
                 'articles.*.title' => 'required|string|max:255',
                 'articles.*.authors' => 'required|string',
-                'articles.*.pdf_file' => 'required|file|mimes:pdf',
+                'articles.*.pdf_file' => 'required|file|mimes:pdf|max:10240',
                 'editors.*.name' => 'required_with:editors.*.title|string|max:255',
                 'editors.*.title' => 'required_with:editors.*.name|string|max:255',
                 'peer_reviewers.*.name' => 'required_with:peer_reviewers.*.title|string|max:255',
@@ -245,6 +260,18 @@ class SidlakJournalController extends Controller
                 'peer_reviewers.*.city' => 'required_with:peer_reviewers.*.name|string|max:255',
             ], [
                 'print_issn.regex' => 'The Print ISSN must follow the format ####-#### (e.g. 2350-8337).',
+                'cover_photo.max' => 'Cover photo must not exceed 2MB.',
+                'articles.*.title.required' => 'All articles must have a title.',
+                'articles.*.authors.required' => 'All articles must have authors.',
+                'articles.*.pdf_file.required' => 'All articles must have a PDF file.',
+                'articles.*.pdf_file.mimes' => 'Article files must be PDF format.',
+                'articles.*.pdf_file.max' => 'Article PDF files must not exceed 10MB.',
+                'editors.*.name.required_with' => 'Editor name is required when title is provided.',
+                'editors.*.title.required_with' => 'Editor title is required when name is provided.',
+                'peer_reviewers.*.name.required_with' => 'Reviewer name is required.',
+                'peer_reviewers.*.title.required_with' => 'Reviewer title is required.',
+                'peer_reviewers.*.institution.required_with' => 'Reviewer institution is required.',
+                'peer_reviewers.*.city.required_with' => 'Reviewer city is required.',
             ]);
 
 
@@ -304,8 +331,8 @@ class SidlakJournalController extends Controller
 
             $returnUrl = $request->input('return_url');
             return $returnUrl
-                ? redirect($returnUrl)->with('success', 'Journal, editors, peer reviewers, and articles added successfully!')
-                : redirect()->route('sidlak.manage')->with('success', 'Journal, editors, peer reviewers, and articles added successfully!');
+                ? redirect($returnUrl)->with('success', 'SIDLAK Journal added successfully!')
+                : redirect()->route('sidlak.manage')->with('success', 'SIDLAK Journal added successfully!');
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Laravel handles redirect with errors automatically
             throw $e;

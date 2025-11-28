@@ -316,6 +316,14 @@
                     </select>
                   </div>
                 </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="birthdateInput" class="form-label">Birthdate</label>
+                    <input type="date" name="birthdate" id="birthdateInput" class="form-control" 
+                        value="{{ old('birthdate', $sf->birthdate) }}" 
+                        max="{{ date('Y-m-d') }}" min="1900-01-01" required>
+                  </div>
+                </div>
                 @endif
                 <input type="hidden" name="role" id="roleInput" value="{{ $sf->role ?? '' }}">
                 <div class="col-md-6">

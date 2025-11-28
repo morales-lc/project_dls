@@ -180,7 +180,8 @@
           <div class="col-12 col-md-6">
             <label for="birthdate" class="form-label">Birthdate</label>
             <input type="date" name="birthdate" id="birthdate" class="form-control"
-              value="{{ old('birthdate', Auth::user()->studentFaculty->birthdate ?? '') }}" required>
+              value="{{ old('birthdate', Auth::user()->studentFaculty->birthdate ?? '') }}" 
+              max="{{ date('Y-m-d') }}" min="1900-01-01" required>
           </div>
 
           <div class="col-12 col-md-6">

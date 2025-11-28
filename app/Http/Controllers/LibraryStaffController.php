@@ -52,14 +52,20 @@ class LibraryStaffController extends Controller
     {
         $validated = $request->validate([
             'prefix' => 'required|string|max:10',
-            'first_name' => 'required|string|max:255',
-            'middlename' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
+            'middlename' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
             'role' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'description' => 'nullable|string',
+            'email' => ['required', 'email', 'max:255', 'regex:/^[a-zA-Z0-9._%+-]+@lccdo\.edu\.ph$/'],
+            'description' => 'nullable|string|max:1000',
             'department' => 'required|in:college,graduate,senior_high,ibed',
-            'photo' => 'nullable|image|max:4096',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'first_name.regex' => 'First name can only contain letters, spaces, hyphens, and apostrophes.',
+            'middlename.regex' => 'Middle name can only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name can only contain letters, spaces, hyphens, and apostrophes.',
+            'email.regex' => 'Email must be a valid @lccdo.edu.ph address.',
+            'photo.max' => 'Photo size must not exceed 5MB.',
         ]);
         
         // Check if trying to add Library Coordinator to college department
@@ -86,14 +92,20 @@ class LibraryStaffController extends Controller
         $staff = LibraryStaff::findOrFail($id);
         $validated = $request->validate([
             'prefix' => 'required|string|max:10',
-            'first_name' => 'required|string|max:255',
-            'middlename' => 'nullable|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
+            'middlename' => ['nullable', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
             'role' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'description' => 'nullable|string',
+            'email' => ['required', 'email', 'max:255', 'regex:/^[a-zA-Z0-9._%+-]+@lccdo\.edu\.ph$/'],
+            'description' => 'nullable|string|max:1000',
             'department' => 'required|in:college,graduate,senior_high,ibed',
-            'photo' => 'nullable|image|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'first_name.regex' => 'First name can only contain letters, spaces, hyphens, and apostrophes.',
+            'middlename.regex' => 'Middle name can only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name can only contain letters, spaces, hyphens, and apostrophes.',
+            'email.regex' => 'Email must be a valid @lccdo.edu.ph address.',
+            'photo.max' => 'Photo size must not exceed 5MB.',
         ]);
         
         // Check if trying to change role to Library Coordinator for college department

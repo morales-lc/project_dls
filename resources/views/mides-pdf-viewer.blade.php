@@ -6,9 +6,16 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>{{ $doc->title }} - Viewer</title>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+        }
+        
         body {
             margin: 0;
             padding: 0;
@@ -16,6 +23,7 @@
             color: white;
             font-family: "Inter", sans-serif;
             overflow: hidden;
+            touch-action: none;
         }
 
         /* Toolbar Styling */
@@ -74,12 +82,10 @@
         /* PDF container */
         #pdf-container {
             margin-top: 55px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
             height: calc(100vh - 55px);
             overflow: auto;
             padding: 0 5px;
+            position: relative;
         }
 
         canvas {
@@ -114,56 +120,98 @@
 
             #bottom-toolbar {
                 position: fixed;
-                bottom: 8px;
+                bottom: 12px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(34, 34, 34, 0.95);
-                padding: 8px 10px;
+                background: rgba(34, 34, 34, 0.97);
+                padding: 10px 14px;
                 border-radius: 999px;
                 display: flex;
-                gap: 8px;
+                gap: 10px;
                 z-index: 1200;
                 align-items: center;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+                backdrop-filter: blur(10px);
+                max-width: 95vw;
+                overflow-x: auto;
             }
 
             #bottom-toolbar button {
-                background: #333;
+                background: #444;
                 color: #fff;
                 border: none;
-                padding: 10px 12px;
-                border-radius: 8px;
-                font-size: 16px;
-                min-width: 44px;
-                /* recommend touch size */
-                min-height: 44px;
+                padding: 12px 14px;
+                border-radius: 10px;
+                font-size: 18px;
+                min-width: 48px;
+                min-height: 48px;
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
+                flex-shrink: 0;
+                font-weight: 600;
+                transition: all 0.2s;
+            }
+            
+            #bottom-toolbar button:active {
+                background: #666;
+                transform: scale(0.95);
             }
 
             #pdf-container {
                 margin-top: 0;
-                height: calc(100vh - 24px);
-                /* leave room for bottom toolbar */
-                padding: 8px 6px 64px;
-                /* bottom padding so last page isn't hidden */
+                height: 100vh;
+                padding: 12px 4px 88px 4px;
                 box-sizing: border-box;
+                overflow-x: auto !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+            }
+            
+            canvas {
+                touch-action: manipulation;
+                margin: 0 !important;
+                display: block !important;
+                flex: none !important;
+                max-width: none !important;
             }
 
             /* Add a small toggle button on the bottom-left to open the full toolbar if needed */
             #toolbar-toggle {
                 position: fixed;
-                left: 10px;
-                bottom: 18px;
+                left: 12px;
+                bottom: 24px;
                 z-index: 1210;
-                background: rgba(34, 34, 34, 0.95);
+                background: rgba(34, 34, 34, 0.97);
                 color: #fff;
                 border: none;
-                padding: 10px 12px;
-                border-radius: 8px;
-                font-size: 16px;
-                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+                padding: 12px 14px;
+                border-radius: 50%;
+                font-size: 18px;
+                box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+                min-width: 48px;
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                backdrop-filter: blur(10px);
+            }
+            
+            #mobile-page-indicator {
+                position: fixed;
+                top: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(34, 34, 34, 0.9);
+                color: #fff;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                z-index: 1100;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+                backdrop-filter: blur(8px);
+                pointer-events: none;
             }
         }
     </style>
@@ -229,14 +277,20 @@
                 const bt = document.createElement('div');
                 bt.id = 'bottom-toolbar';
                 bt.innerHTML = `
-                    <button id="b-prev">⬅</button>
-                    <button id="b-next">➡</button>
-                    <button id="b-zoomOut">➖</button>
-                    <button id="b-zoomIn">➕</button>
-                    <button id="b-fitWidth">↔</button>
-                    <span id="b-zoomIndicator" style="color:#bbb;min-width:48px;text-align:center;">100%</span>
+                    <button id="b-prev" title="Previous page">⬅</button>
+                    <button id="b-next" title="Next page">➡</button>
+                    <button id="b-zoomOut" title="Zoom out">➖</button>
+                    <button id="b-zoomIn" title="Zoom in">➕</button>
+                    <button id="b-fitWidth" title="Fit to screen">↔</button>
+                    <span id="b-zoomIndicator" style="color:#e0e0e0;min-width:52px;text-align:center;font-weight:600;font-size:15px;">100%</span>
                 `;
                 document.body.appendChild(bt);
+                
+                // Add mobile page indicator
+                const pageInd = document.createElement('div');
+                pageInd.id = 'mobile-page-indicator';
+                pageInd.innerHTML = 'Page <span id="m-page-num">1</span> / <span id="m-page-count">--</span>';
+                document.body.appendChild(pageInd);
 
                 const toggle = document.createElement('button');
                 toggle.id = 'toolbar-toggle';
@@ -308,14 +362,16 @@
                 let viewport;
                 if (fitMode) {
                     // fit to available width and height (considering mobile bottom toolbar)
-                    const desiredWidth = container.clientWidth - 10;
-                    const desiredHeight = container.clientHeight - 10;
+                    const isMobile = window.matchMedia('(max-width: 768px)').matches;
+                    const desiredWidth = container.clientWidth - (isMobile ? 16 : 10);
+                    const desiredHeight = container.clientHeight - (isMobile ? 100 : 10);
                     const unscaledViewport = page.getViewport({
                         scale: 1
                     });
                     const scaleX = desiredWidth / unscaledViewport.width;
                     const scaleY = desiredHeight / unscaledViewport.height;
-                    const scaleFactor = Math.min(scaleX, scaleY);
+                    // On mobile, prefer width fit for better readability
+                    const scaleFactor = isMobile ? scaleX : Math.min(scaleX, scaleY);
                     viewport = page.getViewport({
                         scale: scaleFactor
                     });
@@ -376,6 +432,8 @@
                 // update page number when rendering finished
                 renderTask.promise.then(function() {
                     document.getElementById("page_num").textContent = num;
+                    const mPageNum = document.getElementById('m-page-num');
+                    if (mPageNum) mPageNum.textContent = num;
                     try {
                         canvas.style.visibility = 'visible';
                     } catch (e) {}
@@ -474,6 +532,8 @@
         pdfjsLib.getDocument(url).promise.then(pdf => {
             pdfDoc = pdf;
             document.getElementById("page_count").textContent = pdf.numPages;
+            const mPageCount = document.getElementById('m-page-count');
+            if (mPageCount) mPageCount.textContent = pdf.numPages;
             renderPage(pageNum);
             // Ensure bottom toolbar exists on mobile
             ensureBottomToolbar();
@@ -511,6 +571,24 @@
 
         // Keyboard shortcuts similar to common viewers
         document.addEventListener('keydown', (e) => {
+            // Arrow key navigation (Left/Up = Previous, Right/Down = Next)
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (pageNum > 1) {
+                    pageNum--;
+                    renderPage(pageNum);
+                }
+                return;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (pdfDoc && pageNum < pdfDoc.numPages) {
+                    pageNum++;
+                    renderPage(pageNum);
+                }
+                return;
+            }
+
             if (e.ctrlKey || e.metaKey) {
                 // Ctrl+'+' or Ctrl+=''
                 if (e.key === '+' || e.key === '=') {
@@ -547,6 +625,102 @@
             } catch (e) {}
         }
 
+        // --- Mobile pinch-to-zoom and swipe navigation ---
+        (function enableMobileTouchGestures() {
+            const isMobile = () => window.matchMedia('(max-width: 768px)').matches;
+            let initialDistance = 0;
+            let initialScale = 1;
+            let lastTouchEnd = 0;
+            let swipeStartX = 0;
+            let swipeStartY = 0;
+            const SWIPE_THRESHOLD = 80;
+            
+            canvas.addEventListener('touchstart', (e) => {
+                if (!isMobile()) return;
+                
+                if (e.touches.length === 2) {
+                    // Pinch zoom start
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    initialDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    initialScale = scale;
+                } else if (e.touches.length === 1) {
+                    // Track for swipe
+                    swipeStartX = e.touches[0].clientX;
+                    swipeStartY = e.touches[0].clientY;
+                }
+            }, { passive: false });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isMobile()) return;
+                
+                if (e.touches.length === 2) {
+                    // Pinch zoom
+                    e.preventDefault();
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const currentDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    
+                    if (initialDistance > 0) {
+                        const ratio = currentDistance / initialDistance;
+                        const newScale = initialScale * ratio;
+                        setScale(newScale, getCenterAnchorRatios());
+                    }
+                }
+            }, { passive: false });
+            
+            canvas.addEventListener('touchend', (e) => {
+                if (!isMobile()) return;
+                
+                // Handle double-tap to zoom
+                const now = Date.now();
+                if (now - lastTouchEnd < 300) {
+                    e.preventDefault();
+                    if (scale > 1.5) {
+                        // Zoom out to fit
+                        fitMode = true;
+                        renderPage(pageNum);
+                    } else {
+                        // Zoom in
+                        setScale(scale * 1.8, getCenterAnchorRatios());
+                    }
+                }
+                lastTouchEnd = now;
+                
+                // Handle swipe navigation
+                if (e.changedTouches.length === 1 && swipeStartX !== 0) {
+                    const swipeEndX = e.changedTouches[0].clientX;
+                    const swipeEndY = e.changedTouches[0].clientY;
+                    const deltaX = swipeEndX - swipeStartX;
+                    const deltaY = swipeEndY - swipeStartY;
+                    
+                    // Only trigger if horizontal swipe is dominant
+                    if (Math.abs(deltaX) > SWIPE_THRESHOLD && Math.abs(deltaX) > Math.abs(deltaY) * 1.5) {
+                        if (deltaX > 0 && pageNum > 1) {
+                            // Swipe right = previous page
+                            pageNum--;
+                            renderPage(pageNum);
+                        } else if (deltaX < 0 && pdfDoc && pageNum < pdfDoc.numPages) {
+                            // Swipe left = next page
+                            pageNum++;
+                            renderPage(pageNum);
+                        }
+                    }
+                }
+                
+                initialDistance = 0;
+                swipeStartX = 0;
+                swipeStartY = 0;
+            }, { passive: false });
+        })();
+        
         // --- Desktop drag-to-pan (click and drag) ---
         (function enableDesktopDragToPan(){
             const isDesktop = () => !window.matchMedia('(max-width: 768px)').matches;

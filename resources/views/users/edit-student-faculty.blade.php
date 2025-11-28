@@ -59,7 +59,8 @@
                 <div class="col-md-6">
                     <label class="form-label">Birthdate</label>
                     <input type="date" name="birthdate" class="form-control" 
-                           value="{{ old('birthdate', $sf->birthdate) }}">
+                           value="{{ old('birthdate', $sf->birthdate) }}" 
+                           max="{{ date('Y-m-d') }}" min="1900-01-01">
                 </div>
             </div>
 

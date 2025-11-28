@@ -15,6 +15,27 @@ use App\Models\ScanningServiceSettings;
 
 class LibraryContentController extends Controller
 {
+    /**
+     * Sanitize HTML content to prevent XSS attacks
+     * Allows only safe formatting tags
+     */
+    private function sanitizeHtml($html)
+    {
+        if (empty($html)) {
+            return $html;
+        }
+
+        // Strip all tags except safe ones
+        $allowed_tags = '<br><strong><em><b><i><u><p><ul><ol><li><span><div>';
+        $cleaned = strip_tags($html, $allowed_tags);
+        
+        // Remove any event handlers and javascript: protocols
+        $cleaned = preg_replace('/on\w+\s*=\s*["\'].*?["\']/i', '', $cleaned);
+        $cleaned = preg_replace('/javascript:/i', '', $cleaned);
+        
+        return $cleaned;
+    }
+
     public function manage()
     {
         $settings = LibrarySetting::singleton();
@@ -43,7 +64,9 @@ class LibraryContentController extends Controller
         $request->validate([
             'gif' => 'nullable|file|mimetypes:image/gif|max:4096',
         ], [
+            'gif.file' => 'The uploaded file is invalid.',
             'gif.mimetypes' => 'Only GIF files are allowed.',
+            'gif.max' => 'The GIF file size cannot exceed 4MB.',
         ]);
 
         $settings = LibrarySetting::singleton();
@@ -75,6 +98,9 @@ class LibraryContentController extends Controller
         $data = $request->validate([
             'text' => 'required|string|max:500',
             'active' => 'sometimes|boolean',
+        ], [
+            'text.required' => 'The announcement text is required.',
+            'text.max' => 'The announcement text cannot exceed 500 characters.',
         ]);
 
         $maxPos = LibraryAnnouncement::max('position') ?? 0;
@@ -94,6 +120,9 @@ class LibraryContentController extends Controller
         $data = $request->validate([
             'text' => 'required|string|max:500',
             'active' => 'sometimes|boolean',
+        ], [
+            'text.required' => 'The announcement text is required.',
+            'text.max' => 'The announcement text cannot exceed 500 characters.',
         ]);
         $announcement->update([
             'text' => $data['text'],
@@ -139,6 +168,12 @@ class LibraryContentController extends Controller
             'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
             'caption' => 'nullable|string|max:255',
             'active' => 'sometimes|boolean',
+        ], [
+            'image.required' => 'An image file is required.',
+            'image.file' => 'The uploaded file is invalid.',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, gif.',
+            'image.max' => 'The image size cannot exceed 5MB.',
+            'caption.max' => 'The caption cannot exceed 255 characters.',
         ]);
 
         $path = $request->file('image')->store('slideshow', 'public');
@@ -165,6 +200,8 @@ class LibraryContentController extends Controller
         $request->validate([
             'caption' => 'nullable|string|max:255',
             'active' => 'sometimes|boolean',
+        ], [
+            'caption.max' => 'The caption cannot exceed 255 characters.',
         ]);
 
         $image->update([
@@ -214,7 +251,12 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'required|string|max:5000',
+        ], [
+            'title.required' => 'The title is required.',
+            'title.max' => 'The title cannot exceed 255 characters.',
+            'description.required' => 'The description is required.',
+            'description.max' => 'The description cannot exceed 5000 characters.',
         ]);
 
         $settings = NetzoneSettings::get();
@@ -233,6 +275,11 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ], [
+            'image.required' => 'An image file is required.',
+            'image.file' => 'The uploaded file is invalid.',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, gif.',
+            'image.max' => 'The image size cannot exceed 5MB.',
         ]);
 
         $settings = NetzoneSettings::get();
@@ -300,8 +347,13 @@ class LibraryContentController extends Controller
     public function addNetzoneReminder(Request $request)
     {
         $request->validate([
-            'text' => 'required|string',
+            'text' => 'required|string|max:1000',
             'type' => 'required|in:danger,warning,info',
+        ], [
+            'text.required' => 'The reminder text is required.',
+            'text.max' => 'The reminder text cannot exceed 1000 characters.',
+            'type.required' => 'Please select a reminder type.',
+            'type.in' => 'The reminder type must be danger, warning, or info.',
         ]);
 
         $settings = NetzoneSettings::get();
@@ -347,7 +399,12 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'required|string',
+            'description' => 'required|string|max:5000',
+        ], [
+            'title.required' => 'The title is required.',
+            'title.max' => 'The title cannot exceed 255 characters.',
+            'description.required' => 'The description is required.',
+            'description.max' => 'The description cannot exceed 5000 characters.',
         ]);
 
         $settings = LearningSpaceSettings::get();
@@ -366,6 +423,11 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ], [
+            'image.required' => 'An image file is required.',
+            'image.file' => 'The uploaded file is invalid.',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, gif.',
+            'image.max' => 'The image size cannot exceed 5MB.',
         ]);
 
         $settings = LearningSpaceSettings::get();
@@ -425,6 +487,11 @@ class LibraryContentController extends Controller
         $request->validate([
             'heading' => 'required|string|max:255',
             'type' => 'required|in:list,numbered',
+        ], [
+            'heading.required' => 'The section heading is required.',
+            'heading.max' => 'The section heading cannot exceed 255 characters.',
+            'type.required' => 'Please select a section type.',
+            'type.in' => 'The section type must be either list or numbered.',
         ]);
 
         $settings = LearningSpaceSettings::get();
@@ -494,14 +561,19 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'section_index' => 'required|integer',
-            'item_text' => 'required|string',
+            'item_text' => 'required|string|max:1000',
+        ], [
+            'section_index.required' => 'The section index is required.',
+            'item_text.required' => 'The item text is required.',
+            'item_text.max' => 'The item text cannot exceed 1000 characters.',
         ]);
 
         $settings = LearningSpaceSettings::get();
         $sections = $settings->content_sections ?? [];
         
         if (isset($sections[$request->section_index])) {
-            $sections[$request->section_index]['items'][] = $request->item_text;
+            // Sanitize HTML to prevent XSS
+            $sections[$request->section_index]['items'][] = $this->sanitizeHtml($request->item_text);
             $settings->content_sections = $sections;
             $settings->save();
         }
@@ -524,7 +596,8 @@ class LibraryContentController extends Controller
         $sections = $settings->content_sections ?? [];
         
         if (isset($sections[$request->section_index]['items'][$request->item_index])) {
-            $sections[$request->section_index]['items'][$request->item_index] = $request->item_text;
+            // Sanitize HTML to prevent XSS
+            $sections[$request->section_index]['items'][$request->item_index] = $this->sanitizeHtml($request->item_text);
             $settings->content_sections = $sections;
             $settings->save();
         }
@@ -563,6 +636,9 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
+        ], [
+            'title.required' => 'The title is required.',
+            'title.max' => 'The title cannot exceed 255 characters.',
         ]);
 
         $settings = BookBorrowingSettings::get();
@@ -580,6 +656,11 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ], [
+            'image.required' => 'An image file is required.',
+            'image.file' => 'The uploaded file is invalid.',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, gif.',
+            'image.max' => 'The image size cannot exceed 5MB.',
         ]);
 
         $settings = BookBorrowingSettings::get();
@@ -621,15 +702,21 @@ class LibraryContentController extends Controller
     public function addBookBorrowingStep(Request $request)
     {
         $request->validate([
-            'step' => 'required|string',
+            'step' => 'required|string|max:1000',
             'type' => 'required|in:borrowing,returning',
+        ], [
+            'step.required' => 'The step text is required.',
+            'step.max' => 'The step text cannot exceed 1000 characters.',
+            'type.required' => 'The step type is required.',
+            'type.in' => 'The step type must be either borrowing or returning.',
         ]);
 
         $settings = BookBorrowingSettings::get();
         $type = $request->type;
         $steps = $type === 'borrowing' ? ($settings->borrowing_steps ?? []) : ($settings->returning_steps ?? []);
         
-        $steps[] = $request->step;
+        // Sanitize HTML to prevent XSS
+        $steps[] = $this->sanitizeHtml($request->step);
         
         if ($type === 'borrowing') {
             $settings->borrowing_steps = $steps;
@@ -657,7 +744,8 @@ class LibraryContentController extends Controller
         $steps = $type === 'borrowing' ? ($settings->borrowing_steps ?? []) : ($settings->returning_steps ?? []);
         
         if (isset($steps[$request->index])) {
-            $steps[$request->index] = $request->step;
+            // Sanitize HTML to prevent XSS
+            $steps[$request->index] = $this->sanitizeHtml($request->step);
             if ($type === 'borrowing') {
                 $settings->borrowing_steps = $steps;
             } else {
@@ -705,15 +793,20 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:255',
-            'important_note' => 'nullable|string',
-            'extract_limits' => 'nullable|string',
+            'important_note' => 'nullable|string|max:2000',
+            'extract_limits' => 'nullable|string|max:2000',
+        ], [
+            'title.required' => 'The title is required.',
+            'title.max' => 'The title cannot exceed 255 characters.',
+            'important_note.max' => 'The important note cannot exceed 2000 characters.',
+            'extract_limits.max' => 'The extract limits cannot exceed 2000 characters.',
         ]);
 
         $settings = ScanningServiceSettings::get();
         $settings->update([
             'title' => $request->title,
-            'important_note' => $request->important_note,
-            'extract_limits' => $request->extract_limits,
+            'important_note' => $this->sanitizeHtml($request->important_note),
+            'extract_limits' => $this->sanitizeHtml($request->extract_limits),
         ]);
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -726,6 +819,11 @@ class LibraryContentController extends Controller
     {
         $request->validate([
             'image' => 'required|file|mimes:jpg,jpeg,png,gif|max:5120',
+        ], [
+            'image.required' => 'An image file is required.',
+            'image.file' => 'The uploaded file is invalid.',
+            'image.mimes' => 'The image must be a file of type: jpg, jpeg, png, gif.',
+            'image.max' => 'The image size cannot exceed 5MB.',
         ]);
 
         $settings = ScanningServiceSettings::get();
@@ -767,13 +865,17 @@ class LibraryContentController extends Controller
     public function addScanningServiceStep(Request $request)
     {
         $request->validate([
-            'step' => 'required|string',
+            'step' => 'required|string|max:1000',
+        ], [
+            'step.required' => 'The step text is required.',
+            'step.max' => 'The step text cannot exceed 1000 characters.',
         ]);
 
         $settings = ScanningServiceSettings::get();
         $steps = $settings->steps ?? [];
         
-        $steps[] = $request->step;
+        // Sanitize HTML to prevent XSS
+        $steps[] = $this->sanitizeHtml($request->step);
         $settings->steps = $steps;
         $settings->save();
 
@@ -794,7 +896,8 @@ class LibraryContentController extends Controller
         $steps = $settings->steps ?? [];
         
         if (isset($steps[$request->index])) {
-            $steps[$request->index] = $request->step;
+            // Sanitize HTML to prevent XSS
+            $steps[$request->index] = $this->sanitizeHtml($request->step);
             $settings->steps = $steps;
             $settings->save();
         }

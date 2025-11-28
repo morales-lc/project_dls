@@ -30,14 +30,14 @@ class StudentFacultyController extends Controller
         // Build validation rules
         $rules = [
             'school_id' => ['required', Rule::unique('student_faculty', 'school_id')->ignore($sf->id)],
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
+            'last_name' => ['required', 'string', 'max:255', 'regex:/^[a-zA-Z\s\'-]+$/'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user ? $user->id : null)],
             'username' => ['required', 'string', 'max:255', Rule::unique('users', 'username')->ignore($user ? $user->id : null)],
             'role_type' => 'required|in:student,faculty',
             'program_id' => 'required|exists:programs,id',
             'yrlvl' => 'nullable|string|max:255',
-            'birthdate' => 'nullable|date',
+            'birthdate' => 'nullable|date|before_or_equal:today|after:1900-01-01',
             'password' => [
                 'nullable',
                 'string',
@@ -54,8 +54,12 @@ class StudentFacultyController extends Controller
         }
         
         $request->validate($rules, [
+            'first_name.regex' => 'First name can only contain letters, spaces, hyphens, and apostrophes.',
+            'last_name.regex' => 'Last name can only contain letters, spaces, hyphens, and apostrophes.',
             'password.min' => 'Password must be at least 8 characters.',
-            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).'
+            'password.regex' => 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&#).',
+            'birthdate.before_or_equal' => 'Birthdate cannot be in the future.',
+            'birthdate.after' => 'Birthdate must be after January 1, 1900.'
         ]);
 
         $sf->school_id = $request->school_id;

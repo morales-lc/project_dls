@@ -10,7 +10,34 @@
     <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 900px; background: #fff;">
         <div class="d-flex align-items-center justify-content-between mb-3">
             <h2 class="fw-bold mb-0" style="letter-spacing: 1px; color: #d81b60; font-size: 2rem;">Edit E-Library</h2>
+            <a href="{{ route('e-libraries.manage') }}" class="btn btn-secondary px-4">Cancel</a>
         </div>
+
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle me-2"></i> {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i> {{ session('error') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div class="alert alert-danger">
+                <h6 class="fw-bold"><i class="bi bi-exclamation-circle me-1"></i> Please fix the following errors:</h6>
+                <ul class="mb-0">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form action="{{ route('e-libraries.update', $library->id) }}" method="POST" enctype="multipart/form-data" class="card p-3 shadow rounded-4">
             @csrf
             @method('PUT')

@@ -44,15 +44,29 @@
                         @if(!empty($lira->action))
                         <tr><td style="color:#6b7280;">Action</td><td>{{ $lira->action }}</td></tr>
                         @endif
+                        @if(!empty($lira->assistance_types))
+                        <tr><td style="color:#6b7280;">Assistance types</td>
+                            <td>{{ is_array($lira->assistance_types) ? implode(', ', $lira->assistance_types) : $lira->assistance_types }}</td></tr>
+                        @endif
+                        @if(!empty($lira->resource_types))
+                        <tr><td style="color:#6b7280;">Resource types</td>
+                            <td>{{ is_array($lira->resource_types) ? implode(', ', $lira->resource_types) : $lira->resource_types }}</td></tr>
+                        @endif
+                        @if(!empty($lira->for_borrow_scan))
+                        <tr><td style="color:#6b7280;">For borrow/scan</td><td>{{ $lira->for_borrow_scan }}</td></tr>
+                        @endif
                         @if(!empty($lira->titles_of))
                         <tr><td style="color:#6b7280;">Titles/Topics</td><td>{{ $lira->titles_of }}</td></tr>
                         @endif
                         @if(!empty($lira->for_list))
                         <tr><td style="color:#6b7280;">For list</td><td>{{ $lira->for_list }}</td></tr>
                         @endif
+                        @if(!empty($lira->for_videos))
+                        <tr><td style="color:#6b7280;">Videos requested</td>
+                            <td>{{ is_array($lira->for_videos) ? implode(', ', $lira->for_videos) : $lira->for_videos }}</td></tr>
+                        @endif
                     </table>
 
-                    <p style="margin-top:22px;color:#6b7280;font-size:13px;">If you have questions, reply to this email and our team will assist you.</p>
                 </td>
             </tr>
             <tr><td class="footer">This is an automated message. Please do not share sensitive information via email.</td></tr>

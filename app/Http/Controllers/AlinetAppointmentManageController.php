@@ -9,10 +9,27 @@ use Illuminate\Support\Facades\Log;
 use App\Mail\AlinetAppointmentAccepted;
 use App\Mail\AlinetAppointmentRejected;
 
+/**
+ * ALINET Appointment Management Controller
+ * 
+ * Manages ALINET (Alumni and Library Information Network) appointment requests
+ * from external users. Handles appointment approval/rejection and automated
+ * guest account creation for online access requests.
+ * 
+ * @package App\Http\Controllers
+ */
 class AlinetAppointmentManageController extends Controller
 {
+    /**
+     * Display a paginated list of ALINET appointments with filtering
+     * 
+     * Supports filtering by status, service type, date range, and search query.
+     * 
+     * @return \Illuminate\View\View
+     */
     public function index()
     {
+        // Get filter parameters from request
         $status = request('status');
         $q = request('q');
         $dateFrom = request('date_from');
@@ -22,6 +39,7 @@ class AlinetAppointmentManageController extends Controller
         if ($perPage < 5) { $perPage = 5; }
         if ($perPage > 100) { $perPage = 100; }
 
+        // Build query with filters and pagination
         $appointments = AlinetAppointment::query()
             ->status($status)
             ->service($service)
@@ -34,6 +52,21 @@ class AlinetAppointmentManageController extends Controller
         return view('alinet.manage', compact('appointments', 'status', 'q', 'dateFrom', 'dateTo', 'service', 'perPage'));
     }
 
+    /**
+     * Update the status of an ALINET appointment (accept/reject)
+     * 
+     * Handles:
+     * - Setting appointment date for onsite requests (next Saturday)
+     * - Creating/updating temporary guest accounts for online requests (7-day expiration)
+     * - Sending acceptance/rejection emails to applicants
+     * - Generating random passwords for guest accounts
+     * - Preventing duplicate accounts for existing users
+     * 
+     * @param Request $request HTTP request with status and optional reason
+     * @param int $id Appointment ID
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     */
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -43,7 +76,8 @@ class AlinetAppointmentManageController extends Controller
         $appointment = AlinetAppointment::findOrFail($id);
         $appointment->status = $request->status;
 
-        // If accepting an Onsite request, set appointment_date to the upcoming Saturday (next Saturday if today is Sunday)
+        // For accepted onsite requests, calculate the next Saturday appointment date
+        // If today is Sunday, schedule for next Saturday (6 days ahead)
     if ($request->status === 'accepted' && (stripos($appointment->mode_of_research, 'Onsite') !== false)) {
             $tz = 'Asia/Manila';
             $today = \Carbon\Carbon::now($tz)->startOfDay();
@@ -54,12 +88,15 @@ class AlinetAppointmentManageController extends Controller
         $appointment->save();
 
         $guestUser = null;
-        // If accepting an Online request, create or update a temporary guest account with 7-day expiration
+        
+        // For accepted online requests, create or update a temporary guest account
+        // Guest accounts expire after 7 days and have limited access to resources
         if ($request->status === 'accepted' && (stripos($appointment->mode_of_research, 'Online') !== false)) {
-            // Check if any user already exists for this email
+            // Check if any user already exists for this email to prevent duplicates
             $existingUser = \App\Models\User::where('email', $appointment->email)->first();
             
-            // Generate random password
+            // Generate a secure random password for the guest account
+            // This will be encrypted and sent via email
             $plainPassword = \Illuminate\Support\Str::random(10);
             
             // Build full name from appointment fields
@@ -69,7 +106,8 @@ class AlinetAppointmentManageController extends Controller
 
             if ($existingUser) {
                 if ($existingUser->role === 'guest') {
-                    // Update existing guest user: extend expiration, reactivate, and reset password
+                    // Reactivate existing guest account: extend expiration to 7 more days,
+                    // reset status to active, and generate new password
                     $existingUser->name = $fullName;
                     $existingUser->password = \Illuminate\Support\Facades\Hash::make($plainPassword);
                     $existingUser->guest_plain_password = \Illuminate\Support\Facades\Crypt::encryptString($plainPassword);
@@ -78,8 +116,8 @@ class AlinetAppointmentManageController extends Controller
                     $existingUser->save();
                     $guestUser = $existingUser;
                 } else {
-                    // Email belongs to a regular/admin user - skip guest account creation
-                    // The email will still be sent but without guest credentials
+                    // Security measure: Don't create guest accounts for existing staff/student users
+                    // This prevents privilege escalation or account conflicts
                     Log::info('Skipping guest account creation - email belongs to existing non-guest user', [
                         'email' => $appointment->email,
                         'existing_role' => $existingUser->role,
@@ -87,7 +125,8 @@ class AlinetAppointmentManageController extends Controller
                     $guestUser = null;
                 }
             } else {
-                // Generate a username derived from email (ensure uniqueness)
+                // Generate a unique username based on the email local part
+                // Add numeric suffix if username already exists
                 $email = (string) $appointment->email;
                 $baseUsername = $email && str_contains($email, '@')
                     ? explode('@', $email)[0]
@@ -104,7 +143,8 @@ class AlinetAppointmentManageController extends Controller
                     }
                 }
                 
-                // Create new guest user account
+                // Create new guest user account with 7-day expiration
+                // Password is both hashed (for authentication) and encrypted (for email)
                 $guestUser = \App\Models\User::create([
                     'name' => $fullName,
                     'email' => $appointment->email,
@@ -118,7 +158,8 @@ class AlinetAppointmentManageController extends Controller
             }
         }
 
-        // Send email to requester using Mailable classes
+        // Send acceptance or rejection email notification to the applicant
+        // Includes login credentials for online access if applicable
         try {
             if ($request->status === 'accepted') {
                 Log::info('Attempting to send acceptance email', [

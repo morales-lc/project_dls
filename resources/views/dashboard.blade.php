@@ -21,7 +21,7 @@
     <div class="container mt-3">
         <div class="text-center mb-3">
             <button class="btn btn-outline-primary" id="toggleAccessInfoBtn" type="button" onclick="toggleAccessInfo()">
-                <i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources?
+                <i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources? !! CLICK ME!!
             </button>
         </div>
         <div class="alert alert-info shadow-sm mb-4" id="accessInfoBanner" role="alert" style="display: none; border-left: 5px solid #4a90e2; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border-radius: 0.75rem;">
@@ -79,7 +79,7 @@
                 btn.classList.add('btn-outline-secondary');
             } else {
                 banner.style.display = 'none';
-                btn.innerHTML = '<i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources?';
+                btn.innerHTML = '<i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources? !! CLICK ME!!';
                 btn.classList.remove('btn-outline-secondary');
                 btn.classList.add('btn-outline-primary');
             }

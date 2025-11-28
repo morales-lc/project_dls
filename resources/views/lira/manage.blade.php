@@ -32,6 +32,14 @@
 @section('content')
 <div class="py-5 d-flex flex-column align-items-center justify-content-center">
   <div class="alert-panel-card shadow rounded-4 p-4 w-100" style="max-width: 1400px; background: #fff;">
+    <!-- Success/Status Messages -->
+    @if(session('status'))
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      <i class="bi bi-check-circle-fill me-2"></i>{{ session('status') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
       <h2 class="fw-bold mb-0 panel-title-pink">LiRA Requests Management</h2>
     </div>
@@ -52,7 +60,7 @@
         <li class="nav-item"><a data-status="pending" class="nav-link {{ request('status')=='pending' ? 'active' : '' }}" href="{{ $build('pending') }}">Pending</a></li>
         <li class="nav-item"><a data-status="accepted" class="nav-link {{ request('status')=='accepted' ? 'active' : '' }}" href="{{ $build('accepted') }}">Accepted</a></li>
         <li class="nav-item"><a data-status="rejected" class="nav-link {{ request('status')=='rejected' ? 'active' : '' }}" href="{{ $build('rejected') }}">Rejected</a></li>
-        <li class="nav-item"><a data-status="awaiting_response" class="nav-link {{ request('status')=='awaiting_response' ? 'active' : '' }}" href="{{ $build('awaiting_response') }}">Awaiting Response</a></li>
+        <li class="nav-item"><a data-status="awaiting_response" class="nav-link {{ request('status')=='awaiting_response' ? 'active' : '' }}" href="{{ $build('awaiting_response') }}"> Accepted Request to Process </a></li>
       </ul>
       <form id="liraFilterForm" class="row g-2 align-items-end mb-0" method="GET">
         <div class="col-sm-6 col-md-3">
@@ -208,6 +216,34 @@ document.addEventListener('DOMContentLoaded', function(){
   const respondModal = new bootstrap.Modal(document.getElementById('liraRespondModal'));
   const listContainer = document.getElementById('liraListContainer');
 
+  // Helper to show success messages
+  function showSuccessMessage(message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+      <i class="bi bi-check-circle-fill me-2"></i>${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => {
+      alertDiv.classList.remove('show');
+      setTimeout(() => alertDiv.remove(), 150);
+    }, 4000);
+  }
+
+  // Check for URL parameter success message (for redirects after form submissions)
+  const urlParams = new URLSearchParams(window.location.search);
+  const statusMsg = urlParams.get('success_msg');
+  if (statusMsg) {
+    showSuccessMessage(decodeURIComponent(statusMsg));
+    // Clean URL
+    urlParams.delete('success_msg');
+    const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+    history.replaceState({}, '', newUrl);
+  }
+
   function bindRowHandlers(scope) {
     scope.querySelectorAll('.lira-row').forEach(r => r.addEventListener('click', onRowClick));
     scope.querySelectorAll('.lira-respond-btn').forEach(b => b.addEventListener('click', onRespondClick));
@@ -350,12 +386,7 @@ document.addEventListener('DOMContentLoaded', function(){
         const modalEl = document.getElementById('liraDetailsModal');
         const instance = bootstrap.Modal.getInstance(modalEl);
         if (instance) instance.hide();
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-success position-fixed end-0 m-4 shadow-sm';
-        alert.style.zIndex = 1050;
-        alert.textContent = data.message || 'Deleted';
-        document.body.appendChild(alert);
-        setTimeout(() => alert.remove(), 2200);
+        showSuccessMessage(data.message || 'LiRA request deleted successfully.');
       } else {
         const msg = (data && data.message) || `Failed to delete (status ${res.status}). Attempting normal delete...`;
         alert(msg);
@@ -504,15 +535,87 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Require reason when rejecting
   decisionForm.addEventListener('submit', function(e){
+    e.preventDefault(); // Prevent default immediately
+    
     const btn = document.activeElement; // which button submitted
-    if (btn && btn.name === 'decision' && btn.value === 'rejected') {
+    
+    // Validate button exists and has required attributes
+    if (!btn || btn.name !== 'decision' || !btn.value) {
+      alert('Please click Accept or Reject button.');
+      return;
+    }
+    
+    const decision = btn.value;
+    
+    // Check reason is provided when rejecting
+    if (decision === 'rejected') {
       const reason = document.getElementById('decision_reason').value.trim();
       if (!reason) {
-        e.preventDefault();
         alert('Please provide a reason for rejection.');
         document.getElementById('decision_reason').focus();
+        return;
       }
     }
+    
+    // Build FormData and ensure decision is included
+    const formData = new FormData(decisionForm);
+    formData.set('decision', decision); // Explicitly set the decision value
+    
+    fetch(decisionForm.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    }).then(async res => {
+      const data = await res.json().catch(() => ({ success: false }));
+      if (res.ok && data.success !== false) {
+        modal.hide();
+        const message = decision === 'accepted' 
+          ? 'Request accepted successfully. An email notification has been sent to the requester.'
+          : 'Request rejected successfully. An email notification has been sent to the requester.';
+        showSuccessMessage(message);
+        // Reload the current list
+        loadList(window.location.href);
+      } else {
+        alert(data.message || 'Failed to process decision. Please try again.');
+      }
+    }).catch(err => {
+      console.error('Error submitting decision:', err);
+      // Fallback to normal form submission
+      decisionForm.submit();
+    });
+  });
+
+  // Intercept respond form submission
+  respondForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const formData = new FormData(respondForm);
+    fetch(respondForm.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    }).then(async res => {
+      const data = await res.json().catch(() => ({ success: false }));
+      if (res.ok && data.success !== false) {
+        respondModal.hide();
+        showSuccessMessage('Response sent successfully to the requester.');
+        // Reload the current list
+        loadList(window.location.href);
+      } else {
+        alert(data.message || 'Failed to send response. Please try again.');
+      }
+    }).catch(err => {
+      console.error('Error submitting response:', err);
+      // Fallback to normal form submission
+      respondForm.submit();
+    });
   });
 
   

@@ -70,12 +70,25 @@ class ELibraryController extends Controller
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'link' => ['required', 'url', 'max:2048'],
-            'instructions' => ['nullable', 'string'],
+            'instructions' => ['nullable', 'string', 'max:5000'],
             'username' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif', 'max:2048'],
+        ], [
+            'name.required' => 'The e-library name is required.',
+            'name.max' => 'The name cannot exceed 255 characters.',
+            'description.max' => 'The description cannot exceed 1000 characters.',
+            'link.required' => 'The URL link is required.',
+            'link.url' => 'Please provide a valid URL (e.g., https://example.com).',
+            'link.max' => 'The URL cannot exceed 2048 characters.',
+            'instructions.max' => 'The instructions cannot exceed 5000 characters.',
+            'username.max' => 'The username cannot exceed 255 characters.',
+            'password.max' => 'The password cannot exceed 255 characters.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'The image must be a file of type: jpeg, jpg, png, gif.',
+            'image.max' => 'The image size cannot exceed 2MB.',
         ]);
         
         if ($request->hasFile('image')) {
@@ -100,12 +113,25 @@ class ELibraryController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string'],
+            'description' => ['nullable', 'string', 'max:1000'],
             'link' => ['required', 'url', 'max:2048'],
-            'instructions' => ['nullable', 'string'],
+            'instructions' => ['nullable', 'string', 'max:5000'],
             'username' => ['nullable', 'string', 'max:255'],
             'password' => ['nullable', 'string', 'max:255'],
-            'image' => ['nullable', 'image', 'max:2048'],
+            'image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif', 'max:2048'],
+        ], [
+            'name.required' => 'The e-library name is required.',
+            'name.max' => 'The name cannot exceed 255 characters.',
+            'description.max' => 'The description cannot exceed 1000 characters.',
+            'link.required' => 'The URL link is required.',
+            'link.url' => 'Please provide a valid URL (e.g., https://example.com).',
+            'link.max' => 'The URL cannot exceed 2048 characters.',
+            'instructions.max' => 'The instructions cannot exceed 5000 characters.',
+            'username.max' => 'The username cannot exceed 255 characters.',
+            'password.max' => 'The password cannot exceed 255 characters.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'The image must be a file of type: jpeg, jpg, png, gif.',
+            'image.max' => 'The image size cannot exceed 2MB.',
         ]);
         
         if ($request->hasFile('image')) {

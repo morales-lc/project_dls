@@ -64,8 +64,9 @@
                     <form action="{{ route('library.content.gif') }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column gap-2">
                         @csrf
                         <div>
-                            <input type="file" name="gif" accept="image/gif" class="form-control" />
+                            <input type="file" name="gif" accept="image/gif" class="form-control @error('gif') is-invalid @enderror" />
                             <small class="text-muted">Max 4 MB; GIF only.</small>
+                            @error('gif') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-outline-pink">Save GIF</button>
@@ -88,9 +89,10 @@
                     <form action="{{ route('library.content.announcements.store') }}" method="POST" class="mb-3">
                         @csrf
                         <div class="input-group">
-                            <input type="text" name="text" class="form-control" placeholder="Add an announcement..." required maxlength="500">
+                            <input type="text" name="text" class="form-control @error('text') is-invalid @enderror" placeholder="Add an announcement..." required maxlength="500" value="{{ old('text') }}">
                             <button class="btn btn-outline-pink" type="submit">Add</button>
                         </div>
+                        @error('text') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                         <div class="form-check mt-2">
                             <input class="form-check-input" type="checkbox" value="1" id="annActive" name="active" checked>
                             <label class="form-check-label" for="annActive">Active</label>
@@ -146,13 +148,15 @@
                         @csrf
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold">Image</label>
-                                <input type="file" name="image" accept="image/*" class="form-control" required>
+                                <label class="form-label fw-semibold">Image <span class="text-danger">*</span></label>
+                                <input type="file" name="image" accept="image/*" class="form-control @error('image') is-invalid @enderror" required>
                                 <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                                @error('image') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold">Caption (Optional)</label>
-                                <input type="text" name="caption" class="form-control" placeholder="Image caption..." maxlength="255">
+                                <input type="text" name="caption" class="form-control @error('caption') is-invalid @enderror" placeholder="Image caption..." maxlength="255" value="{{ old('caption') }}">
+                                @error('caption') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-12">
                                 <div class="form-check">
@@ -230,11 +234,13 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $netzoneSettings->title }}" required>
+                            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $netzoneSettings->title) }}" required maxlength="255">
+                            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control" rows="3" required>{{ $netzoneSettings->description }}</textarea>
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3" required maxlength="5000">{{ old('description', $netzoneSettings->description) }}</textarea>
+                            @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <button type="submit" class="btn btn-outline-pink">Update Netzone Info</button>
                     </form>
@@ -245,10 +251,11 @@
                     <form action="{{ route('library.content.netzone.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
                         @csrf
                         <div class="input-group">
-                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*" required>
                             <button type="submit" class="btn btn-outline-pink">Add Image</button>
                         </div>
                         <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                        @error('image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </form>
 
                     <div class="row g-3">
@@ -280,14 +287,16 @@
                         @csrf
                         <div class="row g-2">
                             <div class="col-md-8">
-                                <input type="text" name="text" class="form-control" placeholder="Reminder text..." required>
+                                <input type="text" name="text" class="form-control @error('text') is-invalid @enderror" placeholder="Reminder text..." required maxlength="1000" value="{{ old('text') }}">
+                                @error('text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-2">
-                                <select name="type" class="form-select" required>
+                                <select name="type" class="form-select @error('type') is-invalid @enderror" required>
                                     <option value="danger">Danger</option>
                                     <option value="warning" selected>Warning</option>
                                     <option value="info">Info</option>
                                 </select>
+                                @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-outline-pink w-100">Add</button>
@@ -374,11 +383,13 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $learningSpaceSettings->title }}" required>
+                            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $learningSpaceSettings->title) }}" required maxlength="255">
+                            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control" rows="3" required>{{ $learningSpaceSettings->description }}</textarea>
+                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="3" required maxlength="5000">{{ old('description', $learningSpaceSettings->description) }}</textarea>
+                            @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <button type="submit" class="btn btn-outline-pink">Update Learning Space Info</button>
                     </form>
@@ -389,9 +400,10 @@
                     <form action="{{ route('library.content.learning-space.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
                         @csrf
                         <div class="input-group">
-                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*" required>
                             <button type="submit" class="btn btn-outline-pink">Add Image</button>
                         </div>
+                        @error('image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                         <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
                     </form>
 
@@ -426,13 +438,15 @@
                         @csrf
                         <div class="row g-2">
                             <div class="col-md-8">
-                                <input type="text" name="heading" class="form-control" placeholder="Section heading (e.g., Types of Learning Spaces)..." required>
+                                <input type="text" name="heading" class="form-control @error('heading') is-invalid @enderror" placeholder="Section heading (e.g., Types of Learning Spaces)..." required maxlength="255" value="{{ old('heading') }}">
+                                @error('heading') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-2">
-                                <select name="type" class="form-select" required>
+                                <select name="type" class="form-select @error('type') is-invalid @enderror" required>
                                     <option value="list">Bullet List</option>
                                     <option value="numbered">Numbered List</option>
                                 </select>
+                                @error('type') <div class="invalid-feedback">{{ $message }}</div> @enderror
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-outline-pink w-100">Add Section</button>
@@ -592,7 +606,8 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Page Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $bookBorrowingSettings->title }}" required>
+                            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $bookBorrowingSettings->title) }}" required maxlength="255">
+                            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <button type="submit" class="btn btn-outline-pink">Update Title</button>
                     </form>
@@ -603,9 +618,11 @@
                     <form action="{{ route('library.content.book-borrowing.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
                         @csrf
                         <div class="input-group">
-                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*" required>
                             <button type="submit" class="btn btn-pink">Add Image</button>
                         </div>
+                        <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                        @error('image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </form>
 
                     <div class="row g-3">
@@ -637,10 +654,11 @@
                         @csrf
                         <input type="hidden" name="type" value="borrowing">
                         <div class="input-group">
-                            <textarea name="step" class="form-control" placeholder="Enter a new borrowing step (HTML allowed)" rows="2" required></textarea>
+                            <textarea name="step" class="form-control @error('step') is-invalid @enderror" placeholder="Enter a new borrowing step (HTML allowed)" rows="2" required maxlength="1000">{{ old('step') }}</textarea>
                             <button type="submit" class="btn btn-pink">Add Step</button>
                         </div>
                         <small class="text-muted">HTML tags allowed for formatting</small>
+                        @error('step') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </form>
 
                     <ul class="list-group">
@@ -702,10 +720,11 @@
                         @csrf
                         <input type="hidden" name="type" value="returning">
                         <div class="input-group">
-                            <textarea name="step" class="form-control" placeholder="Enter a new returning step (HTML allowed)" rows="2" required></textarea>
+                            <textarea name="step" class="form-control @error('step') is-invalid @enderror" placeholder="Enter a new returning step (HTML allowed)" rows="2" required maxlength="1000">{{ old('step') }}</textarea>
                             <button type="submit" class="btn btn-pink">Add Step</button>
                         </div>
                         <small class="text-muted">HTML tags allowed for formatting</small>
+                        @error('step') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </form>
 
                     <ul class="list-group">
@@ -776,17 +795,20 @@
                         @csrf
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Page Title</label>
-                            <input type="text" name="title" class="form-control" value="{{ $scanningServiceSettings->title }}" required>
+                            <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $scanningServiceSettings->title) }}" required maxlength="255">
+                            @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Important Note</label>
-                            <textarea name="important_note" class="form-control" rows="3">{{ $scanningServiceSettings->important_note }}</textarea>
+                            <textarea name="important_note" class="form-control @error('important_note') is-invalid @enderror" rows="3" maxlength="2000">{{ old('important_note', $scanningServiceSettings->important_note) }}</textarea>
                             <small class="text-muted">HTML allowed (e.g., &lt;br&gt; for line breaks)</small>
+                            @error('important_note') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Extract Limits</label>
-                            <textarea name="extract_limits" class="form-control" rows="3">{{ $scanningServiceSettings->extract_limits }}</textarea>
+                            <textarea name="extract_limits" class="form-control @error('extract_limits') is-invalid @enderror" rows="3" maxlength="2000">{{ old('extract_limits', $scanningServiceSettings->extract_limits) }}</textarea>
                             <small class="text-muted">HTML allowed (e.g., &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;)</small>
+                            @error('extract_limits') <div class="invalid-feedback">{{ $message }}</div> @enderror
                         </div>
                         <button type="submit" class="btn btn-outline-pink">Update Settings</button>
                     </form>
@@ -797,9 +819,11 @@
                     <form action="{{ route('library.content.scanning-service.image.add') }}" method="POST" enctype="multipart/form-data" class="mb-3">
                         @csrf
                         <div class="input-group">
-                            <input type="file" name="image" class="form-control" accept="image/*" required>
+                            <input type="file" name="image" class="form-control @error('image') is-invalid @enderror" accept="image/*" required>
                             <button type="submit" class="btn btn-pink">Add Image</button>
                         </div>
+                        <small class="text-muted">Max 5 MB; JPG, PNG, or GIF</small>
+                        @error('image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </form>
 
                     <div class="row g-3">
@@ -830,10 +854,11 @@
                     <form action="{{ route('library.content.scanning-service.step.add') }}" method="POST" class="mb-3">
                         @csrf
                         <div class="input-group">
-                            <textarea name="step" class="form-control" placeholder="Enter a new scanning step (HTML allowed)" rows="2" required></textarea>
+                            <textarea name="step" class="form-control @error('step') is-invalid @enderror" placeholder="Enter a new scanning step (HTML allowed)" rows="2" required maxlength="1000">{{ old('step') }}</textarea>
                             <button type="submit" class="btn btn-pink">Add Step</button>
                         </div>
                         <small class="text-muted">HTML tags allowed for formatting</small>
+                        @error('step') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     </form>
 
                     <ul class="list-group">

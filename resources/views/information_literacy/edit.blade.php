@@ -24,10 +24,29 @@
             </h2>
 
             @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ session('success') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             @endif
+            
             @if(session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    {{ session('error') }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            @endif
+            
+            @if ($errors->any())
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <strong>Please fix the following errors:</strong>
+                    <ul class="mb-0 mt-2">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
             @endif
 
             <form method="POST" action="{{ route('information_literacy.update', $post->id) }}" enctype="multipart/form-data" class="row g-4">
@@ -36,42 +55,61 @@
 
                 <div class="col-12">
                     <label class="form-label">Title <span class="text-danger">*</span></label>
-                    <input type="text" name="title" class="form-control form-control-lg" value="{{ $post->title }}" required>
+                    <input type="text" name="title" class="form-control form-control-lg @error('title') is-invalid @enderror" value="{{ old('title', $post->title) }}" maxlength="255" required>
+                    @error('title')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Description <span class="text-danger">*</span></label>
-                    <textarea name="description" class="form-control form-control-lg" rows="4" required>{{ $post->description }}</textarea>
+                    <textarea name="description" class="form-control form-control-lg @error('description') is-invalid @enderror" rows="4" maxlength="5000" required>{{ old('description', $post->description) }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Date & Time <span class="text-danger">*</span></label>
-                    <input type="datetime-local" name="date_time" class="form-control form-control-lg" 
-                        value="{{ date('Y-m-d\TH:i', strtotime($post->date_time)) }}" required>
+                    <input type="datetime-local" name="date_time" class="form-control form-control-lg @error('date_time') is-invalid @enderror" 
+                        value="{{ old('date_time', date('Y-m-d\TH:i', strtotime($post->date_time))) }}" required>
+                    @error('date_time')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Type <span class="text-danger">*</span></label>
-                    <select name="type" class="form-select form-select-lg" required>
-                        <option value="onsite" @if($post->type=='onsite') selected @endif>Onsite</option>
-                        <option value="online" @if($post->type=='online') selected @endif>Online</option>
+                    <select name="type" class="form-select form-select-lg @error('type') is-invalid @enderror" required>
+                        <option value="onsite" @if(old('type', $post->type)=='onsite') selected @endif>Onsite</option>
+                        <option value="online" @if(old('type', $post->type)=='online') selected @endif>Online</option>
                     </select>
+                    @error('type')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Facilitator/s <span class="text-danger">*</span></label>
-                    <input type="text" name="facilitators" class="form-control form-control-lg" value="{{ $post->facilitators }}" required>
+                    <input type="text" name="facilitators" class="form-control form-control-lg @error('facilitators') is-invalid @enderror" value="{{ old('facilitators', $post->facilitators) }}" maxlength="500" required>
+                    @error('facilitators')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-12">
-                    <label class="form-label">Image (optional)</label>
+                    <label class="form-label">Image (Max: 5MB, optional)</label>
                     @if($post->image)
                         <div class="mb-2 text-center">
                             <img src="{{ asset('storage/' . $post->image) }}" alt="Current Image" 
                                 style="max-width: 200px; max-height: 140px;" class="rounded shadow">
                         </div>
                     @endif
-                    <input type="file" name="image" class="form-control form-control-lg" accept="image/*">
+                    <input type="file" name="image" class="form-control form-control-lg @error('image') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif">
+                    <small class="text-muted">Accepted formats: JPEG, PNG, JPG, GIF. Leave empty to keep current image.</small>
+                    @error('image')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-12 d-flex justify-content-center mt-2">

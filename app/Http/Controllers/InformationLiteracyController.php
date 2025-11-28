@@ -73,15 +73,31 @@ class InformationLiteracyController extends Controller
     // Store new post
     public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:5000',
+            'date_time' => 'required|date|after_or_equal:today',
+            'facilitators' => 'required|string|max:500',
+            'type' => 'required|in:onsite,online',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'title.required' => 'Seminar title is required.',
+            'title.max' => 'Title cannot exceed 255 characters.',
+            'description.required' => 'Description is required.',
+            'description.max' => 'Description cannot exceed 5000 characters.',
+            'date_time.required' => 'Date and time is required.',
+            'date_time.date' => 'Please provide a valid date and time.',
+            'date_time.after_or_equal' => 'Seminar date must be today or in the future.',
+            'facilitators.required' => 'Facilitator name(s) is required.',
+            'facilitators.max' => 'Facilitators field cannot exceed 500 characters.',
+            'type.required' => 'Please select seminar type (Onsite or Online).',
+            'type.in' => 'Invalid seminar type selected.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
+            'image.max' => 'Image size cannot exceed 5MB.',
+        ]);
+
         try {
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'date_time' => 'required|date',
-                'facilitators' => 'required|string',
-                'type' => 'required|in:onsite,online',
-                'image' => 'nullable|image|max:4096',
-            ]);
 
             $imagePath = null;
             if ($request->hasFile('image')) {
@@ -116,15 +132,31 @@ class InformationLiteracyController extends Controller
     public function update(Request $request, $id)
     {
         $post = InformationLiteracyPost::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:5000',
+            'date_time' => 'required|date',
+            'facilitators' => 'required|string|max:500',
+            'type' => 'required|in:onsite,online',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'title.required' => 'Seminar title is required.',
+            'title.max' => 'Title cannot exceed 255 characters.',
+            'description.required' => 'Description is required.',
+            'description.max' => 'Description cannot exceed 5000 characters.',
+            'date_time.required' => 'Date and time is required.',
+            'date_time.date' => 'Please provide a valid date and time.',
+            'facilitators.required' => 'Facilitator name(s) is required.',
+            'facilitators.max' => 'Facilitators field cannot exceed 500 characters.',
+            'type.required' => 'Please select seminar type (Onsite or Online).',
+            'type.in' => 'Invalid seminar type selected.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
+            'image.max' => 'Image size cannot exceed 5MB.',
+        ]);
+
         try {
-            $request->validate([
-                'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'date_time' => 'required|date',
-                'facilitators' => 'required|string',
-                'type' => 'required|in:onsite,online',
-                'image' => 'nullable|image|max:4096',
-            ]);
 
             $imagePath = $post->image;
             if ($request->hasFile('image')) {

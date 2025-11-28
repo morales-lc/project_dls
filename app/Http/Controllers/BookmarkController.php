@@ -9,14 +9,36 @@ use App\Models\MidesDocument;
 
 use Illuminate\Routing\Controller as BaseController;
 
+/**
+ * Bookmark Controller
+ * 
+ * Manages user bookmarks for various content types in the digital library.
+ * Supports polymorphic bookmarking for multiple resource types including
+ * MIDES documents, SIDLAK articles, catalog items, and alert books.
+ * 
+ * Only students and faculty can create bookmarks.
+ * 
+ * @package App\Http\Controllers
+ */
 class BookmarkController extends BaseController
 {
+    /**
+     * Apply authentication middleware to all methods
+     */
     public function __construct()
     {
         $this->middleware('auth');
     }
 
-    // Show bookmarks for the authenticated student/faculty
+    /**
+     * Display all bookmarks for the authenticated student/faculty user
+     * 
+     * Shows a list of all bookmarked items with their associated content.
+     * Non-student/faculty users will see an empty list.
+     * 
+     * @param Request $request HTTP request
+     * @return \Illuminate\View\View
+     */
     public function index(Request $request)
     {
         $user = Auth::user();
@@ -36,7 +58,25 @@ class BookmarkController extends BaseController
         return view('bookmarks.index', compact('bookmarks'));
     }
 
-    // Toggle bookmark for a given MidesDocument (polymorphic)
+    /**
+     * Toggle bookmark status for a resource (add or remove)
+     * 
+     * Creates a bookmark if it doesn't exist, removes it if it does.
+     * Supports polymorphic bookmarking for multiple resource types:
+     * - mides: MIDES documents
+     * - sidlak: SIDLAK articles
+     * - sidlak_journal: SIDLAK journals
+     * - post: Posts
+     * - information_literacy: Information literacy posts
+     * - catalog: Catalog items
+     * - alert_book: Alert service books
+     * 
+     * Only students and faculty can create bookmarks.
+     * Supports both AJAX and regular form submissions.
+     * 
+     * @param Request $request HTTP request with 'id' and 'type' parameters
+     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+     */
     public function toggle(Request $request)
     {
         $request->validate([
@@ -59,7 +99,8 @@ class BookmarkController extends BaseController
         $id = $request->id;
         $type = $request->type;
 
-        // Map allowed types to model classes
+        // Map bookmark type strings to their corresponding Eloquent model classes
+        // This enables polymorphic relationships for different resource types
         $map = [
             'mides' => MidesDocument::class,
             'sidlak' => \App\Models\SidlakArticle::class,

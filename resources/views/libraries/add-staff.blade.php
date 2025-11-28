@@ -50,17 +50,26 @@
 
                 <div class="col-md-9">
                     <label class="form-label">First Name <span class="text-danger">*</span></label>
-                    <input type="text" name="first_name" class="form-control form-control-lg" value="{{ old('first_name') }}" required>
+                    <input type="text" name="first_name" class="form-control form-control-lg @error('first_name') is-invalid @enderror" value="{{ old('first_name') }}" maxlength="255" required>
+                    @error('first_name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Middle Name</label>
-                    <input type="text" name="middlename" class="form-control form-control-lg" value="{{ old('middlename') }}">
+                    <input type="text" name="middlename" class="form-control form-control-lg @error('middlename') is-invalid @enderror" value="{{ old('middlename') }}" maxlength="255">
+                    @error('middlename')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Last Name <span class="text-danger">*</span></label>
-                    <input type="text" name="last_name" class="form-control form-control-lg" value="{{ old('last_name') }}" required>
+                    <input type="text" name="last_name" class="form-control form-control-lg @error('last_name') is-invalid @enderror" value="{{ old('last_name') }}" maxlength="255" required>
+                    @error('last_name')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
 
                 <div class="col-12">
@@ -80,7 +89,11 @@
 
                 <div class="col-md-7">
                     <label class="form-label">Email <span class="text-danger">*</span></label>
-                    <input type="email" name="email" class="form-control form-control-lg" value="{{ old('email') }}" required>
+                    <input type="email" name="email" class="form-control form-control-lg @error('email') is-invalid @enderror" value="{{ old('email') }}" maxlength="255" placeholder="example@lccdo.edu.ph" required>
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Must be a valid @lccdo.edu.ph email address</small>
                 </div>
 
                 <div class="col-md-5">
@@ -96,12 +109,20 @@
 
                 <div class="col-12">
                     <label class="form-label">Description of Work</label>
-                    <textarea name="description" class="form-control form-control-lg" rows="3">{{ old('description') }}</textarea>
+                    <textarea name="description" class="form-control form-control-lg @error('description') is-invalid @enderror" rows="3" maxlength="1000">{{ old('description') }}</textarea>
+                    @error('description')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Maximum 1000 characters</small>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label">Photo/Portrait</label>
-                    <input type="file" name="photo" class="form-control form-control-lg" accept="image/*">
+                    <input type="file" name="photo" class="form-control form-control-lg @error('photo') is-invalid @enderror" accept="image/jpeg,image/png,image/jpg,image/gif">
+                    @error('photo')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                    <small class="text-muted">Accepted formats: JPEG, PNG, JPG, GIF (Max: 5MB)</small>
                 </div>
 
                 <div class="col-12 d-flex justify-content-center mt-2">

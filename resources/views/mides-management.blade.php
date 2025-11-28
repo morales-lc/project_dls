@@ -95,22 +95,34 @@
                                         @csrf
                                         @method('PUT')
                                         <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+                                        <input type="hidden" name="doc_id" value="{{ $doc->id }}">
                                         <div class="modal-header">
                                             <h5 class="modal-title" id="updateModalLabel{{ $doc->id }}">Update Document</h5>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body">
+                                            @if($errors->any())
+                                                <div class="alert alert-danger">
+                                                    <strong>Please fix the following errors:</strong>
+                                                    <ul class="mb-0 mt-2">
+                                                        @foreach($errors->all() as $error)
+                                                            <li>{{ $error }}</li>
+                                                        @endforeach
+                                                    </ul>
+                                                </div>
+                                            @endif
                                             <div class="mb-2">
-                                                <label class="form-label">Type</label>
+                                                <label class="form-label">Type <span class="text-danger">*</span></label>
                                                 <select name="type" class="form-select" required>
+                                                    <option value="">-- Select Type --</option>
                                                     @foreach($types as $t)
                                                     <option value="{{ $t }}" {{ ($doc->type == $t) ? 'selected' : '' }}>{{ $t }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
                                             <div class="mb-2">
-                                                <label class="form-label">Category/Program</label>
-                                                <select name="mides_category_id" class="form-select" id="midesCategorySelect{{ $doc->id }}" data-selected="{{ $doc->mides_category_id ?? '' }}">
+                                                <label class="form-label">Category/Program <span class="text-danger">*</span></label>
+                                                <select name="mides_category_id" class="form-select" id="midesCategorySelect{{ $doc->id }}" data-selected="{{ $doc->mides_category_id ?? '' }}" required>
                                                     <option value="">Select...</option>
                                                     @foreach(\App\Models\MidesCategory::where('type', $doc->type)->get() as $cat)
                                                     <option value="{{ $cat->id }}" {{ ($doc->mides_category_id == $cat->id) ? 'selected' : '' }}>{{ $cat->name }}</option>
@@ -121,20 +133,21 @@
                                                 <input type="hidden" name="program" value="{{ $doc->program }}">
                                             </div>
                                             <div class="mb-2">
-                                                <label class="form-label">Author</label>
-                                                <input type="text" name="author" class="form-control" value="{{ $doc->author }}" required>
+                                                <label class="form-label">Author <span class="text-danger">*</span></label>
+                                                <input type="text" name="author" class="form-control" value="{{ old('doc_id') == $doc->id ? old('author') : $doc->author }}" maxlength="255" required>
                                             </div>
                                             <div class="mb-2">
-                                                <label class="form-label">Year</label>
-                                                <input type="number" name="year" class="form-control" value="{{ $doc->year }}" required>
+                                                <label class="form-label">Year <span class="text-danger">*</span></label>
+                                                <input type="number" name="year" class="form-control" value="{{ old('doc_id') == $doc->id ? old('year') : $doc->year }}" min="1980" max="{{ date('Y') }}" required>
                                             </div>
                                             <div class="mb-2">
-                                                <label class="form-label">Title</label>
-                                                <input type="text" name="title" class="form-control" value="{{ $doc->title }}" required>
+                                                <label class="form-label">Title <span class="text-danger">*</span></label>
+                                                <input type="text" name="title" class="form-control" value="{{ old('doc_id') == $doc->id ? old('title') : $doc->title }}" maxlength="500" required>
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label">PDF (leave blank to keep current)</label>
                                                 <input type="file" name="pdf" class="form-control" accept="application/pdf">
+                                                <small class="text-muted">Maximum file size: 20MB</small>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
@@ -320,6 +333,15 @@
                 }, 200);
             });
         }
+
+        // Reopen modal if there are validation errors
+        @if($errors->any() && old('doc_id'))
+            var errorModalEl = document.getElementById('updateModal{{ old("doc_id") }}');
+            if (errorModalEl) {
+                var errorModal = new bootstrap.Modal(errorModalEl);
+                errorModal.show();
+            }
+        @endif
     });
 </script>
 @endsection
