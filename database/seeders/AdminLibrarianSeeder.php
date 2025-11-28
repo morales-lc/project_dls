@@ -13,7 +13,7 @@ class AdminLibrarianSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@lccdo.edu.ph'],
+            ['email' => 'thejeromeee@gmail.com'],
             [
                 'name' => 'Admin User',
                 'username' => 'admin',
