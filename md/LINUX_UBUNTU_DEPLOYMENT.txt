@@ -39,13 +39,19 @@ STEP 1: INSTALL PYTHON AND PIP
 STEP 2: INSTALL PYTHON DEPENDENCIES
 ================================================================================
 
-1. Install required Python packages:
+1. Install required Python packages system-wide:
 
-   pip3 install pymarc mysql-connector-python
+   For Ubuntu 24.04+ (with externally-managed-environment protection):
+   
+   sudo pip3 install pymarc mysql-connector-python --break-system-packages
 
-   OR install system-wide (recommended for production):
-
+   For older Ubuntu versions (22.04 and earlier):
+   
    sudo pip3 install pymarc mysql-connector-python
+
+   Note: The --break-system-packages flag is required on Ubuntu 24.04+ due to 
+   PEP 668 protection. This flag is safe for these specific packages and won't 
+   actually break your system.
 
 2. Verify installations:
 
@@ -53,6 +59,10 @@ STEP 2: INSTALL PYTHON DEPENDENCIES
    python3 -c "import mysql.connector; print('mysql-connector installed successfully')"
 
    Both commands should print success messages without errors.
+   
+   Expected output:
+   pymarc installed successfully
+   mysql-connector installed successfully
 
 ================================================================================
 STEP 3: CONFIGURE PROJECT DIRECTORIES AND PERMISSIONS
@@ -60,9 +70,7 @@ STEP 3: CONFIGURE PROJECT DIRECTORIES AND PERMISSIONS
 
 1. Navigate to your project directory:
 
-   cd /var/www/your-project
-   
-   (Replace /var/www/your-project with your actual project path)
+   cd /var/www/html/project_dls
 
 2. Create required directories:
 
@@ -172,7 +180,7 @@ FOR APACHE:
 
 1. Edit your virtual host configuration:
 
-   sudo nano /etc/apache2/sites-available/your-site.conf
+   sudo nano /etc/apache2/sites-available/000-default.conf
 
 2. Add these lines inside the <VirtualHost> block:
 
@@ -195,7 +203,7 @@ STEP 6: RUN DATABASE MIGRATIONS
 
 1. Navigate to project root:
 
-   cd /var/www/your-project
+   cd /var/www/html/project_dls
 
 2. Run migrations:
 
@@ -225,7 +233,7 @@ STEP 7: TEST PYTHON SCRIPT MANUALLY
 
 2. Navigate to project directory:
 
-   cd /var/www/your-project
+   cd /var/www/html/project_dls
 
 3. Run the import script directly:
 
@@ -323,17 +331,23 @@ Solution:
 ISSUE: "ModuleNotFoundError: No module named 'pymarc'"
 ------------------------------------------------------
 Solution:
-   pip3 install pymarc mysql-connector-python
-   # OR system-wide:
+   # For Ubuntu 24.04+:
+   sudo pip3 install pymarc mysql-connector-python --break-system-packages
+   
+   # For Ubuntu 22.04 and earlier:
    sudo pip3 install pymarc mysql-connector-python
-   # Verify:
-   python3 -c "import pymarc"
+   
+   # Verify installation:
+   python3 -c "import pymarc; print('OK')"
+   python3 -c "import mysql.connector; print('OK')"
+   
+   # Both should print 'OK' without errors
 
 
 ISSUE: "Permission denied" when creating log files
 ---------------------------------------------------
 Solution:
-   cd /var/www/your-project
+   cd /var/www/html/project_dls
    sudo chown -R www-data:www-data storage
    sudo chmod -R 775 storage
    # Verify:
@@ -392,24 +406,88 @@ Solution:
    exit;
 
 
-ISSUE: Large file imports fail
--------------------------------
+ISSUE: Large file imports fail / HTTP 413 "POST data too large"
+-----------------------------------------------------------------
+This is the most common deployment issue. The error occurs when your MARC file
+exceeds the default upload limits set by PHP and your web server.
+
 Solution:
-   # Increase PHP upload limits:
+
+   Step 1: Increase PHP upload limits
+   -----------------------------------
+   # Find your PHP version:
+   php -v
+   
+   # Edit PHP-FPM configuration (replace 8.1 with your actual version):
    sudo nano /etc/php/8.1/fpm/php.ini
-   # Update:
+   
+   # Find and update these values (use Ctrl+W to search):
    upload_max_filesize = 100M
    post_max_size = 100M
    max_execution_time = 600
+   memory_limit = 512M
+   
+   # Save and exit (Ctrl+X, Y, Enter)
+   
    # Restart PHP-FPM:
    sudo systemctl restart php8.1-fpm
    
-   # Also check Nginx client_max_body_size:
+   # Verify PHP-FPM is running:
+   sudo systemctl status php8.1-fpm
+
+   Step 2: Increase web server limits
+   -----------------------------------
+   FOR NGINX:
+   
    sudo nano /etc/nginx/nginx.conf
-   # Add in http block:
+   
+   # Add this line inside the http { } block:
    client_max_body_size 100M;
-   # Restart Nginx:
+   
+   # Save and restart Nginx:
    sudo systemctl restart nginx
+   sudo systemctl status nginx
+   
+   FOR APACHE:
+   
+   # Option 1: Edit virtual host config:
+   sudo nano /etc/apache2/sites-available/000-default.conf
+   
+   # Add inside <VirtualHost> block:
+   LimitRequestBody 104857600
+   
+   # Option 2: Add to .htaccess in project public directory:
+   echo "php_value upload_max_filesize 100M" | sudo tee -a /var/www/html/project_dls/public/.htaccess
+   echo "php_value post_max_size 100M" | sudo tee -a /var/www/html/project_dls/public/.htaccess
+   echo "php_value max_execution_time 600" | sudo tee -a /var/www/html/project_dls/public/.htaccess
+   
+   # Restart Apache:
+   sudo systemctl restart apache2
+   sudo systemctl status apache2
+
+   Step 3: Verify the changes
+   ---------------------------
+   # Check PHP configuration:
+   
+   
+   Expected output:
+   upload_max_filesize => 100M => 100M
+   post_max_size => 100M => 100M
+   max_execution_time => 600 => 600
+   
+   # Check Nginx configuration (if using Nginx):
+   sudo nginx -t
+   
+   # Check Apache configuration (if using Apache):
+   sudo apache2ctl -t
+   
+   # Test the import again through the web interface
+   
+   Note: If you still get 413 errors after these changes:
+   - Make sure you edited the correct php.ini file (use: php --ini)
+   - Check if there's a separate CLI and FPM php.ini
+   - Clear your browser cache
+   - Try a smaller file first to confirm it works
 
 ================================================================================
 OPTIONAL: SETUP QUEUE WORKER FOR LARGE IMPORTS
@@ -440,7 +518,7 @@ For very large MARC files (10,000+ records), consider using Laravel queues:
    User=www-data
    Group=www-data
    Restart=always
-   ExecStart=/usr/bin/php /var/www/your-project/artisan queue:work --sleep=3 --tries=3 --timeout=3600
+   ExecStart=/usr/bin/php /var/www/html/project_dls/artisan queue:work --sleep=3 --tries=3 --timeout=3600
    
    [Install]
    WantedBy=multi-user.target
@@ -511,7 +589,11 @@ MONITOR DISK SPACE:
 
 UPDATE PYTHON PACKAGES:
 -----------------------
-   pip3 install --upgrade pymarc mysql-connector-python
+   # For Ubuntu 24.04+:
+   sudo pip3 install --upgrade pymarc mysql-connector-python --break-system-packages
+   
+   # For Ubuntu 22.04 and earlier:
+   sudo pip3 install --upgrade pymarc mysql-connector-python
 
 CHECK SYSTEM LOGS:
 ------------------
@@ -528,14 +610,21 @@ CHECKLIST FOR SUCCESSFUL DEPLOYMENT
 [ ] Storage directories created with correct permissions
 [ ] .env file configured with PYTHON_EXE=python3
 [ ] Database credentials in .env are correct
-[ ] Web server (Nginx/Apache) environment configured
-[ ] PHP-FPM pool configuration updated
+[ ] PHP-FPM php.ini configured (upload_max_filesize, post_max_size, max_execution_time)
+[ ] PHP-FPM restarted after configuration changes
+[ ] Web server (Apache/Nginx) upload limits configured (LimitRequestBody or client_max_body_size)
+[ ] Web server restarted after configuration changes
+[ ] PHP-FPM pool configuration updated (optional)
 [ ] Database migrations run successfully
 [ ] Python script tested manually with sample file
 [ ] Web interface import tested successfully
 [ ] Catalog search functionality verified
 [ ] Import logs are being created and saved
 [ ] System logs checked for errors
+
+Project Location: /var/www/html/project_dls
+PHP Version: 8.3
+Web Server: Apache with virtual host at /etc/apache2/sites-available/000-default.conf
 
 ================================================================================
 SUPPORT AND ADDITIONAL RESOURCES

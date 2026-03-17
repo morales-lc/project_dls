@@ -86,6 +86,11 @@ class ProfileController extends Controller
     $validated = $request->validate($rules, $messages);
 
     $user = User::find(Auth::id());
+    // Ensure we have a student_faculty record to work with
+    $sf = $user->studentFaculty; // relation may or may not be loaded
+    if (!$sf) {
+        $sf = $user->studentFaculty()->firstOrCreate([]);
+    }
 
     // Update user table (email is not editable here)
     $user->name = $request->first_name . ' ' . $request->last_name;
@@ -95,8 +100,8 @@ class ProfileController extends Controller
     }
     $user->save();
 
-    // Handle profile picture upload
-    $profilePic = $user->studentFaculty->profile_picture;
+    // Handle profile picture upload (preserve existing if none uploaded)
+    $profilePic = $sf->profile_picture ?? null;
     if ($request->hasFile('profile_picture')) {
         $file = $request->file('profile_picture');
         $profilePic = $file->hashName();
@@ -108,8 +113,8 @@ class ProfileController extends Controller
     $courseVal = $role === 'student' ? $request->course : null;
     $yrLvlVal = $role === 'student' ? $request->yrlvl : null;
 
-    // Update student_faculty table
-    $user->studentFaculty->update([
+    // Update student_faculty table using the ensured model
+    $sf->update([
         'school_id' => $request->school_id,
         'first_name' => $request->first_name,
         'last_name' => $request->last_name,
@@ -123,7 +128,7 @@ class ProfileController extends Controller
         'profile_picture' => $profilePic,
     ]);
 
-    $updated = $user->studentFaculty->fresh();
+    $updated = $sf->fresh();
 
     if ($request->expectsJson()) {
         return response()->json([
