@@ -1,0 +1,569 @@
+================================================================================
+MARC CATALOG IMPORT - LINUX UBUNTU SERVER DEPLOYMENT INSTRUCTIONS
+================================================================================
+
+This guide provides step-by-step instructions for deploying the MARC catalog
+import functionality on a Linux Ubuntu server.
+
+================================================================================
+PREREQUISITES
+================================================================================
+
+- Ubuntu Server 18.04 or later
+- PHP 8.0 or later installed
+- MySQL/MariaDB installed and running
+- Web server (Apache or Nginx) configured
+- SSH access to the server
+- sudo privileges
+
+================================================================================
+STEP 1: INSTALL PYTHON AND PIP
+================================================================================
+
+1. Update package lists:
+
+   sudo apt update
+
+2. Install Python 3 and pip:
+
+   sudo apt install python3 python3-pip -y
+
+3. Verify installation:
+
+   python3 --version
+   pip3 --version
+
+   Expected output: Python 3.x.x and pip 3.x.x
+
+================================================================================
+STEP 2: INSTALL PYTHON DEPENDENCIES
+================================================================================
+
+1. Install required Python packages:
+
+   pip3 install pymarc mysql-connector-python
+
+   OR install system-wide (recommended for production):
+
+   sudo pip3 install pymarc mysql-connector-python
+
+2. Verify installations:
+
+   python3 -c "import pymarc; print('pymarc installed successfully')"
+   python3 -c "import mysql.connector; print('mysql-connector installed successfully')"
+
+   Both commands should print success messages without errors.
+
+================================================================================
+STEP 3: CONFIGURE PROJECT DIRECTORIES AND PERMISSIONS
+================================================================================
+
+1. Navigate to your project directory:
+
+   cd /var/www/your-project
+   
+   (Replace /var/www/your-project with your actual project path)
+
+2. Create required directories:
+
+   mkdir -p storage/logs/marc_imports
+   mkdir -p storage/app/private/marc_uploads
+   mkdir -p bootstrap/cache
+
+3. Set ownership to web server user (typically www-data):
+
+   sudo chown -R www-data:www-data storage
+   sudo chown -R www-data:www-data bootstrap/cache
+
+4. Set appropriate permissions:
+
+   sudo chmod -R 775 storage
+   sudo chmod -R 775 bootstrap/cache
+
+5. Make Python script executable (optional but recommended):
+
+   chmod +x scripts/import_marc.py
+
+6. Verify permissions:
+
+   ls -la storage/
+   ls -la bootstrap/cache/
+
+   You should see www-data as the owner and permissions showing rwxrwxr-x
+
+================================================================================
+STEP 4: CONFIGURE ENVIRONMENT VARIABLES
+================================================================================
+
+1. Edit your .env file:
+
+   nano .env
+
+   OR
+
+   vim .env
+
+2. Add or update the following lines:
+
+   PYTHON_EXE=python3
+
+   If you need to specify the full path:
+
+   PYTHON_EXE=/usr/bin/python3
+
+3. Verify your database credentials are correct in .env:
+
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=dls_project
+   DB_USERNAME=root
+   DB_PASSWORD=your_password
+
+4. Save and exit:
+
+   Press Ctrl+X, then Y, then Enter (for nano)
+   Press Esc, type :wq, press Enter (for vim)
+
+================================================================================
+STEP 5: CONFIGURE WEB SERVER ENVIRONMENT
+================================================================================
+
+FOR NGINX WITH PHP-FPM:
+-----------------------
+
+1. Find your PHP-FPM version:
+
+   php -v
+
+2. Edit PHP-FPM pool configuration:
+
+   sudo nano /etc/php/8.1/fpm/pool.d/www.conf
+
+   OR for PHP 8.2:
+
+   sudo nano /etc/php/8.2/fpm/pool.d/www.conf
+
+3. Add or modify these lines in the [www] section:
+
+   env[PATH] = /usr/local/bin:/usr/bin:/bin
+   env[DB_HOST] = $DB_HOST
+   env[DB_USERNAME] = $DB_USERNAME
+   env[DB_PASSWORD] = $DB_PASSWORD
+   env[DB_DATABASE] = $DB_DATABASE
+
+4. Save and exit
+
+5. Restart PHP-FPM:
+
+   sudo systemctl restart php8.1-fpm
+
+   OR for PHP 8.2:
+
+   sudo systemctl restart php8.2-fpm
+
+6. Verify PHP-FPM is running:
+
+   sudo systemctl status php8.1-fpm
+
+
+FOR APACHE:
+-----------
+
+1. Edit your virtual host configuration:
+
+   sudo nano /etc/apache2/sites-available/your-site.conf
+
+2. Add these lines inside the <VirtualHost> block:
+
+   SetEnv PATH /usr/local/bin:/usr/bin:/bin
+   SetEnv PYTHONPATH /usr/lib/python3/dist-packages
+
+3. Save and exit
+
+4. Restart Apache:
+
+   sudo systemctl restart apache2
+
+5. Verify Apache is running:
+
+   sudo systemctl status apache2
+
+================================================================================
+STEP 6: RUN DATABASE MIGRATIONS
+================================================================================
+
+1. Navigate to project root:
+
+   cd /var/www/your-project
+
+2. Run migrations:
+
+   php artisan migrate
+
+   This will create or update the catalogs table with necessary indexes.
+
+3. Verify the table exists:
+
+   mysql -u root -p
+
+   Enter your MySQL password, then:
+
+   USE dls_project;
+   SHOW TABLES;
+   DESCRIBE catalogs;
+   SHOW INDEX FROM catalogs;
+   exit;
+
+   You should see the catalogs table with FULLTEXT index.
+
+================================================================================
+STEP 7: TEST PYTHON SCRIPT MANUALLY
+================================================================================
+
+1. Download or prepare a test MARC file (e.g., test.mrc)
+
+2. Navigate to project directory:
+
+   cd /var/www/your-project
+
+3. Run the import script directly:
+
+   python3 scripts/import_marc.py /path/to/test.mrc
+
+4. Expected output:
+
+   MARC Import Started: /path/to/test.mrc
+   Delete missing records: No
+   ℹ️ Parsed records: X | Unique keys: Y | Potential merges: Z
+   ✅ Import completed - Inserted: X, Updated: Y, Unchanged: Z, Errors: 0, Deleted: 0
+   ✅ Catalog synchronization complete.
+   IMPORT_SUMMARY:{...json...}
+
+5. Check the log file:
+
+   cat storage/logs/marc_imports/marc_import_*.log
+
+   You should see detailed import information.
+
+6. If there are errors, check:
+
+   - Python is installed: python3 --version
+   - Packages are installed: pip3 list | grep pymarc
+   - Database credentials are correct in .env
+   - Database is running: sudo systemctl status mysql
+
+================================================================================
+STEP 8: TEST THROUGH WEB INTERFACE
+================================================================================
+
+1. Open your browser and navigate to your Laravel application
+
+2. Log in as an administrator
+
+3. Navigate to the MARC Import page (usually /admin/import or similar)
+
+4. Upload a small MARC file (.mrc extension)
+
+5. Click the Import button
+
+6. Wait for the import to complete
+
+7. You should see a success message with statistics:
+
+   "MARC import finished. Added: X, Updated: Y, Unchanged: Z, Deleted: 0. 
+    Parsed: X, Unique: Y."
+
+8. Navigate to the catalog page to verify imported records appear
+
+9. Check the import logs page to see the detailed log entry
+
+================================================================================
+STEP 9: VERIFY SYSTEM IS WORKING
+================================================================================
+
+1. Check Laravel logs for any errors:
+
+   tail -f storage/logs/laravel.log
+
+   Press Ctrl+C to exit
+
+2. Check MARC import logs:
+
+   ls -lh storage/logs/marc_imports/
+   cat storage/logs/marc_imports/marc_import_*.log
+
+3. Check database records:
+
+   mysql -u root -p
+   USE dls_project;
+   SELECT COUNT(*) FROM catalogs;
+   SELECT * FROM catalogs LIMIT 5;
+   exit;
+
+4. Test catalog search functionality:
+
+   - Navigate to the catalog search page
+   - Search for a known title or author
+   - Verify results appear correctly
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+ISSUE: "python3: command not found"
+------------------------------------
+Solution:
+   sudo apt install python3
+   which python3
+   # Update .env with full path
+   PYTHON_EXE=/usr/bin/python3
+
+
+ISSUE: "ModuleNotFoundError: No module named 'pymarc'"
+------------------------------------------------------
+Solution:
+   pip3 install pymarc mysql-connector-python
+   # OR system-wide:
+   sudo pip3 install pymarc mysql-connector-python
+   # Verify:
+   python3 -c "import pymarc"
+
+
+ISSUE: "Permission denied" when creating log files
+---------------------------------------------------
+Solution:
+   cd /var/www/your-project
+   sudo chown -R www-data:www-data storage
+   sudo chmod -R 775 storage
+   # Verify:
+   ls -la storage/
+
+
+ISSUE: "Can't connect to MySQL server"
+---------------------------------------
+Solution:
+   # Check MySQL is running:
+   sudo systemctl status mysql
+   # Start if stopped:
+   sudo systemctl start mysql
+   # Check credentials in .env are correct
+   # Test connection:
+   mysql -h 127.0.0.1 -u root -p
+
+
+ISSUE: Import works in terminal but not through web interface
+--------------------------------------------------------------
+Solution:
+   # Ensure PHP-FPM has access to Python
+   sudo nano /etc/php/8.1/fpm/pool.d/www.conf
+   # Add these lines:
+   env[PATH] = /usr/local/bin:/usr/bin:/bin
+   # Restart PHP-FPM:
+   sudo systemctl restart php8.1-fpm
+   # Check Laravel logs:
+   tail -f storage/logs/laravel.log
+
+
+ISSUE: "Process timeout" or "Maximum execution time exceeded"
+--------------------------------------------------------------
+Solution:
+   # Edit php.ini for PHP-FPM:
+   sudo nano /etc/php/8.1/fpm/php.ini
+   # Update these values:
+   max_execution_time = 300
+   memory_limit = 512M
+   # Restart PHP-FPM:
+   sudo systemctl restart php8.1-fpm
+
+
+ISSUE: FULLTEXT index errors
+-----------------------------
+Solution:
+   # Check MySQL/MariaDB version:
+   mysql --version
+   # FULLTEXT requires MySQL 5.7+ or MariaDB 10.2+
+   # Manually add index if needed:
+   mysql -u root -p
+   USE dls_project;
+   ALTER TABLE catalogs 
+   ADD FULLTEXT fulltext_catalog_search 
+   (title, subjects, additional_details, author, publisher);
+   exit;
+
+
+ISSUE: Large file imports fail
+-------------------------------
+Solution:
+   # Increase PHP upload limits:
+   sudo nano /etc/php/8.1/fpm/php.ini
+   # Update:
+   upload_max_filesize = 100M
+   post_max_size = 100M
+   max_execution_time = 600
+   # Restart PHP-FPM:
+   sudo systemctl restart php8.1-fpm
+   
+   # Also check Nginx client_max_body_size:
+   sudo nano /etc/nginx/nginx.conf
+   # Add in http block:
+   client_max_body_size 100M;
+   # Restart Nginx:
+   sudo systemctl restart nginx
+
+================================================================================
+OPTIONAL: SETUP QUEUE WORKER FOR LARGE IMPORTS
+================================================================================
+
+For very large MARC files (10,000+ records), consider using Laravel queues:
+
+1. Update .env:
+
+   QUEUE_CONNECTION=database
+
+2. Run queue migration:
+
+   php artisan queue:table
+   php artisan migrate
+
+3. Create systemd service:
+
+   sudo nano /etc/systemd/system/laravel-worker.service
+
+4. Add this content:
+
+   [Unit]
+   Description=Laravel Queue Worker
+   After=network.target
+   
+   [Service]
+   User=www-data
+   Group=www-data
+   Restart=always
+   ExecStart=/usr/bin/php /var/www/your-project/artisan queue:work --sleep=3 --tries=3 --timeout=3600
+   
+   [Install]
+   WantedBy=multi-user.target
+
+5. Save and exit
+
+6. Enable and start the service:
+
+   sudo systemctl enable laravel-worker
+   sudo systemctl start laravel-worker
+   sudo systemctl status laravel-worker
+
+7. Monitor queue worker logs:
+
+   sudo journalctl -u laravel-worker -f
+
+================================================================================
+SECURITY RECOMMENDATIONS
+================================================================================
+
+1. Restrict Python script permissions:
+
+   chmod 750 scripts/import_marc.py
+   chown www-data:www-data scripts/import_marc.py
+
+2. Secure storage directory:
+
+   chmod 750 storage
+   chmod 640 storage/logs/marc_imports/*.log
+
+3. Use strong database passwords in .env
+
+4. Keep .env file secure:
+
+   chmod 600 .env
+   chown www-data:www-data .env
+
+5. Keep Python and packages updated:
+
+   sudo apt update
+   sudo apt upgrade python3 python3-pip
+   pip3 install --upgrade pymarc mysql-connector-python
+
+6. Enable firewall:
+
+   sudo ufw allow 22/tcp
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   sudo ufw enable
+
+================================================================================
+MAINTENANCE
+================================================================================
+
+CLEAN OLD LOG FILES:
+--------------------
+   # Delete logs older than 30 days:
+   find storage/logs/marc_imports/ -name "*.log" -mtime +30 -delete
+
+BACKUP DATABASE BEFORE LARGE IMPORTS:
+--------------------------------------
+   mysqldump -u root -p dls_project > backup_$(date +%Y%m%d).sql
+
+MONITOR DISK SPACE:
+-------------------
+   df -h
+   du -sh storage/logs/marc_imports/
+
+UPDATE PYTHON PACKAGES:
+-----------------------
+   pip3 install --upgrade pymarc mysql-connector-python
+
+CHECK SYSTEM LOGS:
+------------------
+   tail -f storage/logs/laravel.log
+   tail -f /var/log/nginx/error.log
+   tail -f /var/log/php8.1-fpm.log
+
+================================================================================
+CHECKLIST FOR SUCCESSFUL DEPLOYMENT
+================================================================================
+
+[ ] Python 3 installed and accessible
+[ ] pymarc and mysql-connector-python packages installed
+[ ] Storage directories created with correct permissions
+[ ] .env file configured with PYTHON_EXE=python3
+[ ] Database credentials in .env are correct
+[ ] Web server (Nginx/Apache) environment configured
+[ ] PHP-FPM pool configuration updated
+[ ] Database migrations run successfully
+[ ] Python script tested manually with sample file
+[ ] Web interface import tested successfully
+[ ] Catalog search functionality verified
+[ ] Import logs are being created and saved
+[ ] System logs checked for errors
+
+================================================================================
+SUPPORT AND ADDITIONAL RESOURCES
+================================================================================
+
+Documentation Location:
+- Full deployment guide: md/MARC_IMPORT_DEPLOYMENT.md
+- This file: md/LINUX_UBUNTU_DEPLOYMENT.txt
+
+Log Files:
+- Laravel logs: storage/logs/laravel.log
+- MARC import logs: storage/logs/marc_imports/
+- PHP-FPM logs: /var/log/php8.1-fpm.log
+- Nginx logs: /var/log/nginx/error.log
+- Apache logs: /var/log/apache2/error.log
+
+Test Commands:
+- Check Python: python3 --version
+- Check packages: pip3 list | grep -E "pymarc|mysql-connector"
+- Check PHP: php -v
+- Check MySQL: mysql --version
+- Check web server: sudo systemctl status nginx (or apache2)
+
+================================================================================
+END OF DEPLOYMENT INSTRUCTIONS
+================================================================================
+
+Last Updated: November 8, 2025
+
+For issues or questions, review the Troubleshooting section above and check
+all log files for detailed error messages.

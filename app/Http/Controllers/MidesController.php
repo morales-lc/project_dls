@@ -7,53 +7,201 @@ use App\Models\MidesDocument;
 
 class MidesController extends Controller
 {
+    public function categoriesPanel()
+    {
+        $categories = \App\Models\MidesCategory::orderBy('type')->orderBy('name')->get();
+        $types = [
+            'Graduate Theses',
+            'Undergraduate Baby Theses',
+            'Senior High School Research Paper',
+        ];
+        return view('mides-categories-panel', compact('categories', 'types'));
+    }
+
+    public function addCategory(Request $request)
+    {
+        $request->validate([
+            'type' => 'required',
+            'name' => 'required|string',
+        ]);
+        \App\Models\MidesCategory::create([
+            'type' => $request->type,
+            'name' => $request->name,
+        ]);
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Category added successfully!')
+            : redirect()->route('mides.categories.panel')->with('success', 'Category added successfully!');
+    }
+
+    public function updateCategory(Request $request, $id)
+    {
+        $cat = \App\Models\MidesCategory::findOrFail($id);
+        $cat->type = $request->type;
+        $cat->name = $request->name;
+        $cat->save();
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Category updated successfully!')
+            : redirect()->route('mides.categories.panel')->with('success', 'Category updated successfully!');
+    }
+
+    public function deleteCategory(Request $request, $id)
+    {
+        $cat = \App\Models\MidesCategory::findOrFail($id);
+        $cat->delete();
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Category deleted successfully!')
+            : redirect()->route('mides.categories.panel')->with('success', 'Category deleted successfully!');
+    }
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'type' => 'required|string',
+            'mides_category_id' => 'nullable|exists:mides_categories,id',
+            'author' => 'required|string|max:255',
+            'year' => 'required|digits:4|integer|min:1980|max:' . date('Y'),
+            'title' => 'required|string|max:500',
+            'pdf' => 'nullable|file|mimes:pdf|max:20480',
+        ], [
+            'author.required' => 'Author name is required.',
+            'author.max' => 'Author name cannot exceed 255 characters.',
+            'year.required' => 'Year is required.',
+            'year.digits' => 'Year must be exactly 4 digits.',
+            'year.min' => 'Year cannot be earlier than 1980.',
+            'year.max' => 'Year cannot be later than the current year.',
+            'title.required' => 'Document title is required.',
+            'title.max' => 'Title cannot exceed 500 characters.',
+            'pdf.mimes' => 'The file must be a PDF document.',
+            'pdf.max' => 'PDF file size cannot exceed 20MB.',
+        ]);
+
+        $doc = MidesDocument::findOrFail($id);
+        $midesCategoryId = $request->input('mides_category_id');
+        if ($midesCategoryId) {
+            $cat = \App\Models\MidesCategory::find($midesCategoryId);
+            if ($cat) {
+                $doc->mides_category_id = $cat->id;
+                $doc->type = $cat->type;
+                if ($cat->type === 'Senior High School Research Paper') {
+                    $doc->program = $cat->name;
+                    $doc->category = null;
+                } else {
+                    $doc->category = $cat->name;
+                    $doc->program = null;
+                }
+            }
+        } else {
+            $doc->type = $request->input('type');
+            $category_program = $request->input('category_program');
+            if ($doc->type === 'Graduate Theses') {
+                $doc->category = $category_program;
+                $doc->program = null;
+            } elseif ($doc->type === 'Undergraduate Baby Theses') {
+                $doc->category = $category_program;
+                $doc->program = null;
+            } elseif ($doc->type === 'Senior High School Research Paper') {
+                $doc->program = $category_program;
+                $doc->category = null;
+            } else {
+                $doc->category = null;
+                $doc->program = null;
+            }
+        }
+        
+        $doc->author = $request->author;
+        $doc->year = $request->year;
+        $doc->title = $request->title;
+        
+        if ($request->hasFile('pdf')) {
+            $pdf = $request->file('pdf');
+            $originalName = $pdf->getClientOriginalName();
+            $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
+            $doc->pdf_path = $pdfPath;
+        }
+        
+        $doc->save();
+        
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Document updated successfully!')
+            : redirect()->route('mides.management')->with('success', 'Document updated successfully!');
+    }
+
+    public function destroy(Request $request, $id)
+    {
+        $doc = MidesDocument::findOrFail($id);
+        $doc->delete();
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Document deleted successfully!')
+            : redirect()->back()->with('success', 'Document deleted successfully!');
+    }
+    
     public function index()
     {
-        $query = MidesDocument::query();
+        $query = MidesDocument::with('midesCategory');
 
         // Search
         $search = request('search');
         if ($search) {
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
-                  ->orWhere('author', 'like', "%$search%")
-                  ->orWhere('year', 'like', "%$search%")
-                  ->orWhere('category', 'like', "%$search%")
-                  ->orWhere('program', 'like', "%$search%")
-                  ->orWhere('type', 'like', "%$search%") ;
+                    ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('year', 'like', "%$search%")
+                    ->orWhere('type', 'like', "%$search%");
+            })->orWhereHas('midesCategory', function ($q) use ($search) {
+                $q->where('name', 'like', "%$search%");
             });
         }
 
-        // Filter by type
+        // Filter by type or by selected mides_category_id
         $type = request('type');
-        if ($type) {
-            $query->where('type', $type);
+        $midesCategoryId = request('mides_category_id');
+        if ($midesCategoryId) {
+            $query->where('mides_category_id', $midesCategoryId);
+        } elseif ($type) {
+            // Keep backward compatibility: filter by raw type column or related category.type
+            $query->where(function ($q) use ($type) {
+                $q->where('type', $type)
+                    ->orWhereHas('midesCategory', function ($q2) use ($type) {
+                        $q2->where('type', $type);
+                    });
+            });
         }
 
         // Sorting
         $sort = request('sort', 'year');
-        $direction = request('direction', 'desc');
-        $query->orderBy($sort, $direction);
+        if ($sort === 'latest') {
+            $query->orderBy('created_at', 'desc');
+        } elseif ($sort === 'oldest') {
+            $query->orderBy('created_at', 'asc');
+        } else {
+            $direction = request('direction', 'desc');
+            $query->orderBy($sort, $direction);
+        }
 
         $documents = $query->paginate(12)->appends(request()->query());
         $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
 
-        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'direction'));
+        // Build lookup arrays for type and category/program names
+        $typeNames = [];
+        $categoryNames = [];
+        foreach (\App\Models\MidesCategory::all() as $cat) {
+            $typeNames[$cat->type] = $cat->type; // type is already readable
+            $categoryNames[$cat->type][$cat->id] = $cat->name;
+        }
+
+        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'typeNames', 'categoryNames'));
     }
 
     public function create()
     {
-    $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
-    $graduateCategories = \App\Models\MidesCategory::where('type', 'Graduate Theses')->pluck('name');
-    $undergradPrograms = \App\Models\MidesCategory::where('type', 'Undergraduate Baby Theses')->pluck('name');
-        $seniorHighPrograms = [
-            'Accountancy, Business and Management (ABM)',
-            'Humanities and Social Sciences Strand (HUMSS)',
-            'Science, Technology, Engineering and Mathematics (STEM)',
-            'Technical-Vocational-Livelihood (TVL)',
-            'Information Computer Technology',
-            'Culinary Arts',
-        ];
+        $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
+        $graduateCategories = \App\Models\MidesCategory::where('type', 'Graduate Theses')->get();
+        $undergradPrograms = \App\Models\MidesCategory::where('type', 'Undergraduate Baby Theses')->get();
+        $seniorHighPrograms = \App\Models\MidesCategory::where('type', 'Senior High School Research Paper')->get();
 
         return view('mides-upload', compact('types', 'graduateCategories', 'undergradPrograms', 'seniorHighPrograms'));
     }
@@ -61,9 +209,8 @@ class MidesController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'type' => 'required',
-            'category' => 'nullable|string',
-            'program' => 'nullable|string',
+            'type' => 'nullable|string',
+            'mides_category_id' => 'nullable|exists:mides_categories,id',
             'author' => 'required|string',
             'year' => 'required|digits:4',
             'title' => 'required|string',
@@ -74,16 +221,41 @@ class MidesController extends Controller
         $originalName = $pdf->getClientOriginalName();
         $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
 
+        $midesCategoryId = $request->input('mides_category_id');
+
+        // Prepare fallback values for older columns for backward compatibility
+        $type = $request->input('type');
+        $category = $request->input('category');
+        $program = $request->input('program');
+
+        if ($midesCategoryId) {
+            $cat = \App\Models\MidesCategory::find($midesCategoryId);
+            if ($cat) {
+                $type = $cat->type;
+                // Set the appropriate legacy fields depending on type
+                if ($cat->type === 'Senior High School Research Paper') {
+                    $program = $cat->name;
+                    $category = null;
+                } else {
+                    $category = $cat->name;
+                    $program = null;
+                }
+            }
+        }
+
         MidesDocument::create([
-            'type' => $request->type,
-            'category' => $request->category,
-            'program' => $request->program,
+            'type' => $type,
+            'category' => $category,
+            'program' => $program,
+            'mides_category_id' => $midesCategoryId,
             'author' => $request->author,
             'year' => $request->year,
             'title' => $request->title,
             'pdf_path' => $pdfPath,
         ]);
-
-        return redirect()->route('mides.management')->with('success', 'Document uploaded successfully!');
+        $returnUrl = $request->input('return_url');
+        return $returnUrl
+            ? redirect($returnUrl)->with('success', 'Document uploaded successfully!')
+            : redirect()->route('mides.management')->with('success', 'Document uploaded successfully!');
     }
 }

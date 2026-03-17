@@ -4,287 +4,580 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
+
+    <style>
+        /* Logo animation */
+        .nav-logo-animate:hover {
+            transform: scale(1.13) rotate(-2deg);
+        }
+
+        /* Navbar link styling */
+        .navbar-nav .nav-link {
+            transition: transform 0.25s cubic-bezier(.4, 1.6, .6, 1), background 0.2s, color 0.2s;
+            border-radius: 8px;
+            letter-spacing: 0.3px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            transform: scale(1.05);
+            background: #c2185b;
+            color: #fff !important;
+        }
+
+        .navbar-nav .nav-link.active {
+            background: #fff;
+            color: #e83e8c !important;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(232, 62, 140, 0.08);
+        }
+
+        /* Dropdown item hover */
+        .dropdown-menu .dropdown-item:hover {
+            background-color: #c2185b !important;
+            color: #fff !important;
+        }
+
+        /* Profile image style */
+        .profile-pic {
+            border: 2px solid #fff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+
+        .profile-pic:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* ===========================
+   DESKTOP DROPDOWNS
+   =========================== */
+        @media (min-width: 992px) {
+            .navbar .dropdown-menu {
+                opacity: 0;
+                visibility: hidden;
+                transform: translateY(10px);
+                transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease;
+                margin-top: 0.4rem;
+                border-radius: 10px;
+                border: none;
+                box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+                padding: 0.5rem 0.4rem;
+                background: #fff;
+            }
+
+            /* ✅ Hover zone fix */
+            .navbar .dropdown:hover::before {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                height: 12px;
+                background: transparent;
+            }
+
+            .navbar .dropdown:hover>.dropdown-menu,
+            .navbar .dropdown-menu:hover {
+                display: block;
+                opacity: 1;
+                visibility: visible;
+                transform: translateY(0);
+                pointer-events: auto;
+            }
+
+            .navbar .dropdown-menu {
+                pointer-events: none;
+            }
+
+            .navbar .dropdown:hover>.dropdown-menu {
+                pointer-events: auto;
+            }
+
+            .navbar .dropdown:hover>.dropdown-toggle::after {
+                transform: rotate(180deg);
+                transition: transform 0.2s ease;
+            }
+        }
+
+        /* ===========================
+   MOBILE DROPDOWNS
+   =========================== */
+        @media (max-width: 991.98px) {
+            .navbar .dropdown-menu {
+                position: static !important;
+                float: none !important;
+                display: none;
+                margin: 0;
+                padding: 0.25rem 0;
+                border: none !important;
+                box-shadow: none !important;
+                background: transparent !important;
+                width: 100%;
+            }
+
+            .navbar .dropdown.show>.dropdown-menu {
+                display: block;
+            }
+
+            .navbar .dropdown .dropdown-item {
+                color: #fff !important;
+                padding-left: 1.1rem;
+                padding-right: 1.1rem;
+            }
+
+            .navbar .dropdown .dropdown-item:hover,
+            .navbar .dropdown .dropdown-item:focus {
+                background: rgba(255, 255, 255, 0.06);
+                color: #fff !important;
+            }
+
+            .navbar .dropdown-toggle::after {
+                float: right;
+                transition: transform .2s ease;
+                margin-left: .5rem;
+            }
+
+            .navbar .dropdown.show>.dropdown-toggle::after {
+                transform: rotate(180deg);
+            }
+
+            .navbar-collapse {
+                padding-top: .5rem;
+                padding-bottom: .5rem;
+            }
+
+            .navbar-nav .nav-link {
+                font-size: 1rem;
+                font-weight: 500;
+                color: #fff !important;
+                padding: 0.75rem 1rem;
+                text-align: left;
+                border-radius: 6px;
+                transition: background 0.25s ease;
+            }
+
+            .navbar-nav .nav-link:hover,
+            .navbar-nav .nav-link.active {
+                transform: scale(1.05);
+                background: #c2185b;
+                color: #fff !important;
+                font-weight: 600;
+                box-shadow: 0 3px 10px rgba(194, 24, 91, 0.25);
+            }
+
+            #navbarCloseBtn {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.9rem;
+                border: 1px solid rgba(255, 255, 255, 0.7);
+                color: #fff;
+            }
+
+            #navbarCloseBtn i {
+                font-size: 1rem;
+                margin-right: 0.3rem;
+            }
+        }
+
+        /* ===========================
+   DROPDOWN MENU ITEMS
+   =========================== */
+        .dropdown-menu .dropdown-item {
+            padding: 0.65rem 1.25rem;
+            border-radius: 6px;
+            color: #333;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-menu .dropdown-item:hover,
+        .dropdown-menu .dropdown-item:focus {
+            background-color: #e83e8c !important;
+            color: #fff !important;
+            transform: translateX(4px);
+        }
+
+        .dropdown-menu .dropdown-item.active {
+            background-color: #c2185b !important;
+            color: #fff !important;
+        }
+
+        /* Divider lines */
+        .dropdown-menu li:not(:last-child) {
+            border-bottom: 1px solid rgba(51, 51, 51, 0.08);
+        }
+
+        /* ===========================
+   LOGOUT BUTTON STYLE 🔴
+   =========================== */
+        .dropdown-menu .dropdown-item.logout {
+            background: #dc3545 !important;
+            /* red */
+            color: #fff !important;
+            font-weight: 600;
+            justify-content: center;
+            border-radius: 6px;
+            margin-top: 0.4rem;
+            box-shadow: 0 2px 6px rgba(220, 53, 69, 0.35);
+            transition: all 0.25s ease;
+        }
+
+        .dropdown-menu .dropdown-item.logout:hover {
+            background: #c82333 !important;
+            transform: scale(1.03);
+            box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+        }
+
+        /* ===========================
+   BRAND ANIMATION
+   =========================== */
+        .navbar-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: transform 0.35s cubic-bezier(.68, -0.55, .27, 1.55), text-shadow 0.35s ease;
+        }
+
+        .navbar-brand:hover {
+            transform: scale(1.1) translateY(-3px);
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+        }
+
+        .navbar-brand img {
+            transition: box-shadow 0.35s ease;
+        }
+
+        .navbar-brand:hover img {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Bookmark badge fix (scoped to navbar to avoid leaking to page content) */
+        .navbar .bg-pink {
+            background-color: #e83e8c !important;
+        }
+
+        .navbar .badge.bg-pink {
+            color: #fff !important;
+            font-weight: 600;
+            font-size: 0.8rem;
+            box-shadow: 0 1px 4px rgba(232, 62, 140, 0.4);
+        }
+
+        .navbar .dropdown-item .badge {
+            margin-left: auto;
+            opacity: 1 !important;
+            visibility: visible !important;
+        }
+    </style>
+
+
+
+
 </head>
 
 <body>
 
+    <nav class="navbar navbar-expand-lg navbar-dark px-3" style="background-color: #e83e8c !important;">
+        <div class="container-fluid">
+            <!-- Logo and Brand -->
+            <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{{ (Auth::check() && Auth::user()->role === 'guest') ? route('guest.dashboard') : route('dashboard') }}">
+                <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38"
+                    class="rounded" style="background:#fff; padding:2px;">
+                <span class="d-none d-md-inline">LC MIDES Digital Library</span>
+            </a>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-pink px-4">
-        <a class="navbar-brand fw-bold text-white" href="{{ route("dashboard") }}">Logo here</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav mx-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link active" href="{{ route('dashboard') }}">Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="{{ route("about") }}">About</a></li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Libraries
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#wileyModal">WILEY E-BOOKS</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#galeModal">GALE</a></li>
-                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#proquestModal">ProQuest</a></li>
+            <!-- Toggler -->
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
+            <!-- Navbar Links -->
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <!-- Mobile Close Button -->
+                <button id="navbarCloseBtn" class="btn btn-outline-light d-lg-none ms-auto mb-2" type="button" style="border-radius:8px;">
+                    <i class="bi bi-x-lg"></i> Close
+                </button>
+                @php $isGuest = Auth::check() && Auth::user()->role === 'guest'; @endphp
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 text-center">
+                    @if($isGuest)
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('guest.dashboard') ? 'active' : '' }}" href="{{ route('guest.dashboard') }}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('mides.*') ? 'active' : '' }}" href="{{ route('mides.dashboard') }}">MIDES</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('sidlak.*') ? 'active' : '' }}" href="{{ route('sidlak.index') }}">SIDLAK</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">E‑Libraries</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a>
+                    </li>
+                    @else
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Home</a>
+                    </li>
 
+                    <!-- About Dropdown -->
+                    <li class="nav-item dropdown {{ request()->routeIs('about*','feedback.form') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('about*','feedback.form') ? 'active' : '' }}" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('about*','feedback.form') ? 'true' : 'false' }}">
+                            About
+                        </a>
+                        <ul class="dropdown-menu {{ request()->routeIs('about*','feedback.form') ? 'show' : '' }}" aria-labelledby="aboutDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">Mission & Vision</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('about.contact') ? 'active' : '' }}" href="{{ route('about.contact') }}">Contact Us</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('feedback.form') ? 'active' : '' }}" href="{{ route('feedback.form') }}">Feedback</a></li>
+                        </ul>
+                    </li>
 
+                    <!-- Libraries Dropdown -->
+                    <li class="nav-item dropdown {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'active' : '' }}" href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'true' : 'false' }}">
+                            Libraries
+                        </a>
+                        <ul class="dropdown-menu {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show' : '' }}" aria-labelledby="librariesDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}" href="{{ route('libraries.ibed') }}">K-10 Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}" href="{{ route('libraries.college') }}">College Library</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
+                            @auth
+                            <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online Libraries</a></li>
+                            @endauth
+                        </ul>
+                    </li>
+
+                    <!-- Services Dropdown -->
+                    <li class="nav-item dropdown {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'active' : '' }}" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'true' : 'false' }}">
+                            Services
+                        </a>
+                        <ul class="dropdown-menu {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show' : '' }}" aria-labelledby="servicesDropdown">
+                            @auth
+                            <li><a class="dropdown-item {{ request()->routeIs('lira.form') ? 'active' : '' }}" href="{{ route('lira.form') }}">LiRA</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('alert-services.*') ? 'active' : '' }}" href="{{ route('alert-services.index') }}">Alert Services</a></li>
+                            @endauth
+                            <li><a class="dropdown-item {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('book.borrowing') ? 'active' : '' }}" href="{{ route('book.borrowing') }}">Book Borrowing</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('scanning.services') ? 'active' : '' }}" href="{{ route('scanning.services') }}">Scanning Services</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('learning-spaces') ? 'active' : '' }}" href="{{ route('learning-spaces') }}">Learning Spaces</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('netzone') ? 'active' : '' }}" href="{{ route('netzone') }}">Netzone</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- E-Resources Dropdown -->
+                    @auth
+                    <li class="nav-item dropdown {{ request()->routeIs('mides.*','sidlak.*') ? 'show active' : '' }}">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.*','sidlak.*') ? 'active' : '' }}" href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('mides.*','sidlak.*') ? 'true' : 'false' }}">
+                            Electronic Resources
+                        </a>
+                        <ul class="dropdown-menu {{ request()->routeIs('mides.*','sidlak.*') ? 'show' : '' }}" aria-labelledby="eresourcesDropdown">
+                            <li><a class="dropdown-item {{ request()->routeIs('mides.*') ? 'active' : '' }}" href="{{ route('mides.dashboard') }}">MIDES Repository</a></li>
+                            <li><a class="dropdown-item {{ request()->routeIs('sidlak.*') ? 'active' : '' }}" href="{{ route('sidlak.index') }}">SIDLAK</a></li>
+                        </ul>
+                    </li>
+                    @endauth
+                    @endif
+                </ul>
+
+                <!-- Profile / Login -->
+                <div class="d-flex align-items-center justify-content-center justify-content-lg-end mt-3 mt-lg-0">
+                    @if(session()->has('login') || Auth::check())
+                    @php
+                    $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
+                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                    $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
+                    $isGuest = Auth::check() && Auth::user()->role === 'guest';
+                    @endphp
+
+                    @if($isGuest)
+                    <!-- Guest: show only Logout button, no profile picture or dropdown -->
+                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light ms-2">
+                            <i class="bi bi-box-arrow-right me-2"></i>Logout
+                        </button>
+                    </form>
+                    @else
+                    <ul class="navbar-nav mb-0">
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}"
+                                    alt="Profile" class="rounded-circle profile-pic" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
+                                <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
+                                <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
+                                @php
+                                // Sidebar logic for bookmark count
+                                $sf = Auth::user()->studentFaculty ?? null;
+                                $bookmarkCount = 0;
+                                if ($sf) {
+                                try {
+                                $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
+                                } catch (\Throwable $e) {
+                                $bookmarkCount = 0;
+                                }
+                                }
+                                @endphp
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('bookmarks.index') }}">
+                                        <i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items
+                                        @if($bookmarkCount > 0)
+                                        <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $bookmarkCount }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                                <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
+                                <li>
+                                    <form method="POST" action="{{ route('logout') }}">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item logout">
+                                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
                     </ul>
-
-
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Services
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
-                        <li><a class="dropdown-item" href="#">LiRA</a></li>
-                        <li><a class="dropdown-item" href="#">MIDES Repository</a></li>
-                        <li><a class="dropdown-item" href="#">Alert Services</a></li>
-                        <li><a class="dropdown-item" href="#">ALINET</a></li>
-                        <li><a class="dropdown-item" href="#">Book borrowing</a></li>
-                        <li><a class="dropdown-item" href="#">Information Literacy Alert Schedule</a></li>
-                        <li><a class="dropdown-item" href="#">Scanning Services</a></li>
-                    </ul>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        Electronic Resources
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="eresourcesDropdown">
-                        <li><a class="dropdown-item" href="{{ route('mides.dashboard') }}">MIDES repository</a></li>
-                        <li><a class="dropdown-item" href="#">SIDLAk</a></li>
-                    </ul>
-                </li>
-            </ul>
-            <div class="d-flex align-items-center text-white">
-                @php
-                $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
-                $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
-                @endphp
-                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}" alt="Profile Picture" class="rounded-circle me-2" width="36" height="36">
-                <div class="d-flex flex-column">
-                    <span class="fw-bold">{{ $fullName ?: Auth::user()->name }}</span>
-                    <a href="{{ route('profile') }}" class="text-white-50 text-decoration-underline small">View profile</a>
+                    @endif
+                    @else
+                    <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>
+                    @endif
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Wiley Instructions Modal -->
-    <!-- Wiley Instructions Modal -->
-    <div class="modal fade" id="wileyModal" tabindex="-1" aria-labelledby="wileyModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-light">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="wileyModalLabel">Wiley E-Books Access</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ol>
-                        <li>Click this link: <a href="https://onlinelibrary.wiley.com/action/ssostart?redirectUri=%2F#" target="_blank">Wiley Login Page</a></li>
-                        <li>On the Wiley page, click <strong>"enter the credentials here."</strong></li>
-                        <li>Enter the following credentials:</li>
-                    </ol>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-                    <div class="bg-white p-3 rounded border mb-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <strong class="me-2">Username:</strong>
-                            <code id="wileyUsername">lourdescollege</code>
-                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('wileyUsername')">Copy</button>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <strong class="me-2">Password:</strong>
-                            <code id="wileyPassword">Wiley12345!</code>
-                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('wileyPassword')">Copy</button>
-                        </div>
-                    </div>
-
-                    <p class="small mb-1"><strong>Optional:</strong> Drag this button to your bookmarks bar for 1-click Wiley login:</p>
-                    <a class="btn btn-sm btn-warning"
-                        href="javascript:(function(){
-                                    var USER='lourdescollege', PASS='Wiley12345!', submitted=false, deadline=Date.now()+15000;
-                                    function fire(el){['input','change','keyup','blur'].forEach(e=>{try{el.dispatchEvent(new Event(e,{bubbles:true}));}catch(_){}});}
-                                    function fU(doc){
-                                    return doc.querySelector('#institution-username, input[name=login], input.login[type=text]');
-                                    }
-                                    function fP(doc){
-                                    return doc.querySelector('#institution-password, input[name=password], input[type=password]');
-                                    }
-                                    function clickSubmit(doc){
-                                    var btn=doc.querySelector('input.button.btn.submit.primary.no-margin-bottom.accessSubmit');
-                                    if(btn){btn.click();return true;}
-                                    var fallback=doc.querySelector('button[type=submit], input[type=submit]');
-                                    if(fallback){fallback.click();return true;}
-                                    var form=doc.querySelector('form');
-                                    if(form){form.submit();return true;}
-                                    return false;
-                                    }
-                                    function tryDoc(doc){
-                                    var u=fU(doc), p=fP(doc);
-                                    if(u && !u.value){u.focus();u.value=USER;fire(u);}
-                                    if(p && !p.value){p.focus();p.value=PASS;fire(p);}
-                                    if((u||p) && p && !submitted){submitted=clickSubmit(doc);}
-                                    return !!(u||p);
-                                    }
-                                    function tick(){
-                                    var ok=tryDoc(document);
-                                    document.querySelectorAll('iframe').forEach(fr=>{try{if(fr.contentDocument)ok=tryDoc(fr.contentDocument)||ok;}catch(e){}});
-                                    if(Date.now()<deadline && !submitted){setTimeout(tick,300);}else if(!ok){alert('Wiley username/password fields not found. Make sure you are on the Wiley login page.');}
-                                    }
-                                    tick();
-                                })();">
-                        📚 Wiley Auto Login
-                    </a>
-
-
-                    <p class="small text-muted mt-1">To install: drag this button to your bookmarks bar.</p>
-                </div>
-                <div class="modal-footer">
-                    <a href="https://onlinelibrary.wiley.com/action/ssostart?redirectUri=%2F#" target="_blank" class="btn btn-success">Proceed to Wiley Login Page</a>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- GALE Instructions Modal -->
-    <div class="modal fade" id="galeModal" tabindex="-1" aria-labelledby="galeModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-light">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="galeModalLabel">GALE Access</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ol>
-                        <li>Click this link: <a href="https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2FLC-GaleDatabase%3Ffbclid%3DIwZXh0bgNhZW0CMTAAYnJpZBExSVdkczA0VXhzbDcyOXo0dAEenq4sfyObtsfMJsl8YLOWOs01YYucU1_4kh050yerk9h5OM7GgnWyb64nbOo_aem_3Jq5Mkjs8CqIhyLIFFo3LQ&h=AT3EN7SnlMk-nuwNWcqbLnDgaDmb9zaEL5I1AwDKTHnAEn182QAbRbA4G3cggSWhkjgGEltLZWrmS_4Wv9GCz817nnNGxTSq1FAr5WjT5W16jhEy51bmtR3vcQGp-P6wx_txgGGe4QpASFFJ&__tn__=-UK-R&c[0]=AT0g4ibse3_TS5OCr7V8w7m4y7saiPzoXJ_L8861HAPPcrNbadMhSW9Ra78bxT9KHvoSSfrL0yW5BOsGDUkZggQ97UgbEwynZXS3TzdujHgCJJSSYMDBxsZ01Z88tlEkwrR5Vacy18D4gBU969zRhm7vam8yClFfupO8ZxAlTD2rSoPaCrIruemoRE2pdJEeZ9G-CDE6u_zHgIWjUQj6whzE" target="_blank">Open GALE</a></li>
-                        <li>If prompted, enter the password below, or use the bookmarklet to auto-fill it.</li>
-                    </ol>
-
-                    <div class="bg-white p-3 rounded border mb-3">
-                        <div class="d-flex align-items-center">
-                            <strong class="me-2">Password:</strong>
-                            <code id="galePassword">discover</code>
-                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('galePassword')">Copy</button>
-                        </div>
-                    </div>
-
-                    <p class="small mb-1"><strong>Optional:</strong> Drag this button to your bookmarks bar for 1-click GALE login:</p>
-                    <a class="btn btn-sm btn-warning"
-                        href="javascript:(function(){var passField=document.querySelector('input[type=%22password%22], input[name=%22password%22]');if(passField){passField.value='discover';passField.dispatchEvent(new Event('input',{bubbles:true}));var form=passField.closest('form');if(form){form.submit();}else{var btn=document.querySelector('button[type=%22submit%22], input[type=%22submit%22]');if(btn)btn.click();}}else{alert('Password field not found. Make sure you are on the GALE login page.');}})();">
-                        📚 GALE Auto Login
-                    </a>
-                    <p class="small text-muted mt-1">To install: drag this button to your bookmarks bar.</p>
-                </div>
-                <div class="modal-footer">
-                    <a href="https://l.facebook.com/l.php?u=https%3A%2F%2Fbit.ly%2FLC-GaleDatabase%3Ffbclid%3DIwZXh0bgNhZW0CMTAAYnJpZBExSVdkczA0VXhzbDcyOXo0dAEenq4sfyObtsfMJsl8YLOWOs01YYucU1_4kh050yerk9h5OM7GgnWyb64nbOo_aem_3Jq5Mkjs8CqIhyLIFFo3LQ&h=AT3EN7SnlMk-nuwNWcqbLnDgaDmb9zaEL5I1AwDKTHnAEn182QAbRbA4G3cggSWhkjgGEltLZWrmS_4Wv9GCz817nnNGxTSq1FAr5WjT5W16jhEy51bmtR3vcQGp-P6wx_txgGGe4QpASFFJ&__tn__=-UK-R&c[0]=AT0g4ibse3_TS5OCr7V8w7m4y7saiPzoXJ_L8861HAPPcrNbadMhSW9Ra78bxT9KHvoSSfrL0yW5BOsGDUkZggQ97UgbEwynZXS3TzdujHgCJJSSYMDBxsZ01Z88tlEkwrR5Vacy18D4gBU969zRhm7vam8yClFfupO8ZxAlTD2rSoPaCrIruemoRE2pdJEeZ9G-CDE6u_zHgIWjUQj6whzE" target="_blank" class="btn btn-success">Proceed to GALE</a>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- PROQUEST Instructions Modal -->
-    <div class="modal fade" id="proquestModal" tabindex="-1" aria-labelledby="proquestModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-light">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="proquestModalLabel">ProQuest Access</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ol>
-                        <li>Click this link: <a href="https://www.proquest.com/login" target="_blank">Open ProQuest Login Page</a></li>
-                        <li>Use the credentials below to log in.</li>
-                    </ol>
-
-                    <div class="bg-white p-3 rounded border">
-                        <div class="d-flex align-items-center mb-2">
-                            <strong class="me-2">Username:</strong>
-                            <code id="proquestUsername">lcpqreslib</code>
-                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('proquestUsername')">Copy</button>
-                        </div>
-                        <div class="d-flex align-items-center">
-                            <strong class="me-2">Password:</strong>
-                            <code id="proquestPassword">LCPQ#2023</code>
-                            <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyToClipboard('proquestPassword')">Copy</button>
-                        </div>
-                    </div>
-
-                    <p class="small mt-3"><strong>Optional:</strong> Drag this bookmarklet to auto-fill and submit:</p>
-                    <a class="btn btn-sm btn-warning"
-                        href="javascript:(function(){
-          var USER='lcpqreslib', PASS='LCPQ#2023', submitted=false, deadline=Date.now()+15000;
-          function fire(el){['input','change','keyup','blur'].forEach(e=>{try{el.dispatchEvent(new Event(e,{bubbles:true}));}catch(_){}});}
-          function fU(doc){return doc.querySelector('#username, input[name=\'username\'], input[aria-labelledby=\'username-label\']');}
-          function fP(doc){return doc.querySelector('#password, input[name=\'password\']');}
-          function clickSubmit(doc){
-            var btn=doc.querySelector('button[type=\'submit\'], input[type=\'submit\']');
-            if(btn){btn.click();return true;}
-            var form=doc.querySelector('form');
-            if(form){form.submit();return true;}
-            return false;
-          }
-          function tryDoc(doc){
-            var u=fU(doc), p=fP(doc);
-            if(u && u.id!=='institutionName' && !u.value){u.focus();u.value=USER;fire(u);}
-            if(p && !p.value){p.focus();p.value=PASS;fire(p);}
-            if((u||p) && p && !submitted){submitted=clickSubmit(doc);}
-            return !!(u||p);
-          }
-          function tick(){
-            var ok=tryDoc(document);
-            document.querySelectorAll('iframe').forEach(fr=>{try{if(fr.contentDocument)ok=tryDoc(fr.contentDocument)||ok;}catch(e){}});
-            if(Date.now()<deadline && !submitted){setTimeout(tick,300);}else if(!ok){alert('ProQuest username/password fields not found. Make sure you are on the correct login page.');}
-          }
-          tick();
-        })();">
-                        📚 ProQuest Auto Login
-                    </a>
-                    <p class="small text-muted mt-1">To install: drag this button to your bookmarks bar.</p>
-                </div>
-                <div class="modal-footer">
-                    <a href="https://www.proquest.com/login" target="_blank" class="btn btn-success">Proceed to ProQuest</a>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-
-
-
-
-
-    <!-- Copy Script -->
     <script>
-        function copyToClipboard(elementId) {
-            const text = document.getElementById(elementId).innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Copied: ' + text);
-            }).catch(err => {
-                console.error('Failed to copy text: ', err);
+        document.addEventListener('DOMContentLoaded', function() {
+            const navbarCollapse = document.getElementById('navbarSupportedContent');
+            const navToggler = document.querySelector('.navbar-toggler');
+            const closeBtn = document.getElementById('navbarCloseBtn');
+
+            const bsCollapse = bootstrap.Collapse.getOrCreateInstance(navbarCollapse, {
+                toggle: false
             });
-        }
+
+            function isMobile() {
+                return window.matchMedia('(max-width: 991.98px)').matches;
+            }
+
+            // Close navbar when clicking close button
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    bsCollapse.hide();
+                });
+            }
+
+            // Toggle dropdowns (mobile accordion style)
+            document.querySelectorAll('.navbar .dropdown').forEach(dropdown => {
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                const menu = dropdown.querySelector('.dropdown-menu');
+                if (!toggle) return;
+
+                toggle.addEventListener('click', function(e) {
+                    if (!isMobile()) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const isOpen = dropdown.classList.contains('show');
+
+                    // Close other dropdowns
+                    document.querySelectorAll('.navbar .dropdown.show').forEach(d => {
+                        if (d !== dropdown) {
+                            d.classList.remove('show');
+                            const t = d.querySelector('.dropdown-toggle');
+                            const m = d.querySelector('.dropdown-menu');
+                            if (t) t.setAttribute('aria-expanded', 'false');
+                            if (m) m.classList.remove('show');
+                        }
+                    });
+
+                    if (!isOpen) {
+                        dropdown.classList.add('show');
+                        if (menu) menu.classList.add('show');
+                        toggle.setAttribute('aria-expanded', 'true');
+
+                        // ensure navbar is open if user tapped dropdown directly
+                        if (!navbarCollapse.classList.contains('show')) {
+                            bsCollapse.show();
+                        }
+                    } else {
+                        dropdown.classList.remove('show');
+                        if (menu) menu.classList.remove('show');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            });
+
+            // Close dropdowns when clicking outside navbar (mobile only)
+            document.addEventListener('click', function(e) {
+                if (!isMobile()) return;
+                if (!e.target.closest('.navbar')) {
+                    document.querySelectorAll('.navbar .dropdown.show').forEach(d => {
+                        d.classList.remove('show');
+                        const t = d.querySelector('.dropdown-toggle');
+                        const m = d.querySelector('.dropdown-menu');
+                        if (t) t.setAttribute('aria-expanded', 'false');
+                        if (m) m.classList.remove('show');
+                    });
+                }
+            });
+
+            // Reset dropdowns when navbar is hidden
+            navbarCollapse.addEventListener('hidden.bs.collapse', () => {
+                document.querySelectorAll('.navbar .dropdown.show').forEach(d => {
+                    d.classList.remove('show');
+                    const t = d.querySelector('.dropdown-toggle');
+                    const m = d.querySelector('.dropdown-menu');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                    if (m) m.classList.remove('show');
+                });
+            });
+
+            // Reset dropdowns when resizing to desktop
+            window.addEventListener('resize', () => {
+                if (!isMobile()) {
+                    document.querySelectorAll('.navbar .dropdown.show').forEach(d => {
+                        d.classList.remove('show');
+                        const t = d.querySelector('.dropdown-toggle');
+                        const m = d.querySelector('.dropdown-menu');
+                        if (t) t.setAttribute('aria-expanded', 'false');
+                        if (m) m.classList.remove('show');
+                    });
+                }
+            });
+        });
     </script>
 
-
-    <style>
-        /*drop down*/
-        @media (min-width: 992px) {
-            .navbar-nav .dropdown:hover .dropdown-menu {
-                display: block;
-                margin-top: 0;
+    <!-- Profile dropdown click redirect script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileDropdown = document.getElementById('profileDropdown');
+            if (profileDropdown) {
+                profileDropdown.addEventListener('click', function(e) {
+                    // Only redirect if user clicked the avatar or name, not dropdown items
+                    if (!e.target.closest('.dropdown-menu')) {
+                        window.location.href = "{{ route('profile') }}";
+                    }
+                });
             }
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        });
+    </script>
 
 
 

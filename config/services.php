@@ -39,4 +39,11 @@ return [
         ],
     ],
 
+    // ALINET-specific settings
+    'alinet' => [
+        // Guest account credentials for Online (Virtual) appointments
+        'guest_email' => env('ALINET_GUEST_EMAIL'),
+        'guest_password' => env('ALINET_GUEST_PASSWORD'),
+    ],
+
 ];

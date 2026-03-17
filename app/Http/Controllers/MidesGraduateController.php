@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\MidesDocument;
 use App\Models\MidesCategory;
+use Illuminate\Support\Facades\Auth;
 
 class MidesGraduateController extends Controller
 {
@@ -16,11 +17,55 @@ class MidesGraduateController extends Controller
 
     public function category($category)
     {
-        $documents = MidesDocument::where('type', 'Graduate Theses')
-            ->where('category', $category)
-            ->orderBy('year', 'desc')
-            ->paginate(12);
-        return view('mides-graduate-list', compact('documents', 'category'));
+        $search = request('search');
+        $sort = request('sort', 'year');
+        $direction = request('direction', 'desc');
+
+        // support category as id or name
+        if (is_numeric($category)) {
+            $query = MidesDocument::where('mides_category_id', $category)->where('type', 'Graduate Theses');
+        } else {
+            $query = MidesDocument::where('type', 'Graduate Theses')->where(function($q) use ($category) {
+                $q->where('category', $category)->orWhereHas('midesCategory', function($q2) use ($category) {
+                    $q2->where('name', $category)->where('type', 'Graduate Theses');
+                });
+            });
+        }
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                    ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('year', 'like', "%$search%");
+            });
+        }
+        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(['search' => $search, 'sort' => $sort, 'direction' => $direction]);
+        return view('mides-graduate-list', compact('documents', 'category', 'search', 'sort', 'direction'));
+    }
+
+    public function viewer($id)
+    {
+        $doc = \App\Models\MidesDocument::findOrFail($id);
+
+        // Record view for analytics
+        try {
+            $user = Auth::user();
+            if ($user) {
+                $sf = $user->studentFaculty ?? null;
+                \App\Models\ResourceView::create([
+                    'student_faculty_id' => $sf->id ?? null,
+                    'document_type' => 'mides',
+                    'document_id' => $doc->id,
+                    'program_id' => $sf->program_id ?? null,
+                    'course' => $sf->course ?? null,
+                    'role' => $sf->role ?? null,
+                    'action' => 'view',
+                ]);
+            }
+        } catch (\Throwable $e) {
+            // ignore analytics errors
+        }
+
+        return view('mides-pdf-viewer', compact('doc'));
     }
 
     public function categories()

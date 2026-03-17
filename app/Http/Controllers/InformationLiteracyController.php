@@ -1,0 +1,197 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\InformationLiteracyPost;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+
+class InformationLiteracyController extends Controller
+{
+    // List all posts
+    public function index()
+    {
+        $posts = InformationLiteracyPost::orderBy('date_time', 'desc')->get();
+
+        // compute bookmarked ids for authenticated student's faculty record
+        $bookmarkedIds = [];
+        if (Auth::check()) {
+            $user = Auth::user();
+            $sf = $user->studentFaculty ?? null;
+            if ($sf) {
+                $bookmarkedIds = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                    ->where('bookmarkable_type', \App\Models\InformationLiteracyPost::class)
+                    ->pluck('bookmarkable_id')
+                    ->toArray();
+            }
+        }
+
+        return view('information_literacy.index', compact('posts', 'bookmarkedIds'));
+    }
+
+    // Management list with filters, sorting, and pagination
+    public function manage(Request $request)
+    {
+        $query = InformationLiteracyPost::query();
+
+        // search by title or facilitators
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('facilitators', 'like', "%{$search}%");
+            });
+        }
+
+        // filter by type
+        if ($request->filled('type')) {
+            $query->where('type', $request->input('type'));
+        }
+
+        // sorting
+        $sort = $request->input('sort', 'date_time');
+        $direction = $request->input('direction', 'desc');
+        $allowedSorts = ['date_time', 'title'];
+        if (!in_array($sort, $allowedSorts)) {
+            $sort = 'date_time';
+        }
+        $direction = $direction === 'asc' ? 'asc' : 'desc';
+        $query->orderBy($sort, $direction);
+
+        $posts = $query->paginate(10)->appends($request->except('page'));
+
+        return view('information_literacy.manage', compact('posts'));
+    }
+
+    // Show create form
+    public function create()
+    {
+        return view('information_literacy.create');
+    }
+
+    // Store new post
+    public function store(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:5000',
+            'date_time' => 'required|date|after_or_equal:today',
+            'facilitators' => 'required|string|max:500',
+            'type' => 'required|in:onsite,online',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'title.required' => 'Seminar title is required.',
+            'title.max' => 'Title cannot exceed 255 characters.',
+            'description.required' => 'Description is required.',
+            'description.max' => 'Description cannot exceed 5000 characters.',
+            'date_time.required' => 'Date and time is required.',
+            'date_time.date' => 'Please provide a valid date and time.',
+            'date_time.after_or_equal' => 'Seminar date must be today or in the future.',
+            'facilitators.required' => 'Facilitator name(s) is required.',
+            'facilitators.max' => 'Facilitators field cannot exceed 500 characters.',
+            'type.required' => 'Please select seminar type (Onsite or Online).',
+            'type.in' => 'Invalid seminar type selected.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
+            'image.max' => 'Image size cannot exceed 5MB.',
+        ]);
+
+        try {
+
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('information_literacy_images', 'public');
+            }
+
+            InformationLiteracyPost::create([
+                'title' => $request->title,
+                'description' => $request->description,
+                'date_time' => $request->date_time,
+                'facilitators' => $request->facilitators,
+                'type' => $request->type,
+                'image' => $imagePath,
+            ]);
+
+            return redirect()->route('information_literacy.manage')->with('success', 'Information Literacy post created!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e; // Let Laravel handle validation error bag
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to create post. Please try again.');
+        }
+    }
+
+    // Show edit form
+    public function edit($id)
+    {
+        $post = InformationLiteracyPost::findOrFail($id);
+        return view('information_literacy.edit', compact('post'));
+    }
+
+    // Update post
+    public function update(Request $request, $id)
+    {
+        $post = InformationLiteracyPost::findOrFail($id);
+        
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string|max:5000',
+            'date_time' => 'required|date',
+            'facilitators' => 'required|string|max:500',
+            'type' => 'required|in:onsite,online',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+        ], [
+            'title.required' => 'Seminar title is required.',
+            'title.max' => 'Title cannot exceed 255 characters.',
+            'description.required' => 'Description is required.',
+            'description.max' => 'Description cannot exceed 5000 characters.',
+            'date_time.required' => 'Date and time is required.',
+            'date_time.date' => 'Please provide a valid date and time.',
+            'facilitators.required' => 'Facilitator name(s) is required.',
+            'facilitators.max' => 'Facilitators field cannot exceed 500 characters.',
+            'type.required' => 'Please select seminar type (Onsite or Online).',
+            'type.in' => 'Invalid seminar type selected.',
+            'image.image' => 'The file must be an image.',
+            'image.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
+            'image.max' => 'Image size cannot exceed 5MB.',
+        ]);
+
+        try {
+
+            $imagePath = $post->image;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('information_literacy_images', 'public');
+            }
+
+            $post->update([
+                'title' => $request->title,
+                'description' => $request->description,
+                'date_time' => $request->date_time,
+                'facilitators' => $request->facilitators,
+                'type' => $request->type,
+                'image' => $imagePath,
+            ]);
+
+            return redirect()->route('information_literacy.manage')->with('success', 'Information Literacy post updated!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', 'Failed to update post. Please try again.');
+        }
+    }
+
+    // Delete post
+    public function destroy($id)
+    {
+        try {
+            $post = InformationLiteracyPost::findOrFail($id);
+            if ($post->image) {
+                Storage::disk('public')->delete($post->image);
+            }
+            $post->delete();
+            return redirect()->route('information_literacy.manage')->with('success', 'Information Literacy post deleted!');
+        } catch (\Throwable $e) {
+            return redirect()->route('information_literacy.manage')->with('error', 'Failed to delete post. Please try again.');
+        }
+    }
+}

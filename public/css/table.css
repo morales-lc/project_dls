@@ -1,0 +1,58 @@
+/* Better table styling for analytics */
+.analytics-table {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.analytics-table thead {
+    background: #f8f9fc;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.analytics-table th {
+    font-weight: 600;
+    color: #495057;
+    background-color: #f1f3f5;
+}
+
+.analytics-table td {
+    background: #fff;
+    vertical-align: middle;
+    border-top: 1px solid #eee !important;
+}
+
+.analytics-table tr.table-row {
+    transition: all 0.2s ease-in-out;
+    border-radius: 12px;
+}
+
+.analytics-table tr.table-row:hover {
+    transform: scale(1.01);
+    background-color: #f9fbff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Collapse animation */
+.collapse td {
+    background: #fafafa;
+    border-top: none;
+}
+
+/* Toggle button animation */
+.toggle-details {
+    transition: transform 0.3s ease;
+}
+
+.toggle-details[aria-expanded="true"] i {
+    transform: rotate(180deg);
+}
+
+/* Smooth card and section appearance */
+.card-body {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

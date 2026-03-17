@@ -60,6 +60,14 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
+            // Spatie backup: specify mysqldump path and options
+            'dump' => [
+                'dump_binary_path' => 'C:/Program Files/MySQL/MySQL Server 8.0/bin',
+                'use_single_transaction' => true,
+                'timeout' => 300,
+                // Force TCP protocol and disable column statistics for compatibility
+                'add_extra_option' => '--protocol=TCP --column-statistics=0',
+            ],
         ],
 
         'mariadb' => [

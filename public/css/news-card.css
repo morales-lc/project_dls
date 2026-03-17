@@ -1,0 +1,163 @@
+
+/* --- Modern News Card Design --- */
+.lc-news-card {
+    background: #fff;
+    border-radius: 1rem;
+    overflow: hidden;
+    transition: all 0.25s ease-in-out;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.lc-news-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+}
+.lc-news-card-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+.lc-news-card:hover .lc-news-card-img {
+    transform: scale(1.05);
+}
+.lc-news-card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1.1rem 1.3rem;
+}
+.lc-news-card-title {
+    font-weight: 700;
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.lc-news-card-desc {
+    color: #555;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    flex-grow: 1;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+.lc-news-card .badge {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+}
+.lc-news-card-btn {
+    align-self: flex-start;
+    background: #d81b60;
+    color: #fff;
+    border: none;
+    border-radius: 2em;
+    padding: 0.45em 1.1em;
+    margin-top: 0.8rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.25s ease;
+    text-decoration: none;
+}
+.lc-news-card-btn:hover {
+    background: #b8004c;
+    color: #fff;
+}
+
+/* --- Carousel Layout --- */
+.news-carousel {
+    display: flex;
+    overflow-x: auto;
+    gap: 1.2rem;
+    scroll-behavior: smooth;
+    scroll-snap-type: x mandatory;
+    padding: 0 1rem; /* left/right padding fixes edge clipping */
+    scroll-padding-right: 1rem; /* ensures last card fully visible */
+    scrollbar-width: none; /* Firefox */
+}
+.news-carousel::-webkit-scrollbar { display: none; }
+
+.carousel-card {
+    flex: 0 0 320px;
+    max-width: 320px;
+    scroll-snap-align: start;
+}
+
+@media (max-width: 991px) {
+    .carousel-card {
+        flex: 0 0 75%;
+        max-width: 75%;
+    }
+    .lc-news-card-img {
+        height: 180px;
+    }
+}
+
+@media (max-width: 767px) {
+    .news-carousel {
+        gap: 1rem;
+        padding: 0 0.75rem;
+        scroll-padding-right: 0.75rem;
+    }
+    .carousel-card {
+        flex: 0 0 85%;
+        max-width: 85%;
+    }
+    .lc-news-card-img {
+        height: 160px;
+    }
+    .lc-news-card-title {
+        font-size: 1rem;
+    }
+    .lc-news-card-desc {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 2;
+    }
+}
+
+@media (max-width: 575px) {
+    .carousel-card {
+        flex: 0 0 95%;
+        max-width: 95%;
+    }
+    .lc-news-card-img {
+        height: 150px;
+    }
+}
+
+/* --- Section Headings --- */
+.section-white h4,
+.section-pink h4 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 1.3rem;
+}
+.section-white h4::before,
+.section-pink h4::before {
+    content: '';
+    width: 6px;
+    height: 24px;
+    background: #d81b60;
+    border-radius: 4px;
+}
+
+/* --- Dot Pagination --- */
+.carousel-dot {
+    width: 0.7rem;
+    height: 0.7rem;
+    background: #ffd9e6;
+    border: 2px solid #d81b60;
+    border-radius: 50%;
+    transition: all 0.2s ease-in-out;
+}
+.carousel-dot.active {
+    background: #d81b60;
+}
+

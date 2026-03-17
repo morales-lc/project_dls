@@ -1,0 +1,306 @@
+/* MIDES Modern Card Animations and Styles */
+.mides-card-link {
+    display: block;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+.mides-card-hover {
+    transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
+}
+.mides-card-link:hover .mides-card-hover,
+.mides-card-link:focus .mides-card-hover {
+    /* Motion + colorized border/shadow based on variant color */
+    transform: translateY(-6px) scale(1.025);
+    z-index: 2;
+    border-color: var(--mides-card-color, var(--bs-primary));
+    /* Fallback shadow, then color-mix enhancement if supported */
+    box-shadow: 0 8px 32px rgba(13,110,253,0.18), 0 2px 10px rgba(13,110,253,0.12);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--mides-card-color, var(--bs-primary)), transparent 82%),
+                0 2px 10px color-mix(in srgb, var(--mides-card-color, var(--bs-primary)), transparent 86%);
+}
+.mides-card-link:hover .mides-card-title,
+.mides-card-link:focus .mides-card-title {
+    color: #fff !important;
+    background: linear-gradient(90deg, #1976d2 60%, #f3f4f6 100%);
+    border-radius: 0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    transition: background 0.2s, color 0.2s;
+}
+.mides-table-striped tbody tr:hover {
+    background-color: #e3f2fd;
+    transition: background 0.2s;
+}
+
+/* Category variants: set the base color using Bootstrap's palette via CSS vars */
+.mides-card--grad { --mides-card-color: var(--bs-primary); }
+.mides-card--undergrad { --mides-card-color: var(--bs-danger); }
+.mides-card--faculty { --mides-card-color: var(--bs-info); }
+.mides-card--shs { --mides-card-color: var(--bs-success); }
+
+/* Border defaults and smooth transitions */
+.mides-card-hover {
+    border: 2px solid var(--mides-card-color, #e0e0e0);
+    /* If supported, use a lighter initial border */
+    border-color: color-mix(in srgb, var(--mides-card-color, #e0e0e0), transparent 65%);
+    transition: box-shadow 0.3s, transform 0.3s, border-color 0.3s;
+}
+
+/* Fallback initial borders to match text-* colors for older browsers */
+.mides-card--grad .mides-card-hover { border-color: rgba(13,110,253,0.35); }   /* primary */
+.mides-card--undergrad .mides-card-hover { border-color: rgba(220,53,69,0.35); } /* danger */
+.mides-card--faculty .mides-card-hover { border-color: rgba(13,202,240,0.35); }  /* info */
+.mides-card--shs .mides-card-hover { border-color: rgba(25,135,84,0.35); }       /* success */
+
+/* Fallback hover glows per variant for older browsers (overridden by color-mix rule when supported) */
+.mides-card--grad:hover .mides-card-hover,
+.mides-card--grad:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(13,110,253,0.18), 0 2px 10px rgba(13,110,253,0.12);
+}
+.mides-card--undergrad:hover .mides-card-hover,
+.mides-card--undergrad:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(220,53,69,0.18), 0 2px 10px rgba(220,53,69,0.12);
+}
+.mides-card--faculty:hover .mides-card-hover,
+.mides-card--faculty:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(13,202,240,0.18), 0 2px 10px rgba(13,202,240,0.12);
+}
+.mides-card--shs:hover .mides-card-hover,
+.mides-card--shs:focus .mides-card-hover {
+    box-shadow: 0 8px 32px rgba(25,135,84,0.18), 0 2px 10px rgba(25,135,84,0.12);
+}
+
+/* Subtle outline on focus for accessibility, using the same variant color */
+.mides-card-link:focus-visible .mides-card-hover {
+    outline: 3px solid color-mix(in srgb, var(--mides-card-color, var(--bs-primary)), transparent 75%);
+    outline-offset: 2px;
+}
+
+/* Shared MIDES styles */
+body {
+    background: #f8f9fa;
+}
+
+.bg-pink {
+    background-color: #ffd1e3 !important;
+    color: #d81b60 !important;
+}
+
+.text-pink {
+    color: #d81b60 !important;
+}
+
+.card {
+    border-radius: 1.25rem;
+    box-shadow: 0 2px 16px #ffd1e3a0;
+    border: none;
+}
+
+/* Card header */
+.card-header.bg-pink {
+    background-color: #ffe3ef !important;
+    color: #d81b60 !important;
+    font-weight: 700;
+    border-radius: 1.25rem 1.25rem 0 0;
+    border-bottom: 2px solid #ffd1e3;
+}
+
+/* Table styling */
+.table {
+    border-radius: 1rem;
+    overflow: hidden;
+    background: #fff;
+    width: 100%;
+}
+
+.table thead {
+    background: #ffd1e3 !important;
+    color: #d81b60 !important;
+}
+
+.table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #fff6fa;
+}
+
+/* Buttons */
+.btn-outline-pink,
+.btn-outline-warning {
+    border: 1.5px solid #ffd1e3 !important;
+    color: #d81b60 !important;
+    background-color: #fff !important;
+    font-weight: 500;
+    border-radius: 0.7rem;
+    transition: 0.2s;
+}
+
+.btn-outline-pink:hover,
+.btn-outline-warning:hover {
+    background-color: #ffd1e3 !important;
+    color: #b3134b !important;
+}
+
+.btn-pink {
+    background-color: #d81b60 !important;
+    color: #ef06a5 !important;
+    border: 1.5px solid #d81b60 !important;
+    box-shadow: 0 2px 8px rgba(216,27,96,0.12);
+}
+
+.btn-pink:hover {
+    background-color: #b3134b !important;
+    border-color: #b3134b !important;
+}
+
+.bookmark-btn {
+    transition: transform 0.08s ease, box-shadow 0.12s ease;
+}
+
+.bookmark-btn:hover {
+    transform: translateY(-2px);
+}
+
+/* ======================================
+   📱 RESPONSIVE OPTIMIZATIONS
+   ====================================== */
+@media (max-width: 768px) {
+    /* Card padding & spacing */
+    .card {
+        border-radius: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .card-header.bg-pink {
+        font-size: 1rem;
+        text-align: center;
+        border-radius: 1rem 1rem 0 0;
+    }
+
+    /* Table responsive wrapper */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: 1rem;
+    }
+
+    /* Smaller table text */
+    .table th,
+    .table td {
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+
+    /* Buttons stack neatly on mobile for form/header controls, but keep table action buttons inline */
+    .card > .card-body .btn,
+    .card-header .btn,
+    .btn-outline-pink,
+    .btn-outline-warning,
+    .btn-pink {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Keep table action buttons (View / Bookmark) inline and auto-sized so they remain visible */
+    .table td .btn,
+    .table td .bookmark-form,
+    .table td .bookmark-btn {
+        display: inline-flex;
+        width: auto;
+        margin-bottom: 0.25rem;
+        vertical-align: middle;
+    }
+
+    /* Center align text-heavy elements */
+    .text-pink,
+    .card-header {
+        text-align: center;
+    }
+
+    /* Slightly smaller shadows */
+    .card {
+        box-shadow: 0 1px 10px #ffd1e380;
+    }
+}
+
+/* Even smaller phones (≤480px) */
+@media (max-width: 480px) {
+    .table th,
+    .table td {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+
+    .card-header.bg-pink {
+        font-size: 0.95rem;
+    }
+
+    .btn {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+    }
+}
+
+/* Consolidated responsive rules moved from templates for MIDES lists */
+@media (max-width: 768px) {
+    /* Ensure card header wraps and stacks nicely on small screens */
+    .card-header { flex-wrap: wrap; gap: 8px; }
+    .card-header .btn { white-space: nowrap; }
+    .card-header { flex-direction: column; align-items: flex-start; text-align: left; }
+    .card-header .ms-auto { width: 100%; display:flex; flex-wrap:wrap; gap:6px; justify-content:flex-start; }
+
+    /* Forms: stack fields */
+    form.row { flex-direction: column; }
+    form .col-md-6, form .col-md-2 { width: 100%; }
+
+    /* Table responsive helpers */
+    .table-responsive { overflow-x:auto; -webkit-overflow-scrolling: touch; }
+    table th, table td { font-size:14px; white-space:nowrap; }
+
+    /* Modal sizing on mobile */
+    .modal-xl { max-width:95% !important; margin:auto; }
+
+    /* Bookmark button visibility: ensure it shows and has spacing */
+    .bookmark-btn { display: inline-flex; align-items: center; gap: 0.35rem; }
+    .bookmark-form { display: inline-block !important; }
+}
+
+@media (max-width:480px) {
+    .card-header span { font-size:1rem; }
+    .btn { font-size:13px; padding:6px 10px; }
+}
+
+/* ======================================
+   🎨 Distinguishable Card Accent Styling
+   ====================================== */
+.mides-card--grad .mides-card-hover {
+    border-color: rgba(13,110,253,0.45); /* blue tone */
+    background-color: #f5f8ff; /* light blue tint */
+}
+
+.mides-card--undergrad .mides-card-hover {
+    border-color: rgba(220,53,69,0.45); /* red/pink tone */
+    background-color: #fff5f7; /* soft pink tint */
+}
+
+.mides-card--faculty .mides-card-hover {
+    border-color: rgba(13,202,240,0.45); /* sky blue tone */
+    background-color: #f0fbfd; /* faint cyan tint */
+}
+
+.mides-card--shs .mides-card-hover {
+    border-color: rgba(25,135,84,0.45); /* green tone */
+    background-color: #f3fdf6; /* mint tint */
+}
+
+/* Hover enhancement per category */
+.mides-card--grad .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(33, 121, 252, 0.5);
+}
+.mides-card--undergrad .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(220,53,69,0.25);
+}
+.mides-card--faculty .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(13,202,240,0.25);
+}
+.mides-card--shs .mides-card-hover:hover {
+    box-shadow: 0 8px 25px rgba(25,135,84,0.25);
+}
+
