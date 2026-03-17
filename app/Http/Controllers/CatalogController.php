@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Catalog;
+use App\Models\MidesDocument;
+use App\Models\SidlakJournal;
+use App\Models\SidlakArticle;
 
 class CatalogController extends Controller
 {
@@ -301,6 +304,54 @@ class CatalogController extends Controller
             // ignore silently
         }
 
-        return view('catalogs.search', compact('catalogs'));
+        // Search MIDES documents and SIDLAK journals/articles using the same query terms
+        $midesDocuments = collect();
+        $sidlakJournals = collect();
+        $sidlakArticles = collect();
+
+        if ($normalizedQ) {
+            // MIDES Documents
+            $midesQuery = MidesDocument::query();
+            $midesQuery->where(function ($mq) use ($normalizedQ, $tokens) {
+                $mq->whereRaw("LOWER(title) LIKE ?", ["%{$normalizedQ}%"])
+                   ->orWhereRaw("LOWER(author) LIKE ?", ["%{$normalizedQ}%"])
+                   ->orWhereRaw("LOWER(year) LIKE ?", ["%{$normalizedQ}%"])
+                   ->orWhereRaw("LOWER(category) LIKE ?", ["%{$normalizedQ}%"])
+                   ->orWhereRaw("LOWER(program) LIKE ?", ["%{$normalizedQ}%"])
+                   ->orWhereRaw("LOWER(type) LIKE ?", ["%{$normalizedQ}%"]);
+                foreach ($tokens as $t) {
+                    $like = '%' . str_replace('%', '\\%', $t) . '%';
+                    $mq->orWhereRaw("LOWER(title) LIKE ?", [$like])
+                       ->orWhereRaw("LOWER(author) LIKE ?", [$like]);
+                }
+            });
+            $midesDocuments = $midesQuery->orderBy('year', 'desc')->limit(8)->get();
+
+            // SIDLAK Journals
+            $sjQuery = SidlakJournal::query();
+            $sjQuery->where(function ($jq) use ($normalizedQ, $tokens) {
+                $jq->whereRaw("LOWER(title) LIKE ?", ["%{$normalizedQ}%"]);
+                foreach ($tokens as $t) {
+                    $like = '%' . str_replace('%', '\\%', $t) . '%';
+                    $jq->orWhereRaw("LOWER(title) LIKE ?", [$like]);
+                }
+            });
+            $sidlakJournals = $sjQuery->orderByDesc('year')->limit(8)->get();
+
+            // SIDLAK Articles
+            $saQuery = SidlakArticle::with('journal');
+            $saQuery->where(function ($aq) use ($normalizedQ, $tokens) {
+                $aq->whereRaw("LOWER(title) LIKE ?", ["%{$normalizedQ}%"])
+                   ->orWhereRaw("LOWER(authors) LIKE ?", ["%{$normalizedQ}%"]);
+                foreach ($tokens as $t) {
+                    $like = '%' . str_replace('%', '\\%', $t) . '%';
+                    $aq->orWhereRaw("LOWER(title) LIKE ?", [$like])
+                       ->orWhereRaw("LOWER(authors) LIKE ?", [$like]);
+                }
+            });
+            $sidlakArticles = $saQuery->limit(8)->get();
+        }
+
+        return view('catalogs.search', compact('catalogs', 'midesDocuments', 'sidlakJournals', 'sidlakArticles'));
     }
 }
