@@ -16,11 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\EnsureRole::class,
             'profile.completed' => \App\Http\Middleware\EnsureProfileCompleted::class,
             'guest.expiration' => \App\Http\Middleware\CheckGuestExpiration::class,
-        ]);
-        $middleware->use([
-            \App\Http\Middleware\TrustProxies::class,
+            
         ]);
 
+        
         // Apply to web routes except the profile completion route itself via explicit route middleware
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\EnsureProfileCompleted::class,

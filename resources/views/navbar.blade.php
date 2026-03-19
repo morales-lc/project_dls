@@ -110,15 +110,20 @@
    MOBILE DROPDOWNS
    =========================== */
         @media (max-width: 991.98px) {
+            .navbar {
+                backdrop-filter: saturate(120%) blur(6px);
+            }
+
             .navbar .dropdown-menu {
                 position: static !important;
                 float: none !important;
                 display: none;
-                margin: 0;
-                padding: 0.25rem 0;
-                border: none !important;
+                margin: 0.4rem 0.2rem 0.6rem;
+                padding: 0.3rem;
+                border: 1px solid rgba(255, 255, 255, 0.16) !important;
                 box-shadow: none !important;
-                background: transparent !important;
+                background: rgba(255, 255, 255, 0.08) !important;
+                border-radius: 12px;
                 width: 100%;
             }
 
@@ -128,14 +133,16 @@
 
             .navbar .dropdown .dropdown-item {
                 color: #fff !important;
-                padding-left: 1.1rem;
-                padding-right: 1.1rem;
+                padding: 0.7rem 0.95rem;
+                border-radius: 10px;
+                font-size: 0.96rem;
             }
 
             .navbar .dropdown .dropdown-item:hover,
             .navbar .dropdown .dropdown-item:focus {
-                background: rgba(255, 255, 255, 0.06);
+                background: rgba(255, 255, 255, 0.14);
                 color: #fff !important;
+                transform: none;
             }
 
             .navbar .dropdown-toggle::after {
@@ -149,39 +156,83 @@
             }
 
             .navbar-collapse {
-                padding-top: .5rem;
-                padding-bottom: .5rem;
+                margin-top: 0.6rem;
+                padding: 0.85rem;
+                background: linear-gradient(165deg, rgba(201, 25, 95, 0.95) 0%, rgba(140, 14, 78, 0.96) 100%);
+                border-radius: 16px;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                box-shadow: 0 14px 30px rgba(0, 0, 0, 0.22);
+            }
+
+            .navbar-nav {
+                gap: 0.35rem;
             }
 
             .navbar-nav .nav-link {
-                font-size: 1rem;
-                font-weight: 500;
+                font-size: 0.98rem;
+                font-weight: 600;
                 color: #fff !important;
-                padding: 0.75rem 1rem;
+                padding: 0.75rem 0.95rem 0.75rem 1.6rem;
                 text-align: left;
-                border-radius: 6px;
-                transition: background 0.25s ease;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.13);
+                background: rgba(255, 255, 255, 0.07);
+                transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.15s ease;
+                position: relative;
             }
 
-            .navbar-nav .nav-link:hover,
-            .navbar-nav .nav-link.active {
-                transform: scale(1.05);
-                background: #c2185b;
+            .navbar-nav .nav-link:hover {
+                background: rgba(255, 255, 255, 0.16);
                 color: #fff !important;
-                font-weight: 600;
-                box-shadow: 0 3px 10px rgba(194, 24, 91, 0.25);
+                transform: none;
+            }
+
+            /* Stronger, clearer active state for mobile */
+            .navbar-nav .nav-link.active {
+                background: linear-gradient(90deg, rgba(255,255,255,0.18), rgba(255,255,255,0.12));
+                color: #fff !important;
+                font-weight: 700;
+                border-color: rgba(255, 255, 255, 0.42);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+            }
+
+            /* Left accent bar to visually mark the selected item */
+            .navbar-nav .nav-link.active::before {
+                content: "";
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                height: 48%;
+                width: 6px;
+                border-radius: 6px;
+                background: linear-gradient(180deg, #ffffff 0%, rgba(255,210,230,0.95) 100%);
+                box-shadow: 0 2px 8px rgba(232,62,140,0.18);
             }
 
             #navbarCloseBtn {
-                font-size: 0.9rem;
-                padding: 0.4rem 0.9rem;
-                border: 1px solid rgba(255, 255, 255, 0.7);
+                width: 100%;
+                font-size: 0.92rem;
+                padding: 0.58rem 0.9rem;
+                border: 1px solid rgba(255, 255, 255, 0.45);
                 color: #fff;
+                background: rgba(255, 255, 255, 0.06);
+                border-radius: 10px !important;
             }
 
             #navbarCloseBtn i {
                 font-size: 1rem;
                 margin-right: 0.3rem;
+            }
+
+            .navbar-collapse>div.d-flex {
+                width: 100%;
+                margin-top: 0.7rem !important;
+                justify-content: flex-start !important;
+            }
+
+            .navbar-collapse>div.d-flex .btn {
+                min-width: 140px;
             }
         }
 
@@ -207,8 +258,8 @@
         }
 
         .dropdown-menu .dropdown-item.active {
-            background-color: #c2185b !important;
-            color: #fff !important;
+            background-color: #eeeeee !important;
+            color: #000000 !important;
         }
 
         /* Divider lines */
@@ -289,171 +340,227 @@
     <nav class="navbar navbar-expand-lg navbar-dark px-3" style="background-color: #e83e8c !important;">
         <div class="container-fluid">
             <!-- Logo and Brand -->
-            <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2" href="{{ (Auth::check() && Auth::user()->role === 'guest') ? route('guest.dashboard') : route('dashboard') }}">
-                <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38"
-                    class="rounded" style="background:#fff; padding:2px;">
+            <a class="navbar-brand fw-bold text-white d-flex align-items-center gap-2"
+                href="{{ (Auth::check() && Auth::user()->role === 'guest') ? route('guest.dashboard') : route('dashboard') }}">
+                <img src="{{ asset('images/learningcommons.png') }}" alt="Logo" width="38" height="38" class="rounded"
+                    style="background:#fff; padding:2px;">
                 <span class="d-none d-md-inline">LC MIDES Digital Library</span>
             </a>
 
             <!-- Toggler -->
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <!-- Navbar Links -->
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <!-- Mobile Close Button -->
-                <button id="navbarCloseBtn" class="btn btn-outline-light d-lg-none ms-auto mb-2" type="button" style="border-radius:8px;">
+                <button id="navbarCloseBtn" class="btn btn-outline-light d-lg-none ms-auto mb-2" type="button"
+                    style="border-radius:8px;">
                     <i class="bi bi-x-lg"></i> Close
                 </button>
                 @php $isGuest = Auth::check() && Auth::user()->role === 'guest'; @endphp
                 <ul class="navbar-nav mx-auto mb-2 mb-lg-0 text-center">
                     @if($isGuest)
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('guest.dashboard') ? 'active' : '' }}" href="{{ route('guest.dashboard') }}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('mides.*') ? 'active' : '' }}" href="{{ route('mides.dashboard') }}">MIDES</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('sidlak.*') ? 'active' : '' }}" href="{{ route('sidlak.index') }}">SIDLAK</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">E‑Libraries</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('guest.dashboard') ? 'active' : '' }}"
+                                href="{{ route('guest.dashboard') }}">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('mides.*') ? 'active' : '' }}"
+                                href="{{ route('mides.dashboard') }}">MIDES</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('sidlak.*') ? 'active' : '' }}"
+                                href="{{ route('sidlak.index') }}">SIDLAK</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('elibraries') ? 'active' : '' }}"
+                                href="{{ route('elibraries') }}">E‑Libraries</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('alinet.form') ? 'active' : '' }}"
+                                href="{{ route('alinet.form') }}">ALINET</a>
+                        </li>
                     @else
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Home</a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}"
+                                href="{{ route('dashboard') }}">Home</a>
+                        </li>
 
-                    <!-- About Dropdown -->
-                    <li class="nav-item dropdown {{ request()->routeIs('about*','feedback.form') ? 'show active' : '' }}">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('about*','feedback.form') ? 'active' : '' }}" href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('about*','feedback.form') ? 'true' : 'false' }}">
-                            About
-                        </a>
-                        <ul class="dropdown-menu {{ request()->routeIs('about*','feedback.form') ? 'show' : '' }}" aria-labelledby="aboutDropdown">
-                            <li><a class="dropdown-item {{ request()->routeIs('about') ? 'active' : '' }}" href="{{ route('about') }}">Mission & Vision</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('about.contact') ? 'active' : '' }}" href="{{ route('about.contact') }}">Contact Us</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('feedback.form') ? 'active' : '' }}" href="{{ route('feedback.form') }}">Feedback</a></li>
-                        </ul>
-                    </li>
+                        <!-- About Dropdown -->
+                        <li
+                            class="nav-item dropdown {{ request()->routeIs('about*', 'feedback.form') ? 'show active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('about*', 'feedback.form') ? 'active' : '' }}"
+                                href="#" id="aboutDropdown" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="{{ request()->routeIs('about*', 'feedback.form') ? 'true' : 'false' }}">
+                                About
+                            </a>
+                            <ul class="dropdown-menu {{ request()->routeIs('about*', 'feedback.form') ? 'show' : '' }}"
+                                aria-labelledby="aboutDropdown">
+                                <li><a class="dropdown-item {{ request()->routeIs('about') ? 'active' : '' }}"
+                                        href="{{ route('about') }}">Mission & Vision</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('about.contact') ? 'active' : '' }}"
+                                        href="{{ route('about.contact') }}">Contact Us</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('feedback.form') ? 'active' : '' }}"
+                                        href="{{ route('feedback.form') }}">Feedback</a></li>
+                            </ul>
+                        </li>
 
-                    <!-- Libraries Dropdown -->
-                    <li class="nav-item dropdown {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show active' : '' }}">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'active' : '' }}" href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'true' : 'false' }}">
-                            Libraries
-                        </a>
-                        <ul class="dropdown-menu {{ request()->routeIs('libraries.*','elibraries','wiley.*','gale.*','proquest.*') ? 'show' : '' }}" aria-labelledby="librariesDropdown">
-                            <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}" href="{{ route('libraries.ibed') }}">K-10 Library</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}" href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}" href="{{ route('libraries.college') }}">College Library</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}" href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
-                            @auth
-                            <li><a class="dropdown-item {{ request()->routeIs('elibraries') ? 'active' : '' }}" href="{{ route('elibraries') }}">Online Libraries</a></li>
-                            @endauth
-                        </ul>
-                    </li>
+                        <!-- Libraries Dropdown -->
+                        <li
+                            class="nav-item dropdown {{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'show active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'active' : '' }}"
+                                href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="{{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'true' : 'false' }}">
+                                Libraries
+                            </a>
+                            <ul class="dropdown-menu {{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'show' : '' }}"
+                                aria-labelledby="librariesDropdown">
+                                <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}"
+                                        href="{{ route('libraries.ibed') }}">K-10 Library</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('libraries.senior_high') ? 'active' : '' }}"
+                                        href="{{ route('libraries.senior_high') }}">Senior High School Library</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('libraries.college') ? 'active' : '' }}"
+                                        href="{{ route('libraries.college') }}">College Library</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('libraries.graduate') ? 'active' : '' }}"
+                                        href="{{ route('libraries.graduate') }}">Graduate Library</a></li>
+                            </ul>
+                        </li>
 
-                    <!-- Services Dropdown -->
-                    <li class="nav-item dropdown {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show active' : '' }}">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'active' : '' }}" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'true' : 'false' }}">
-                            Services
-                        </a>
-                        <ul class="dropdown-menu {{ request()->routeIs('alert-services.*','alinet.form','learning-spaces','lira.form','information_literacy.*') ? 'show' : '' }}" aria-labelledby="servicesDropdown">
-                            @auth
-                            <li><a class="dropdown-item {{ request()->routeIs('lira.form') ? 'active' : '' }}" href="{{ route('lira.form') }}">LiRA</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('alert-services.*') ? 'active' : '' }}" href="{{ route('alert-services.index') }}">Alert Services</a></li>
-                            @endauth
-                            <li><a class="dropdown-item {{ request()->routeIs('alinet.form') ? 'active' : '' }}" href="{{ route('alinet.form') }}">ALINET</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}" href="{{ route('information_literacy.index') }}">Information Literacy Alert Schedule</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('book.borrowing') ? 'active' : '' }}" href="{{ route('book.borrowing') }}">Book Borrowing</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('scanning.services') ? 'active' : '' }}" href="{{ route('scanning.services') }}">Scanning Services</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('learning-spaces') ? 'active' : '' }}" href="{{ route('learning-spaces') }}">Learning Spaces</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('netzone') ? 'active' : '' }}" href="{{ route('netzone') }}">Netzone</a></li>
-                        </ul>
-                    </li>
+                        @auth
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->routeIs('elibraries') ? 'active' : '' }}"
+                                    href="{{ route('elibraries') }}">
+                                    Online Libraries
+                                </a>
+                            </li>
+                        @endauth
 
-                    <!-- E-Resources Dropdown -->
-                    @auth
-                    <li class="nav-item dropdown {{ request()->routeIs('mides.*','sidlak.*') ? 'show active' : '' }}">
-                        <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.*','sidlak.*') ? 'active' : '' }}" href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="{{ request()->routeIs('mides.*','sidlak.*') ? 'true' : 'false' }}">
-                            Electronic Resources
-                        </a>
-                        <ul class="dropdown-menu {{ request()->routeIs('mides.*','sidlak.*') ? 'show' : '' }}" aria-labelledby="eresourcesDropdown">
-                            <li><a class="dropdown-item {{ request()->routeIs('mides.*') ? 'active' : '' }}" href="{{ route('mides.dashboard') }}">MIDES Repository</a></li>
-                            <li><a class="dropdown-item {{ request()->routeIs('sidlak.*') ? 'active' : '' }}" href="{{ route('sidlak.index') }}">SIDLAK</a></li>
-                        </ul>
-                    </li>
-                    @endauth
+                        <!-- Services Dropdown -->
+                        <li
+                            class="nav-item dropdown {{ request()->routeIs('alert-services.*', 'alinet.form', 'learning-spaces', 'lira.form', 'information_literacy.*') ? 'show active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('alert-services.*', 'alinet.form', 'learning-spaces', 'lira.form', 'information_literacy.*') ? 'active' : '' }}"
+                                href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="{{ request()->routeIs('alert-services.*', 'alinet.form', 'learning-spaces', 'lira.form', 'information_literacy.*') ? 'true' : 'false' }}">
+                                Services
+                            </a>
+                            <ul class="dropdown-menu {{ request()->routeIs('alert-services.*', 'alinet.form', 'learning-spaces', 'lira.form', 'information_literacy.*') ? 'show' : '' }}"
+                                aria-labelledby="servicesDropdown">
+                                @auth
+                                    <li><a class="dropdown-item {{ request()->routeIs('lira.form') ? 'active' : '' }}"
+                                            href="{{ route('lira.form') }}">LiRA</a></li>
+                                    <li><a class="dropdown-item {{ request()->routeIs('alert-services.*') ? 'active' : '' }}"
+                                            href="{{ route('alert-services.index') }}">Alert Services</a></li>
+                                @endauth
+                                <li><a class="dropdown-item {{ request()->routeIs('alinet.form') ? 'active' : '' }}"
+                                        href="{{ route('alinet.form') }}">ALINET</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}"
+                                        href="{{ route('information_literacy.index') }}">Information Literacy Alert
+                                        Schedule</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('book.borrowing') ? 'active' : '' }}"
+                                        href="{{ route('book.borrowing') }}">Book Borrowing</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('scanning.services') ? 'active' : '' }}"
+                                        href="{{ route('scanning.services') }}">Scanning Services</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('learning-spaces') ? 'active' : '' }}"
+                                        href="{{ route('learning-spaces') }}">Learning Spaces</a></li>
+                                <li><a class="dropdown-item {{ request()->routeIs('netzone') ? 'active' : '' }}"
+                                        href="{{ route('netzone') }}">Netzone</a></li>
+                            </ul>
+                        </li>
+
+                        <!-- E-Resources Dropdown -->
+                        <li class="nav-item dropdown {{ request()->routeIs('mides.*', 'sidlak.*') ? 'show active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.*', 'sidlak.*') ? 'active' : '' }}"
+                                href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="{{ request()->routeIs('mides.*', 'sidlak.*') ? 'true' : 'false' }}">
+                                Electronic Resources
+                            </a>
+                            <ul class="dropdown-menu {{ request()->routeIs('mides.*', 'sidlak.*') ? 'show' : '' }}"
+                                aria-labelledby="eresourcesDropdown">
+                                @auth
+                                    <li><a class="dropdown-item {{ request()->routeIs('mides.*') ? 'active' : '' }}"
+                                            href="{{ route('mides.dashboard') }}">MIDES Repository</a></li>
+                                @endauth
+                                <li><a class="dropdown-item {{ request()->routeIs('sidlak.*') ? 'active' : '' }}"
+                                        href="{{ route('sidlak.index') }}">SIDLAK</a></li>
+                            </ul>
+                        </li>
                     @endif
                 </ul>
 
                 <!-- Profile / Login -->
                 <div class="d-flex align-items-center justify-content-center justify-content-lg-end mt-3 mt-lg-0">
                     @if(session()->has('login') || Auth::check())
-                    @php
-                    $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
-                    $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
-                    $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
-                    $isGuest = Auth::check() && Auth::user()->role === 'guest';
-                    @endphp
+                        @php
+                            $profilePic = Auth::user()->studentFaculty->profile_picture ?? null;
+                            $isGooglePic = $profilePic && str_starts_with($profilePic, 'http');
+                            $fullName = trim((Auth::user()->studentFaculty->first_name ?? '') . ' ' . (Auth::user()->studentFaculty->last_name ?? ''));
+                            $isGuest = Auth::check() && Auth::user()->role === 'guest';
+                        @endphp
 
-                    @if($isGuest)
-                    <!-- Guest: show only Logout button, no profile picture or dropdown -->
-                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-light ms-2">
-                            <i class="bi bi-box-arrow-right me-2"></i>Logout
-                        </button>
-                    </form>
-                    @else
-                    <ul class="navbar-nav mb-0">
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white" href="#" id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}"
-                                    alt="Profile" class="rounded-circle profile-pic" width="36" height="36" style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
-                                <span class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
-                                <li><a class="dropdown-item" href="{{ route('profile') }}"><i class="bi bi-person-circle me-2"></i>My Account</a></li>
-                                @php
-                                // Sidebar logic for bookmark count
-                                $sf = Auth::user()->studentFaculty ?? null;
-                                $bookmarkCount = 0;
-                                if ($sf) {
-                                try {
-                                $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
-                                } catch (\Throwable $e) {
-                                $bookmarkCount = 0;
-                                }
-                                }
-                                @endphp
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center" href="{{ route('bookmarks.index') }}">
-                                        <i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items
-                                        @if($bookmarkCount > 0)
-                                        <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $bookmarkCount }}</span>
-                                        @endif
+                        @if($isGuest)
+                            <!-- Guest: show only Logout button, no profile picture or dropdown -->
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-outline-light ms-2">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </button>
+                            </form>
+                        @else
+                            <ul class="navbar-nav mb-0">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 text-white" href="#"
+                                        id="profileDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <img src="{{ $isGooglePic ? $profilePic : ($profilePic ? asset('storage/profile_pictures/' . $profilePic) : 'https://ui-avatars.com/api/?name=' . urlencode($fullName ?: Auth::user()->name)) }}"
+                                            alt="Profile" class="rounded-circle profile-pic" width="36" height="36"
+                                            style="border:2px solid #fff; transition:box-shadow .2s; box-shadow:0 2px 8px rgba(0,0,0,0.08); cursor:pointer;">
+                                        <span
+                                            class="fw-semibold d-none d-md-inline">{{ $fullName ?: Auth::user()->name }}</span>
                                     </a>
-                                </li>
-                                <li><a class="dropdown-item" href="{{ route('history') }}"><i class="bi bi-clock-history me-2"></i>Search History</a></li>
-                                <li>
-                                    <form method="POST" action="{{ route('logout') }}">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item logout">
-                                            <i class="bi bi-box-arrow-right me-2"></i> Logout
-                                        </button>
-                                    </form>
+                                    <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="profileDropdown">
+                                        <li><a class="dropdown-item" href="{{ route('profile') }}"><i
+                                                    class="bi bi-person-circle me-2"></i>My Account</a></li>
+                                        @php
+                                            // Sidebar logic for bookmark count
+                                            $sf = Auth::user()->studentFaculty ?? null;
+                                            $bookmarkCount = 0;
+                                            if ($sf) {
+                                                try {
+                                                    $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
+                                                } catch (\Throwable $e) {
+                                                    $bookmarkCount = 0;
+                                                }
+                                            }
+                                        @endphp
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center"
+                                                href="{{ route('bookmarks.index') }}">
+                                                <i class="bi bi-bookmark-heart me-2"></i>Bookmarked Items
+                                                @if($bookmarkCount > 0)
+                                                    <span
+                                                        class="badge rounded-pill bg-pink text-white ms-auto">{{ $bookmarkCount }}</span>
+                                                @endif
+                                            </a>
+                                        </li>
+                                        <li><a class="dropdown-item" href="{{ route('history') }}"><i
+                                                    class="bi bi-clock-history me-2"></i>Search History</a></li>
+                                        <li>
+                                            <form method="POST" action="{{ route('logout') }}">
+                                                @csrf
+                                                <button type="submit" class="dropdown-item logout">
+                                                    <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
                                 </li>
                             </ul>
-                        </li>
-                    </ul>
-                    @endif
+                        @endif
                     @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>
+                        <a href="{{ route('login') }}" class="btn btn-outline-light ms-2">Login</a>
                     @endif
                 </div>
             </div>
@@ -463,7 +570,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const navbarCollapse = document.getElementById('navbarSupportedContent');
             const navToggler = document.querySelector('.navbar-toggler');
             const closeBtn = document.getElementById('navbarCloseBtn');
@@ -478,7 +585,7 @@
 
             // Close navbar when clicking close button
             if (closeBtn) {
-                closeBtn.addEventListener('click', function() {
+                closeBtn.addEventListener('click', function () {
                     bsCollapse.hide();
                 });
             }
@@ -489,7 +596,7 @@
                 const menu = dropdown.querySelector('.dropdown-menu');
                 if (!toggle) return;
 
-                toggle.addEventListener('click', function(e) {
+                toggle.addEventListener('click', function (e) {
                     if (!isMobile()) return;
                     e.preventDefault();
                     e.stopPropagation();
@@ -525,7 +632,7 @@
             });
 
             // Close dropdowns when clicking outside navbar (mobile only)
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 if (!isMobile()) return;
                 if (!e.target.closest('.navbar')) {
                     document.querySelectorAll('.navbar .dropdown.show').forEach(d => {
@@ -566,10 +673,10 @@
 
     <!-- Profile dropdown click redirect script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const profileDropdown = document.getElementById('profileDropdown');
             if (profileDropdown) {
-                profileDropdown.addEventListener('click', function(e) {
+                profileDropdown.addEventListener('click', function (e) {
                     // Only redirect if user clicked the avatar or name, not dropdown items
                     if (!e.target.closest('.dropdown-menu')) {
                         window.location.href = "{{ route('profile') }}";

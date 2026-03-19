@@ -21,7 +21,7 @@
     <div class="container mt-3">
         <div class="text-center mb-3">
             <button class="btn btn-outline-primary" id="toggleAccessInfoBtn" type="button" onclick="toggleAccessInfo()">
-                <i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources? !! CLICK ME!!
+                <i class="bi bi-info-circle me-2"></i>How to Access Electronic Resources? CLICK ME!
             </button>
         </div>
         <div class="alert alert-info shadow-sm mb-4" id="accessInfoBanner" role="alert" style="display: none; border-left: 5px solid #4a90e2; background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%); border-radius: 0.75rem;">
@@ -34,7 +34,7 @@
                         </h5>
                         <button type="button" class="btn-close" onclick="toggleAccessInfo()" aria-label="Close"></button>
                     </div>
-                    <p class="mb-3">To access <strong>MIDES Repository</strong>, <strong>SIDLAK Journal</strong>, and <strong>Online Databases</strong>, you need to:</p>
+                    <p class="mb-3">To access <strong>MIDES Repository</strong>, and <strong>Online Databases</strong>, you need to:</p>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <div class="card border-primary h-100" style="background: #fff; border-radius: 0.5rem;">
@@ -94,26 +94,26 @@
 
         <h2 class="fw-bold mb-4">Welcome to LC MIDES Digital Library!</h2>
         <div style="height: 10px;"></div>
-        <div class="mb-5">
-            <!-- Clear label so users know this searches the catalog -->
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <span class="badge bg-pink text-white" style="font-size:0.95rem; padding:.45rem .7rem; border-radius:.65rem;"><i class="bi bi-collection me-1"></i> Catalog Search</span>
-                <span class="text-muted">Search the LC MIDES library catalog</span>
+        <div class="mb-5 dashboard-search-block">
+            <!-- Clear label so users know this searches catalog + MIDES + SIDLAK -->
+            <div class="d-flex align-items-center gap-2 mb-2 search-intro">
+                <span class="badge bg-pink text-white" style="font-size:0.95rem; padding:.45rem .7rem; border-radius:.65rem;"><i class="bi bi-search me-1"></i> Unified Search</span>
+                <span class="text-muted">Search Catalog, MIDES Documents, SIDLAK Journals, and SIDLAK Articles</span>
             </div>
 
 
-            <form class="search-bar catalog-search d-flex flex-nowrap align-items-center gap-2 flex-wrap"
+            <form class="search-bar catalog-search d-flex flex-nowrap align-items-center gap-2 flex-wrap dashboard-search-form"
                 method="GET"
                 action="{{ route('catalogs.search') }}"
                 style="max-width: 1600px;">
-                <div class="input-group flex-grow-1" style="min-width: 250px;">
+                <div class="input-group flex-grow-1 dashboard-search-input" style="min-width: 250px;">
 
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input type="text" name="q" class="form-control" value="{{ request('q') }}"
-                        placeholder="Search the Library Catalog by keyword, title, author, ISBN, ISSN, or LCCN..." aria-label="Search the library catalog" required>
+                        placeholder="Search catalog, MIDES, SIDLAK journals, and SIDLAK articles..." aria-label="Search catalog, MIDES, and SIDLAK resources" required>
                 </div>
                 <button type="submit"
-                    class="btn btn-pink search-catalog-btn"
+                    class="btn btn-pink search-catalog-btn dashboard-search-submit"
                     style="
                             background-color: #e83e8c; 
                             color: white; 
@@ -124,20 +124,95 @@
                             transition: all 0.3s ease;
                             box-shadow: 0 2px 8px rgba(232, 62, 140, 0.2);
                             ">
-                    <i class="bi bi-search me-1"></i>Search Catalog
+                    <i class="bi bi-search me-1"></i>Search Library
                 </button>
             </form>
 
             <style>
-                @media (max-width: 575.98px) {
+                .dashboard-search-block {
+                    background: #ffffff;
+                    border: 1px solid #f5c4d9;
+                    border-radius: 14px;
+                    padding: 1rem;
+                    box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+                }
 
-                    .search-box .form-select,
-                    .search-box .btn {
-                        width: 100%;
+                .dashboard-search-block .search-intro .badge {
+                    font-weight: 700;
+                }
+
+                .dashboard-search-block .search-intro .text-muted {
+                    font-weight: 600;
+                    color: #475569 !important;
+                    font-size: 1.02rem;
+                }
+
+                .dashboard-search-block .dashboard-search-input .input-group-text {
+                    border-color: #f0b4cc;
+                    color: #d81b60;
+                    background: #fff;
+                }
+
+                .dashboard-search-block .dashboard-search-input .form-control {
+                    border-color: #f0b4cc;
+                    font-weight: 600;
+                    color: #1f2937;
+                }
+
+                .dashboard-search-block .dashboard-search-input .form-control::placeholder {
+                    color: #64748b;
+                    font-weight: 500;
+                }
+
+                .dashboard-search-block .dashboard-search-submit {
+                    font-weight: 700;
+                }
+
+                @media (max-width: 575.98px) {
+                    .dashboard-search-block {
+                        padding: 0.85rem;
+                        border-radius: 12px;
                     }
 
-                    .search-box {
-                        gap: .5rem;
+                    .dashboard-search-block .search-intro {
+                        flex-direction: column;
+                        align-items: flex-start !important;
+                        gap: 0.4rem !important;
+                        margin-bottom: 0.65rem !important;
+                    }
+
+                    .dashboard-search-block .search-intro .text-muted {
+                        font-size: 1.08rem;
+                        line-height: 1.4;
+                        font-weight: 700;
+                    }
+
+                    .dashboard-search-block .dashboard-search-form {
+                        flex-direction: column;
+                        align-items: stretch !important;
+                        gap: 0.55rem !important;
+                    }
+
+                    .dashboard-search-block .dashboard-search-input {
+                        width: 100%;
+                        min-width: 100% !important;
+                    }
+
+                    .dashboard-search-block .dashboard-search-input .form-control,
+                    .dashboard-search-block .dashboard-search-input .input-group-text {
+                        min-height: 50px;
+                    }
+
+                    .dashboard-search-block .dashboard-search-submit {
+                        width: 100%;
+                        min-height: 54px;
+                        font-size: 1.25rem;
+                        border-radius: 10px !important;
+                        box-shadow: 0 8px 20px rgba(216, 27, 96, 0.24) !important;
+                    }
+
+                    .dashboard-search-block .dashboard-search-input .form-control::placeholder {
+                        font-size: 1.07rem;
                     }
                 }
             </style>
@@ -176,6 +251,198 @@
                 </div>
             </div>
         </div>
+
+        @if(isset($latestAlertBooks) && $latestAlertBooks->count())
+        <div class="mb-5 position-relative">
+            <div class="d-flex justify-content-end align-items-center mb-3">
+                <a href="{{ route('alert-services.index') }}" class="btn btn-outline-pink btn-sm">
+                    <i class="bi bi-collection me-1"></i>View All
+                </a>
+            </div>
+            <div class="news-carousel-wrap">
+                <button class="carousel-btn modern-btn left" type="button" aria-label="Scroll left" tabindex="0">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="news-carousel" id="alert-books-carousel">
+                    @foreach($latestAlertBooks as $book)
+                    <div class="carousel-card alert-book-card" data-pdf-url="{{ $book->pdf_path ? asset('storage/'.$book->pdf_path) : '' }}">
+                        <div class="alert-book-cover">
+                            @if($book->cover_image)
+                            <img src="{{ asset('storage/'.$book->cover_image) }}" alt="{{ $book->title ?? 'Book Cover' }}" loading="lazy">
+                            @else
+                            <div class="placeholder-cover">
+                                <i class="bi bi-book" style="font-size: 3rem; color: #ccc;"></i>
+                            </div>
+                            @endif
+                        </div>
+                        <div class="alert-book-overlay">
+                            <div class="alert-book-title">{{ $book->title ?? 'Untitled' }}</div>
+                            @if($book->author)
+                            <div class="alert-book-author">{{ $book->author }}</div>
+                            @endif
+                            <div class="alert-book-meta">
+                                {{ DateTime::createFromFormat('!m', $book->month)->format('F') }} {{ $book->year }}
+                            </div>
+                            @auth
+                            @if(Auth::user()->role !== 'guest')
+                            <div class="d-flex flex-column gap-2 mt-3 alert-book-actions">
+                                <form action="{{ route('bookmarks.toggle') }}" method="POST" class="bookmark-toggle-alert-dashboard" onclick="event.stopPropagation();">
+                                    @csrf
+                                    <input type="hidden" name="id" value="{{ $book->id }}">
+                                    <input type="hidden" name="type" value="alert_book">
+                                    <button type="submit" class="btn btn-sm w-100 {{ in_array($book->id, $bookmarkedAlertBookIds ?? []) ? 'btn-success' : 'btn-outline-light' }}">
+                                        <i class="bi {{ in_array($book->id, $bookmarkedAlertBookIds ?? []) ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
+                                        <span class="label">{{ in_array($book->id, $bookmarkedAlertBookIds ?? []) ? 'Bookmarked' : 'Bookmark' }}</span>
+                                    </button>
+                                </form>
+                                <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
+                                    class="btn btn-pink btn-sm" onclick="event.stopPropagation();">
+                                    <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
+                                </a>
+                            </div>
+                            @endif
+                            @else
+                            <div class="d-flex flex-column gap-2 mt-3 alert-book-actions">
+                                <a href="{{ route('login') }}" onclick="event.stopPropagation();" class="btn btn-outline-light btn-sm">
+                                    <i class="bi bi-box-arrow-in-right"></i> Log in to bookmark
+                                </a>
+                            </div>
+                            @endauth
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                <button class="carousel-btn modern-btn right" type="button" aria-label="Scroll right" tabindex="0">
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10.5 7L17.5 14L10.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="carousel-dots mt-3 text-center" id="alert-books-carousel-dots"></div>
+        </div>
+
+        <style>
+            .alert-book-card {
+                position: relative;
+                min-width: 230px;
+                max-width: 230px;
+                border-radius: 1.2rem;
+                overflow: hidden;
+                border: 1px solid #f3c6d9;
+                box-shadow: 0 10px 28px rgba(84, 44, 21, 0.14);
+                transition: transform 0.25s ease, box-shadow 0.25s ease;
+                cursor: pointer;
+                background: #fff;
+            }
+
+            .alert-book-card:hover {
+                transform: translateY(-8px) scale(1.02);
+                box-shadow: 0 16px 36px rgba(136, 14, 79, 0.25);
+            }
+
+            .alert-book-cover {
+                width: 100%;
+                aspect-ratio: 3 / 4.3;
+                overflow: hidden;
+                position: relative;
+            }
+
+            .alert-book-cover img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+                transition: transform 0.4s ease;
+            }
+
+            .alert-book-card:hover .alert-book-cover img {
+                transform: scale(1.06);
+            }
+
+            .placeholder-cover {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: linear-gradient(135deg, #f5f7fa 0%, #e3e8ef 100%);
+            }
+
+            .alert-book-overlay {
+                position: absolute;
+                inset: auto 0 0 0;
+                background: linear-gradient(180deg, rgba(37, 17, 8, 0.05), rgba(33, 12, 24, 0.95));
+                color: #fff;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-end;
+                padding: 1rem;
+                min-height: 58%;
+                transform: translateY(14px);
+                opacity: 0.92;
+                transition: all 0.28s ease;
+            }
+
+            .alert-book-card:hover .alert-book-overlay {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            .alert-book-title {
+                font-weight: 700;
+                text-align: center;
+                font-size: 0.98rem;
+                margin-bottom: 0.35rem;
+                line-height: 1.25em;
+                display: -webkit-box;
+                line-clamp: 2;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            }
+
+            .alert-book-author {
+                font-size: 0.82rem;
+                text-align: center;
+                margin-bottom: 0.3rem;
+                opacity: 0.95;
+                font-style: italic;
+            }
+
+            .alert-book-meta {
+                font-size: 0.76rem;
+                text-align: center;
+                opacity: 0.88;
+                margin-bottom: 0.35rem;
+            }
+
+            .alert-book-actions {
+                display: none !important;
+                width: 100%;
+            }
+
+            .alert-book-card.is-active .alert-book-actions {
+                display: flex !important;
+            }
+
+            .alert-book-actions .btn {
+                border-radius: 0.7rem;
+                font-weight: 600;
+            }
+
+            @media (max-width: 600px) {
+                .alert-book-card {
+                    min-width: 185px;
+                    max-width: 185px;
+                }
+            }
+        </style>
+        @endif
 
         <!-- Slideshow Section -->
         @if(isset($slideshowImages) && $slideshowImages->count())
@@ -272,178 +539,6 @@
             </div>
         </div>
         @endauth
-
-        <!-- Latest Alert Books -->
-        @if(isset($latestAlertBooks) && $latestAlertBooks->count())
-        <section class="section-white rounded-4 shadow-sm p-4 mb-5 position-relative" style="border:2.5px solid #4a90e2;">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h3 class="fw-bold text-pink mb-0">Latest Alert Books</h3>
-                <a href="{{ route('alert-services.index') }}" class="btn btn-outline-pink btn-sm">
-                    <i class="bi bi-collection me-1"></i>View All
-                </a>
-            </div>
-            <div class="news-carousel-wrap">
-                <button class="carousel-btn modern-btn left" type="button" aria-label="Scroll left" tabindex="0">
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-                <div class="news-carousel" id="alert-books-carousel">
-                    @foreach($latestAlertBooks as $book)
-                    <div class="carousel-card alert-book-card" data-pdf-url="{{ $book->pdf_path ? asset('storage/'.$book->pdf_path) : '' }}">
-                        <div class="alert-book-cover">
-                            @if($book->cover_image)
-                            <img src="{{ asset('storage/'.$book->cover_image) }}" alt="{{ $book->title ?? 'Book Cover' }}" loading="lazy">
-                            @else
-                            <div class="placeholder-cover">
-                                <i class="bi bi-book" style="font-size: 3rem; color: #ccc;"></i>
-                            </div>
-                            @endif
-                        </div>
-                        <div class="alert-book-overlay">
-                            <div class="alert-book-title">{{ $book->title ?? 'Untitled' }}</div>
-                            @if($book->author)
-                            <div class="alert-book-author">{{ $book->author }}</div>
-                            @endif
-                            <div class="alert-book-meta">
-                                {{ DateTime::createFromFormat('!m', $book->month)->format('F') }} {{ $book->year }}
-                            </div>
-                            @auth
-                            @if(Auth::user()->role !== 'guest')
-                            <div class="d-flex flex-column gap-2 mt-3">
-                                <form action="{{ route('bookmarks.toggle') }}" method="POST" class="bookmark-toggle-alert-dashboard" onclick="event.stopPropagation();">
-                                    @csrf
-                                    <input type="hidden" name="id" value="{{ $book->id }}">
-                                    <input type="hidden" name="type" value="alert_book">
-                                    <button type="submit" class="btn btn-sm w-100 {{ in_array($book->id, $bookmarkedAlertBookIds ?? []) ? 'btn-success' : 'btn-outline-light' }}">
-                                        <i class="bi {{ in_array($book->id, $bookmarkedAlertBookIds ?? []) ? 'bi-bookmark-fill' : 'bi-bookmark' }}"></i>
-                                        <span class="label">{{ in_array($book->id, $bookmarkedAlertBookIds ?? []) ? 'Bookmarked' : 'Bookmark' }}</span>
-                                    </button>
-                                </form>
-                                <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
-                                    class="btn btn-pink btn-sm" onclick="event.stopPropagation();">
-                                    <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
-                                </a>
-                            </div>
-                            @endif
-                            @else
-                            <div class="d-flex flex-column gap-2 mt-3">
-                                <a href="{{ route('login') }}" onclick="event.stopPropagation();" class="btn btn-outline-light btn-sm">
-                                    <i class="bi bi-box-arrow-in-right"></i> Log in to bookmark
-                                </a>
-                            </div>
-                            @endauth
-                        </div>
-                    </div>
-                    @endforeach
-                </div>
-                <button class="carousel-btn modern-btn right" type="button" aria-label="Scroll right" tabindex="0">
-                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M10.5 7L17.5 14L10.5 21" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </button>
-            </div>
-            <div class="carousel-dots mt-3 text-center" id="alert-books-carousel-dots"></div>
-        </section>
-
-        <style>
-            /* Alert Book Card Styles */
-            .alert-book-card {
-                position: relative;
-                min-width: 220px;
-                max-width: 220px;
-                border-radius: 1.2rem;
-                overflow: hidden;
-                box-shadow: 0 8px 32px rgba(40, 40, 60, 0.18);
-                transition: transform 0.25s ease, box-shadow 0.25s ease;
-                cursor: pointer;
-                background: #fff;
-            }
-
-            .alert-book-card:hover {
-                transform: scale(1.05);
-                box-shadow: 0 12px 36px rgba(216, 27, 96, 0.25);
-            }
-
-            .alert-book-cover {
-                width: 100%;
-                aspect-ratio: 3 / 4.3;
-                overflow: hidden;
-                position: relative;
-            }
-
-            .alert-book-cover img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-            }
-
-            .placeholder-cover {
-                width: 100%;
-                height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background: linear-gradient(135deg, #f5f7fa 0%, #e3e8ef 100%);
-            }
-
-            .alert-book-overlay {
-                position: absolute;
-                inset: 0;
-                background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0.05));
-                color: #fff;
-                opacity: 0;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: flex-end;
-                padding: 1.2rem;
-                transition: opacity 0.3s ease;
-            }
-
-            .alert-book-card:hover .alert-book-overlay {
-                opacity: 1;
-            }
-
-            .alert-book-title {
-                font-weight: 600;
-                text-align: center;
-                font-size: 0.95rem;
-                margin-bottom: 0.4rem;
-                line-height: 1.2em;
-                display: -webkit-box;
-                line-clamp: 2;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .alert-book-author {
-                font-size: 0.8rem;
-                text-align: center;
-                margin-bottom: 0.3rem;
-                opacity: 0.9;
-                font-style: italic;
-            }
-
-            .alert-book-meta {
-                font-size: 0.75rem;
-                text-align: center;
-                opacity: 0.8;
-                margin-bottom: 0.5rem;
-            }
-
-            @media (max-width: 600px) {
-                .alert-book-card {
-                    min-width: 180px;
-                    max-width: 180px;
-                }
-            }
-        </style>
-        @endif
-
 
         <!-- Posts by Type -->
 

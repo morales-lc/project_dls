@@ -8,6 +8,132 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
         <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <link rel="stylesheet" href="{{ asset('css/mides.css') }}">
+    <style>
+        .filter-shell {
+            border: 1px solid #f5cada;
+            border-radius: 1rem;
+            padding: .9rem;
+            background: linear-gradient(140deg, #fff 0%, #fff5fa 100%);
+            box-shadow: 0 10px 26px rgba(232, 62, 140, 0.12);
+        }
+
+        .view-toggle .btn {
+            border-radius: 8px;
+            transition: all .2s ease-in-out;
+        }
+
+        .view-toggle .btn.active {
+            background-color: #e83e8c;
+            color: #fff;
+            border-color: #e83e8c;
+        }
+
+        .card.h-100 {
+            transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+            border-radius: 0.85rem;
+            overflow: hidden;
+            border: 2px solid #f0d3e0;
+            background-color: #fff;
+        }
+
+        .card.h-100:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 10px 30px rgba(216, 27, 96, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
+            border-color: #d81b60;
+        }
+
+        .results-container {
+            min-height: 320px;
+        }
+
+        .list-view .col-lg-4 {
+            flex: 0 0 100%;
+            max-width: 100%;
+        }
+
+        .list-view .card {
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        .list-view .card-body {
+            flex: 1;
+        }
+
+        .list-view .card-footer {
+            min-width: 220px;
+            flex-direction: column;
+            justify-content: center;
+            gap: .45rem;
+        }
+
+        .tag-discovery-card {
+            margin-top: .4rem;
+            padding: .75rem;
+            border-radius: .9rem;
+            border: 2px solid #f28bb8;
+            background: linear-gradient(145deg, #fff7fc 0%, #fff 100%);
+            box-shadow: 0 6px 20px rgba(232, 62, 140, 0.12);
+        }
+
+        .tag-toggle-btn {
+            border: none;
+            color: #fff;
+            background: #e83e8c;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: .35rem .85rem;
+        }
+
+        .tag-filter-box {
+            display: block;
+            margin-top: .65rem;
+            padding: .65rem;
+            border-radius: .75rem;
+            border: 1px solid #f4bfd5;
+            background: #fff;
+        }
+
+        .suggested-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+        }
+
+        .suggested-tag-btn {
+            border: 1px solid #f2a8ca;
+            background: #fff;
+            color: #9a1e5d;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .65rem;
+        }
+
+        .suggested-tag-btn:hover {
+            background: #ffe2ef;
+        }
+
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .3rem .6rem;
+            border-radius: 999px;
+            background: #ffd9e9;
+            color: #7a0f42;
+            font-size: .82rem;
+            font-weight: 600;
+            margin: .18rem;
+        }
+
+        .tag-chip button {
+            border: none;
+            background: transparent;
+            color: inherit;
+            line-height: 1;
+        }
+    </style>
     
 </head>
 <body>
@@ -23,13 +149,21 @@
             </div>
         </div>
         <div class="card-body">
-            <form class="row g-2 mb-4" method="GET" action="">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold mb-2 mb-md-0">Senior High Documents</h4>
+                <div class="view-toggle">
+                    <button type="button" class="btn btn-outline-secondary btn-sm active" id="grid-view-btn-senior"><i class="bi bi-grid-3x3-gap-fill"></i> Grid</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" id="list-view-btn-senior"><i class="bi bi-list-ul"></i> List</button>
+                </div>
+            </div>
+
+            <form class="row g-2 mb-4 filter-shell" method="GET" action="" id="seniorFilterForm">
                 <div class="col-md-6">
-                    <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ request('search') }}">
+                    <input type="text" name="search" class="form-control" placeholder="Search by title, author, advisor, date, tags..." value="{{ request('search') }}">
                 </div>
                 <div class="col-md-2">
                     <select name="sort" class="form-select">
-                        <option value="year" {{ request('sort') == 'year' ? 'selected' : '' }}>Year</option>
+                        <option value="publication_date" {{ request('sort') == 'publication_date' ? 'selected' : '' }}>Publication Date</option>
                         <option value="title" {{ request('sort') == 'title' ? 'selected' : '' }}>Title</option>
                         <option value="author" {{ request('sort') == 'author' ? 'selected' : '' }}>Author</option>
                     </select>
@@ -43,109 +177,81 @@
                 <div class="col-md-2">
                     <button type="submit" class="btn btn-pink w-100">Filter/Search</button>
                 </div>
+
+                <div class="col-12">
+                    <div class="tag-discovery-card">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <div class="fw-bold" style="color:#a31358;"><i class="bi bi-stars"></i> Tag Discovery</div>
+                                <div class="small text-muted">Use tags for faster discovery of related SHS research papers.</div>
+                            </div>
+                            <button type="button" class="btn tag-toggle-btn" id="toggleTagSearchSenior"><i class="bi bi-tags"></i> Hide Tag Search</button>
+                        </div>
+                        <div id="tagFilterBoxSenior" class="tag-filter-box">
+                            <input type="text" id="tagInputSenior" class="form-control" list="seniorTagSuggestions" placeholder="Type a tag and press Enter">
+                            <datalist id="seniorTagSuggestions">
+                                @foreach(($tagSuggestions ?? []) as $suggestion)
+                                    <option value="{{ $suggestion }}"></option>
+                                @endforeach
+                            </datalist>
+                            <div class="small text-muted mt-2 mb-1">Suggested tags:</div>
+                            <div class="suggested-tags" id="suggestedTagsSenior">
+                                @foreach(array_slice(($tagSuggestions ?? []), 0, 8) as $suggestion)
+                                    <button type="button" class="suggested-tag-btn" data-tag="{{ $suggestion }}">{{ $suggestion }}</button>
+                                @endforeach
+                            </div>
+                            <input type="hidden" name="tags" id="hiddenTagsSenior" value="{{ isset($tagFilters) ? implode(',', $tagFilters) : request('tags', '') }}">
+                            <div id="selectedTagsSenior" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
             </form>
 
             @if($records->isEmpty())
                 <div class="alert alert-info">No records found for this program.</div>
             @else
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Title</th>
-                            <th>Author</th>
-                            <th>Year</th>
-                            <th class="text-center">PDF</th>
+            <div id="senior-results" class="row g-4 grid-view results-container">
+                @foreach($records as $record)
+                <div class="col-lg-4 col-md-6 col-sm-12">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title fw-semibold text-truncate" title="{{ $record->title }}">{{ $record->title }}</h5>
+                            <div class="small mb-2"><span class="text-muted">Author:</span> {{ $record->author }}</div>
+                            <div class="small mb-2"><span class="text-muted">Advisor(s):</span> {{ $record->advisors ?: '—' }}</div>
+                            <div class="small mb-2"><span class="text-muted">Publication Date:</span> {{ !empty($record->publication_date) ? \Illuminate\Support\Carbon::parse($record->publication_date)->format('F d, Y') : '—' }}</div>
+                            <div class="small mb-2"><span class="text-muted">Program:</span> {{ $program }}</div>
+                            <div class="small mb-2"><span class="text-muted">Tags:</span> {{ $record->tags ?: '—' }}</div>
+                        </div>
+                        <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center px-3 py-2">
+                            <a href="{{ route('mides.seniorhigh.viewer', $record->id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius: 8px;">
+                                <i class="bi bi-box-arrow-up-right"></i> Open
+                            </a>
                             @if(Auth::check() && Auth::user()->role !== 'guest')
-                            <th class="text-center">Bookmark</th>
+                            @php
+                                $sf = optional(auth()->user()->studentFaculty);
+                                $isBookmarked = $sf && $sf->id
+                                    ? \App\Models\Bookmark::where('student_faculty_id', $sf->id)
+                                        ->where('bookmarkable_type', \App\Models\MidesDocument::class)
+                                        ->where('bookmarkable_id', $record->id)
+                                        ->exists()
+                                    : false;
+                            @endphp
+                            @if($sf && $sf->id)
+                            <form method="POST" action="{{ route('bookmarks.toggle') }}" class="bookmark-toggle m-0">
+                                @csrf
+                                <input type="hidden" name="id" value="{{ $record->id }}">
+                                <input type="hidden" name="type" value="mides">
+                                <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} d-flex align-items-center gap-1 bookmark-btn" style="border-radius: 8px;">
+                                    <i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i>
+                                    <span class="ms-1">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
+                                </button>
+                            </form>
                             @endif
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($records as $record)
-                        <tr>
-                            <td>
-                                <button type="button" class="btn btn-link p-0 text-start text-decoration-none" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $record->id }}">{{ $record->title }}</button>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-link p-0 text-start text-decoration-none" data-bs-toggle="modal" data-bs-target="#detailsModal{{ $record->id }}">{{ $record->author }}</button>
-                            </td>
-                            <td>{{ $record->year }}</td>
-                            <td class="text-center">
-                                <button type="button" class="btn btn-outline-pink btn-sm view-btn" data-bs-toggle="modal" data-bs-target="#pdfModal{{ $record->id }}"><i class="bi bi-file-earmark-pdf"></i> View</button>
-
-                                <div class="modal fade" id="pdfModal{{ $record->id }}" tabindex="-1" aria-labelledby="pdfModalLabel{{ $record->id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-xl modal-dialog-centered" style="max-width:95vw; width:95vw;">
-                                        <div class="modal-content" style="height:90vh;">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title" id="pdfModalLabel{{ $record->id }}">{{ $record->title }} ({{ $record->year }})</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <iframe src="{{ route('mides.seniorhigh.viewer', $record->id) }}" width="100%" height="100%" style="border:none; min-height:85vh;"></iframe>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Details Modal -->
-                                <div class="modal fade" id="detailsModal{{ $record->id }}" tabindex="-1" aria-labelledby="detailsModalLabel{{ $record->id }}" aria-hidden="true">
-                                    <div class="modal-dialog modal-lg modal-dialog-centered">
-                                        <div class="modal-content">
-                                            <div class="modal-header bg-light">
-                                                <h5 class="modal-title" id="detailsModalLabel{{ $record->id }}"><i class="bi bi-file-text me-2"></i>Document Details</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                            </div>
-                                            <div class="modal-body">
-                                                <dl class="row mb-0">
-                                                    <dt class="col-sm-3">Title</dt>
-                                                    <dd class="col-sm-9 text-break">{{ $record->title }}</dd>
-
-                                                    <dt class="col-sm-3">Author</dt>
-                                                    <dd class="col-sm-9 text-break">{{ $record->author }}</dd>
-
-                                                    <dt class="col-sm-3">Year</dt>
-                                                    <dd class="col-sm-9">{{ $record->year }}</dd>
-
-                                                    <dt class="col-sm-3">Type</dt>
-                                                    <dd class="col-sm-9">{{ $record->type ?? 'Senior High School Research Paper' }}</dd>
-
-                                                    <dt class="col-sm-3">Program</dt>
-                                                    <dd class="col-sm-9">{{ $program }}</dd>
-                                                </dl>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <a class="btn btn-outline-pink" target="_blank" href="{{ route('mides.seniorhigh.viewer', $record->id) }}"><i class="bi bi-file-earmark-pdf"></i> Open PDF</a>
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            @if(Auth::check() && Auth::user()->role !== 'guest')
-                            <td class="text-center">
-                                    @php
-                                        $sf = optional(auth()->user()->studentFaculty);
-                                        $isBookmarked = false;
-                                        if ($sf && $sf->id) {
-                                            $isBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
-                                                ->where('bookmarkable_type', \App\Models\MidesDocument::class)
-                                                ->where('bookmarkable_id', $record->id)
-                                                ->exists();
-                                        }
-                                    @endphp
-                                    @if($sf && $sf->id)
-                                        <form method="POST" action="{{ route('bookmarks.toggle') }}" class="d-inline bookmark-toggle">
-                                            @csrf
-                                            <input type="hidden" name="id" value="{{ $record->id }}">
-                                            <input type="hidden" name="type" value="mides">
-                                            <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-pink' : 'btn-outline-warning' }} bookmark-btn"><i class="bi bi-bookmark{{ $isBookmarked ? '-fill' : '' }}"></i> <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span></button>
-                                        </form>
-                                    @endif
-                            </td>
                             @endif
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </div>
+                    </div>
+                </div>
+                @endforeach
             </div>
             @endif
         </div>
@@ -162,6 +268,94 @@
 @include('footer')
 </html>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var gridBtn = document.getElementById('grid-view-btn-senior');
+        var listBtn = document.getElementById('list-view-btn-senior');
+        var container = document.getElementById('senior-results');
+        if (!gridBtn || !listBtn || !container) return;
+
+        gridBtn.addEventListener('click', function() {
+            container.classList.remove('list-view');
+            container.classList.add('grid-view');
+            gridBtn.classList.add('active');
+            listBtn.classList.remove('active');
+        });
+
+        listBtn.addEventListener('click', function() {
+            container.classList.remove('grid-view');
+            container.classList.add('list-view');
+            listBtn.classList.add('active');
+            gridBtn.classList.remove('active');
+        });
+    });
+
+    (function() {
+        var toggleBtn = document.getElementById('toggleTagSearchSenior');
+        var tagBox = document.getElementById('tagFilterBoxSenior');
+        var tagInput = document.getElementById('tagInputSenior');
+        var selectedTagsEl = document.getElementById('selectedTagsSenior');
+        var suggestedTagsEl = document.getElementById('suggestedTagsSenior');
+        var hiddenTags = document.getElementById('hiddenTagsSenior');
+        var tagList = [];
+
+        function renderTags() {
+            selectedTagsEl.innerHTML = '';
+            tagList.forEach(function(tag, idx) {
+                var chip = document.createElement('span');
+                chip.className = 'tag-chip';
+                chip.innerHTML = '<span>' + tag + '</span><button type="button" data-idx="' + idx + '">&times;</button>';
+                selectedTagsEl.appendChild(chip);
+            });
+            hiddenTags.value = tagList.join(',');
+        }
+
+        function addTag(value) {
+            var tag = (value || '').trim().toLowerCase();
+            if (!tag || tagList.indexOf(tag) !== -1) return;
+            tagList.push(tag);
+            renderTags();
+        }
+
+        var initial = (hiddenTags.value || '').split(',').map(function(v){ return v.trim().toLowerCase(); }).filter(Boolean);
+        tagList = Array.from(new Set(initial));
+        tagBox.style.display = 'block';
+        renderTags();
+
+        toggleBtn.addEventListener('click', function() {
+            var isHidden = tagBox.style.display === 'none' || tagBox.style.display === '';
+            tagBox.style.display = isHidden ? 'block' : 'none';
+            toggleBtn.innerHTML = isHidden
+                ? '<i class="bi bi-tags"></i> Hide Tag Search'
+                : '<i class="bi bi-tags"></i> Show Tag Search';
+        });
+
+        tagInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addTag(tagInput.value);
+                tagInput.value = '';
+            }
+        });
+
+        selectedTagsEl.addEventListener('click', function(e) {
+            if (e.target.tagName.toLowerCase() === 'button') {
+                var idx = parseInt(e.target.getAttribute('data-idx'), 10);
+                if (!isNaN(idx)) {
+                    tagList.splice(idx, 1);
+                    renderTags();
+                }
+            }
+        });
+
+        if (suggestedTagsEl) {
+            suggestedTagsEl.addEventListener('click', function(e) {
+                if (e.target.tagName.toLowerCase() === 'button') {
+                    addTag(e.target.getAttribute('data-tag'));
+                }
+            });
+        }
+    })();
+
     // Generic bookmark toggle handler (AJAX)
     (function(){
         async function handleToggle(e){

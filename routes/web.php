@@ -143,15 +143,15 @@ Route::get('/catalogs/search', [\App\Http\Controllers\CatalogController::class, 
 // Sidlak Journal routes
 use App\Http\Controllers\SidlakJournalController;
 
+// SIDLAK public views (no login required)
+Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
+Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->whereNumber('id')->name('sidlak.show');
+Route::get('/sidlak/article/download/{id}', [SidlakJournalController::class, 'articleDownload'])->name('sidlak.article.download');
+
 // Sidlak and MIDES sections restricted to authenticated users (student/faculty/guest)
 Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
 
     Route::get('/elibraries', [ELibraryController::class, 'index'])->name('elibraries');
-    // Sidlak public views
-    Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
-    Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->whereNumber('id')->name('sidlak.show');
-    // sidlak article downloads
-    Route::get('/sidlak/article/download/{id}', [SidlakJournalController::class, 'articleDownload'])->name('sidlak.article.download');
 
     // Undergraduate Baby Theses menu and program listing
     Route::get('/mides/undergrad', [MidesUndergradController::class, 'index'])->name('mides.undergrad');
@@ -314,6 +314,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/libraries/staff/{id}', [LibraryStaffController::class, 'destroy'])->name('libraries.staff.destroy');
         // Admin-only: keep feedback admin here (categories panel declared below in the dedicated section)
         Route::get('/admin/feedback', [App\Http\Controllers\FeedbackController::class, 'adminList'])->name('feedback.admin');
+        Route::patch('/admin/feedback/{id}/status', [App\Http\Controllers\FeedbackController::class, 'updateStatus'])->name('feedback.status.update');
         Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'destroy'])->name('feedback.delete');
         // contact-info GET declared above together with PUT; avoid duplicates
         // ALINET manage is shared with librarians below; do not declare here
@@ -567,6 +568,8 @@ Route::middleware('auth')->group(function () {
     }], function () {
         Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
         Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
+        Route::get('/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'show'])->whereNumber('id')->name('feedback.show');
+        Route::post('/feedback/{id}/reply', [App\Http\Controllers\FeedbackController::class, 'reply'])->whereNumber('id')->name('feedback.reply');
         // Search history
         Route::get('/history', [App\Http\Controllers\SearchHistoryController::class, 'index'])->name('history');
         Route::delete('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'destroy'])->name('history.delete');

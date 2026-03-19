@@ -4,9 +4,52 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MidesDocument;
+use Illuminate\Support\Carbon;
 
 class MidesController extends Controller
 {
+    private function normalizeForCompare(?string $value): string
+    {
+        return strtolower(trim((string) $value));
+    }
+
+    private function duplicateDocumentExists(array $payload, ?int $ignoreId = null): bool
+    {
+        $query = MidesDocument::query()
+            ->whereRaw('LOWER(TRIM(title)) = ?', [$this->normalizeForCompare($payload['title'] ?? '')])
+            ->whereRaw('LOWER(TRIM(author)) = ?', [$this->normalizeForCompare($payload['author'] ?? '')])
+            ->whereDate('publication_date', $payload['publication_date']);
+
+        if (!empty($payload['mides_category_id'])) {
+            $query->where('mides_category_id', $payload['mides_category_id']);
+        } else {
+            $query->where('type', $payload['type'] ?? '')
+                ->whereRaw('LOWER(TRIM(COALESCE(category, ""))) = ?', [$this->normalizeForCompare($payload['category'] ?? '')])
+                ->whereRaw('LOWER(TRIM(COALESCE(program, ""))) = ?', [$this->normalizeForCompare($payload['program'] ?? '')]);
+        }
+
+        if ($ignoreId) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        return $query->exists();
+    }
+
+    private function normalizeTags(?string $tags): ?string
+    {
+        if (!$tags) {
+            return null;
+        }
+
+        $items = array_filter(array_map('trim', explode(',', $tags)));
+        return $items ? implode(', ', array_unique($items)) : null;
+    }
+
+    private function normalizeDirection(?string $direction): string
+    {
+        return strtolower((string) $direction) === 'asc' ? 'asc' : 'desc';
+    }
+
     public function categoriesPanel()
     {
         $categories = \App\Models\MidesCategory::orderBy('type')->orderBy('name')->get();
@@ -61,18 +104,21 @@ class MidesController extends Controller
             'type' => 'required|string',
             'mides_category_id' => 'nullable|exists:mides_categories,id',
             'author' => 'required|string|max:255',
-            'year' => 'required|digits:4|integer|min:1980|max:' . date('Y'),
+            'advisors' => 'nullable|string|max:1000',
+            'publication_date' => 'required|date|before_or_equal:today',
             'title' => 'required|string|max:500',
+            'tags' => 'nullable|string|max:1000',
             'pdf' => 'nullable|file|mimes:pdf|max:20480',
         ], [
             'author.required' => 'Author name is required.',
             'author.max' => 'Author name cannot exceed 255 characters.',
-            'year.required' => 'Year is required.',
-            'year.digits' => 'Year must be exactly 4 digits.',
-            'year.min' => 'Year cannot be earlier than 1980.',
-            'year.max' => 'Year cannot be later than the current year.',
+            'advisors.max' => 'Advisor(s) cannot exceed 1000 characters.',
+            'publication_date.required' => 'Publication date is required.',
+            'publication_date.date' => 'Publication date must be a valid date.',
+            'publication_date.before_or_equal' => 'Publication date cannot be in the future.',
             'title.required' => 'Document title is required.',
             'title.max' => 'Title cannot exceed 500 characters.',
+            'tags.max' => 'Tags cannot exceed 1000 characters.',
             'pdf.mimes' => 'The file must be a PDF document.',
             'pdf.max' => 'PDF file size cannot exceed 20MB.',
         ]);
@@ -109,10 +155,29 @@ class MidesController extends Controller
                 $doc->program = null;
             }
         }
+
+        $duplicatePayload = [
+            'title' => $request->input('title'),
+            'author' => $request->input('author'),
+            'publication_date' => $request->input('publication_date'),
+            'mides_category_id' => $doc->mides_category_id,
+            'type' => $doc->type,
+            'category' => $doc->category,
+            'program' => $doc->program,
+        ];
+
+        if ($this->duplicateDocumentExists($duplicatePayload, (int) $doc->id)) {
+            return back()
+                ->withErrors(['title' => 'A MIDES document with the same title, author, publication date, and category/program already exists.'])
+                ->withInput();
+        }
         
         $doc->author = $request->author;
-        $doc->year = $request->year;
+        $doc->advisors = $request->input('advisors');
+        $doc->publication_date = $request->input('publication_date');
+        $doc->year = Carbon::parse($request->input('publication_date'))->year;
         $doc->title = $request->title;
+        $doc->tags = $this->normalizeTags($request->input('tags'));
         
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
@@ -149,7 +214,10 @@ class MidesController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
                     ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('advisors', 'like', "%$search%")
                     ->orWhere('year', 'like', "%$search%")
+                    ->orWhere('publication_date', 'like', "%$search%")
+                    ->orWhere('tags', 'like', "%$search%")
                     ->orWhere('type', 'like', "%$search%");
             })->orWhereHas('midesCategory', function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%");
@@ -172,14 +240,21 @@ class MidesController extends Controller
         }
 
         // Sorting
-        $sort = request('sort', 'year');
+        $sort = request('sort', 'publication_date');
         if ($sort === 'latest') {
             $query->orderBy('created_at', 'desc');
         } elseif ($sort === 'oldest') {
             $query->orderBy('created_at', 'asc');
         } else {
-            $direction = request('direction', 'desc');
-            $query->orderBy($sort, $direction);
+            $allowedSorts = [
+                'publication_date',
+                'year',
+                'author',
+                'title',
+            ];
+            $sortColumn = in_array($sort, $allowedSorts, true) ? $sort : 'publication_date';
+            $direction = $this->normalizeDirection(request('direction', 'desc'));
+            $query->orderBy($sortColumn, $direction);
         }
 
         $documents = $query->paginate(12)->appends(request()->query());
@@ -212,8 +287,10 @@ class MidesController extends Controller
             'type' => 'nullable|string',
             'mides_category_id' => 'nullable|exists:mides_categories,id',
             'author' => 'required|string',
-            'year' => 'required|digits:4',
+            'advisors' => 'nullable|string|max:1000',
+            'publication_date' => 'required|date|before_or_equal:today',
             'title' => 'required|string',
+            'tags' => 'nullable|string|max:1000',
             'pdf' => 'required|file|mimes:pdf|max:20480',
         ]);
 
@@ -243,14 +320,33 @@ class MidesController extends Controller
             }
         }
 
+        $duplicatePayload = [
+            'title' => $request->input('title'),
+            'author' => $request->input('author'),
+            'publication_date' => $request->input('publication_date'),
+            'mides_category_id' => $midesCategoryId,
+            'type' => $type,
+            'category' => $category,
+            'program' => $program,
+        ];
+
+        if ($this->duplicateDocumentExists($duplicatePayload)) {
+            return back()
+                ->withErrors(['title' => 'A MIDES document with the same title, author, publication date, and category/program already exists.'])
+                ->withInput();
+        }
+
         MidesDocument::create([
             'type' => $type,
             'category' => $category,
             'program' => $program,
             'mides_category_id' => $midesCategoryId,
             'author' => $request->author,
-            'year' => $request->year,
+            'advisors' => $request->input('advisors'),
+            'year' => Carbon::parse($request->input('publication_date'))->year,
+            'publication_date' => $request->input('publication_date'),
             'title' => $request->title,
+            'tags' => $this->normalizeTags($request->input('tags')),
             'pdf_path' => $pdfPath,
         ]);
         $returnUrl = $request->input('return_url');

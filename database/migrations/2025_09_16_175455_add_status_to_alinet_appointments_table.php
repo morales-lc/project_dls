@@ -12,15 +12,19 @@ return new class extends Migration
 
     public function up()
     {
-        Schema::table('alinet_appointments', function (Blueprint $table) {
-            $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
-        });
+        if (!Schema::hasColumn('alinet_appointments', 'status')) {
+            Schema::table('alinet_appointments', function (Blueprint $table) {
+                $table->enum('status', ['pending', 'accepted', 'rejected'])->default('pending');
+            });
+        }
     }
 
     public function down()
     {
-        Schema::table('alinet_appointments', function (Blueprint $table) {
-            $table->dropColumn('status');
-        });
+        if (Schema::hasColumn('alinet_appointments', 'status')) {
+            Schema::table('alinet_appointments', function (Blueprint $table) {
+                $table->dropColumn('status');
+            });
+        }
     }
 };

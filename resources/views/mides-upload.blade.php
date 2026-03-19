@@ -88,9 +88,54 @@
                 <input type="text" name="title" id="title" class="form-control form-control-lg" value="{{ old('title') }}" required>
             </div>
 
-            <div class="col-md-3">
-                <label class="form-label">Year <span class="text-danger">*</span></label>
-                <input type="number" name="year" id="year" class="form-control form-control-lg" min="1980" max="{{ date('Y') }}" value="{{ old('year') }}" required>
+            <div class="col-12">
+                <label class="form-label">Publication Date <span class="text-danger">*</span></label>
+                @php
+                    $oldDate = old('publication_date');
+                    $oldYear = $oldDate ? \Illuminate\Support\Carbon::parse($oldDate)->format('Y') : '';
+                    $oldMonth = $oldDate ? \Illuminate\Support\Carbon::parse($oldDate)->format('m') : '';
+                    $oldDay = $oldDate ? \Illuminate\Support\Carbon::parse($oldDate)->format('d') : '';
+                @endphp
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <select id="publication_month" class="form-select form-select-lg" required>
+                            <option value="">Month</option>
+                            @foreach(range(1, 12) as $m)
+                                @php $mVal = str_pad((string) $m, 2, '0', STR_PAD_LEFT); @endphp
+                                <option value="{{ $mVal }}" {{ $oldMonth === $mVal ? 'selected' : '' }}>{{ \Illuminate\Support\Carbon::create(null, $m, 1)->format('F') }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="publication_day" class="form-select form-select-lg" required>
+                            <option value="">Day</option>
+                            @foreach(range(1, 31) as $d)
+                                @php $dVal = str_pad((string) $d, 2, '0', STR_PAD_LEFT); @endphp
+                                <option value="{{ $dVal }}" {{ $oldDay === $dVal ? 'selected' : '' }}>{{ $d }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select id="publication_year" class="form-select form-select-lg" required>
+                            <option value="">Year</option>
+                            @foreach(range((int) date('Y'), 1980) as $y)
+                                <option value="{{ $y }}" {{ (string) $oldYear === (string) $y ? 'selected' : '' }}>{{ $y }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+                <input type="hidden" name="publication_date" id="publication_date" value="{{ old('publication_date') }}">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Advisor(s)</label>
+                <input type="text" name="advisors" id="advisors" class="form-control form-control-lg" value="{{ old('advisors') }}" placeholder="e.g. Dr. Jane Doe, Prof. John Smith">
+            </div>
+
+            <div class="col-12">
+                <label class="form-label">Tags</label>
+                <input type="text" name="tags" id="tags" class="form-control form-control-lg" value="{{ old('tags') }}" placeholder="e.g. STEM education, AI, student performance">
+                <small class="text-muted">Separate tags with commas.</small>
             </div>
 
 
@@ -153,8 +198,26 @@ function toggleFields() {
         document.getElementById('mides_category_id_sh').disabled = true;
     }
 }
+
+function syncPublicationDate() {
+    var month = document.getElementById('publication_month').value;
+    var day = document.getElementById('publication_day').value;
+    var year = document.getElementById('publication_year').value;
+    var hidden = document.getElementById('publication_date');
+
+    if (year && month && day) {
+        hidden.value = year + '-' + month + '-' + day;
+    } else {
+        hidden.value = '';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', toggleFields);
 document.getElementById('type').addEventListener('change', toggleFields);
+document.getElementById('publication_month').addEventListener('change', syncPublicationDate);
+document.getElementById('publication_day').addEventListener('change', syncPublicationDate);
+document.getElementById('publication_year').addEventListener('change', syncPublicationDate);
+document.addEventListener('DOMContentLoaded', syncPublicationDate);
 </script>
 @endpush
 @endsection

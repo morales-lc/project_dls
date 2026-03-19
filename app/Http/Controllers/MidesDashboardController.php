@@ -8,6 +8,62 @@ use App\Models\MidesCategory;
 
 class MidesDashboardController extends Controller
 {
+    private function getTagSuggestions(int $limit = 20): array
+    {
+        $rawTags = MidesDocument::query()
+            ->whereNotNull('tags')
+            ->where('tags', '!=', '')
+            ->pluck('tags');
+
+        $counts = [];
+        foreach ($rawTags as $tagString) {
+            $parts = explode(',', (string) $tagString);
+            foreach ($parts as $part) {
+                $tag = strtolower(trim($part));
+                if ($tag === '') {
+                    continue;
+                }
+                $counts[$tag] = ($counts[$tag] ?? 0) + 1;
+            }
+        }
+
+        $tags = array_keys($counts);
+        usort($tags, function ($a, $b) use ($counts) {
+            $countCompare = $counts[$b] <=> $counts[$a];
+            return $countCompare !== 0 ? $countCompare : strcmp($a, $b);
+        });
+
+        return array_slice($tags, 0, $limit);
+    }
+
+    private function parseTagFilters(Request $request): array
+    {
+        $raw = $request->input('tags', '');
+        if (is_array($raw)) {
+            $raw = implode(',', $raw);
+        }
+
+        $parts = array_filter(array_map('trim', explode(',', (string) $raw)));
+        return array_values(array_unique(array_map('strtolower', $parts)));
+    }
+
+    private function applyTagFilters($query, array $tags): void
+    {
+        foreach ($tags as $tag) {
+            $query->whereRaw('LOWER(tags) LIKE ?', ['%' . $tag . '%']);
+        }
+    }
+
+    private function normalizeDirection(?string $direction): string
+    {
+        return strtolower((string) $direction) === 'asc' ? 'asc' : 'desc';
+    }
+
+    private function resolveSort(string $sort): string
+    {
+        $allowed = ['publication_date', 'year', 'title', 'author'];
+        return in_array($sort, $allowed, true) ? $sort : 'publication_date';
+    }
 
     // AJAX endpoint for fetching programs by type
     public function getPrograms(Request $request)
@@ -38,20 +94,28 @@ class MidesDashboardController extends Controller
     }
     public function facultyTheses()
     {
+        $request = request();
         $search = request('search');
-        $sort = request('sort', 'year');
-        $direction = request('direction', 'desc');
+        $sort = $this->resolveSort(request('sort', 'publication_date'));
+        $direction = $this->normalizeDirection(request('direction', 'desc'));
+        $tagFilters = $this->parseTagFilters($request);
+        $tagSuggestions = $this->getTagSuggestions();
 
         $query = MidesDocument::with('midesCategory')->where('type', 'Faculty/Theses/Dissertations');
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
                     ->orWhere('author', 'like', "%$search%")
-                    ->orWhere('year', 'like', "%$search%");
+                    ->orWhere('advisors', 'like', "%$search%")
+                    ->orWhere('year', 'like', "%$search%")
+                    ->orWhere('publication_date', 'like', "%$search%")
+                    ->orWhere('tags', 'like', "%$search%");
             });
         }
-        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends(['search' => $search, 'sort' => $sort, 'direction' => $direction]);
-        return view('mides-faculty-theses-list', compact('documents', 'search', 'sort', 'direction'));
+        $this->applyTagFilters($query, $tagFilters);
+
+        $documents = $query->orderBy($sort, $direction)->paginate(12)->appends($request->query());
+        return view('mides-faculty-theses-list', compact('documents', 'search', 'sort', 'direction', 'tagFilters', 'tagSuggestions'));
     }
     public function index(Request $request)
     {
@@ -60,13 +124,19 @@ class MidesDashboardController extends Controller
         $type = $request->input('type');
         $category = $request->input('category');
         $program = $request->input('program');
+        $publicationDate = $request->input('publication_date');
         $year = $request->input('year');
+        $tagFilters = $this->parseTagFilters($request);
+        $tagSuggestions = $this->getTagSuggestions();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
                     ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('advisors', 'like', "%$search%")
                     ->orWhere('year', 'like', "%$search%")
+                    ->orWhere('publication_date', 'like', "%$search%")
+                    ->orWhere('tags', 'like', "%$search%")
                     ->orWhere('type', 'like', "%$search%");
             })->orWhereHas('midesCategory', function ($q) use ($search) {
                 $q->where('name', 'like', "%$search%");
@@ -102,9 +172,15 @@ class MidesDashboardController extends Controller
                 });
             }
         }
-        if ($year) $query->where('year', $year);
+        if ($publicationDate) {
+            $query->whereDate('publication_date', $publicationDate);
+        } elseif ($year) {
+            $query->whereYear('publication_date', $year);
+        }
 
-        $documents = $query->orderBy('year', 'desc')->paginate(12);
+        $this->applyTagFilters($query, $tagFilters);
+
+        $documents = $query->orderBy('publication_date', 'desc')->paginate(12)->appends($request->query());
         $types = MidesCategory::select('type')->distinct()->pluck('type');
         
         // Get categories/programs based on selected type
@@ -117,7 +193,7 @@ class MidesDashboardController extends Controller
 
         $years = MidesDocument::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
 
-        return view('mides', compact('documents', 'types', 'categories', 'programs', 'years', 'search', 'type', 'category', 'program'));
+        return view('mides', compact('documents', 'types', 'categories', 'programs', 'years', 'search', 'type', 'category', 'program', 'publicationDate', 'tagFilters', 'tagSuggestions'));
     }
     public function search(Request $request)
     {
@@ -126,13 +202,19 @@ class MidesDashboardController extends Controller
         $type = $request->input('type');
         $category = $request->input('category');
         $program = $request->input('program');
+        $publicationDate = $request->input('publication_date');
         $year = $request->input('year');
+        $tagFilters = $this->parseTagFilters($request);
+        $tagSuggestions = $this->getTagSuggestions();
 
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
                     ->orWhere('author', 'like', "%$search%")
+                    ->orWhere('advisors', 'like', "%$search%")
                     ->orWhere('year', 'like', "%$search%")
+                    ->orWhere('publication_date', 'like', "%$search%")
+                    ->orWhere('tags', 'like', "%$search%")
                     ->orWhere('category', 'like', "%$search%")
                     ->orWhere('program', 'like', "%$search%")
                     ->orWhere('type', 'like', "%$search%");
@@ -169,9 +251,15 @@ class MidesDashboardController extends Controller
                 });
             }
         }
-        if ($year) $query->where('year', $year);
+        if ($publicationDate) {
+            $query->whereDate('publication_date', $publicationDate);
+        } elseif ($year) {
+            $query->whereYear('publication_date', $year);
+        }
 
-        $documents = $query->orderBy('year', 'desc')->paginate(12);
+        $this->applyTagFilters($query, $tagFilters);
+
+        $documents = $query->orderBy('publication_date', 'desc')->paginate(12)->appends($request->query());
         $types = MidesCategory::select('type')->distinct()->pluck('type');
 
         // categories based on type
@@ -188,7 +276,7 @@ class MidesDashboardController extends Controller
 
         $years = MidesDocument::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
 
-        return view('mides-search-results', compact('documents', 'types', 'categories', 'programs', 'years', 'search', 'type', 'category', 'program'));
+        return view('mides-search-results', compact('documents', 'types', 'categories', 'programs', 'years', 'search', 'type', 'category', 'program', 'publicationDate', 'tagFilters', 'tagSuggestions'));
     }
 
     // Viewer specifically for search results (returns standalone viewer in iframe)

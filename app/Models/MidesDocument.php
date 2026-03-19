@@ -13,9 +13,16 @@ class MidesDocument extends Model
         'program',
         'mides_category_id',
         'author',
+        'advisors',
         'year',
+        'publication_date',
         'title',
+        'tags',
         'pdf_path',
+    ];
+
+    protected $casts = [
+        'publication_date' => 'date',
     ];
 
     /**

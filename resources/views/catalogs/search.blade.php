@@ -4,11 +4,76 @@
 
 <head>
     <title>Catalog Search</title>
+    <style>
+        .search-results-title {
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            color: #1f2937;
+        }
+
+        #searchResultTabs .nav-link {
+            font-weight: 700;
+            color: #334155;
+        }
+
+        #searchResultTabs .nav-link.active {
+            font-weight: 800;
+            color: #111827;
+        }
+
+        .catalog-info h6 {
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.35;
+        }
+
+        .catalog-info p,
+        .catalog-info .text-muted,
+        .result-summary {
+            font-weight: 600;
+            color: #374151 !important;
+        }
+
+        @media (max-width: 575.98px) {
+            .search-results-title {
+                font-size: 1.15rem;
+            }
+
+            #searchResultTabs {
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                overflow-y: hidden;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: thin;
+            }
+
+            #searchResultTabs .nav-item {
+                flex: 0 0 auto;
+            }
+
+            #searchResultTabs .nav-link {
+                font-size: 0.9rem;
+                padding: 0.55rem 0.7rem;
+                white-space: nowrap;
+            }
+
+            .catalog-info h6 {
+                font-size: 1rem;
+            }
+
+            .catalog-info p,
+            .catalog-info .text-muted,
+            .result-summary {
+                font-size: 0.93rem;
+                line-height: 1.4;
+            }
+        }
+    </style>
 </head>
 
 <div class="container py-4">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h4 class="mb-2 mb-md-0 text-primary">🔍 Search Results</h4>
+        <h4 class="mb-2 mb-md-0 text-primary search-results-title">🔍 Search Results</h4>
         <div class="view-toggle">
             <button id="listViewBtn" class="active" title="List View"><i class="bi bi-list"></i></button>
             <button id="gridViewBtn" title="Grid View"><i class="bi bi-grid-3x3-gap-fill"></i></button>
@@ -129,7 +194,7 @@
              id="pane-catalogs" role="tabpanel">
             @if($catalogs->isNotEmpty())
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="text-muted small">Showing {{ $catalogs->firstItem() }}–{{ $catalogs->lastItem() }} of {{ $catalogs->total() }} results</span>
+                <span class="text-muted small result-summary">Showing {{ $catalogs->firstItem() }}–{{ $catalogs->lastItem() }} of {{ $catalogs->total() }} results</span>
             </div>
             <div id="catalogContainer" class="catalog-list">
                 @foreach($catalogs as $catalog)

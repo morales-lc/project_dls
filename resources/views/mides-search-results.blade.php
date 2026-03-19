@@ -110,6 +110,82 @@
         .results-container {
             min-height: calc(100vh - 600px);
         }
+
+        .search-shell {
+            border: 1px solid #f5cada;
+            border-radius: 1rem;
+            padding: 1rem;
+            background: linear-gradient(140deg, #fff 0%, #fff5fa 100%);
+            box-shadow: 0 10px 26px rgba(232, 62, 140, 0.12);
+        }
+
+        .tag-discovery-card {
+            margin-top: .85rem;
+            padding: .85rem;
+            border-radius: .95rem;
+            border: 2px solid #f28bb8;
+            background: linear-gradient(145deg, #fff7fc 0%, #fff 100%);
+            box-shadow: 0 6px 20px rgba(232, 62, 140, 0.14);
+        }
+
+        .tag-toggle-btn {
+            border: none;
+            color: #fff;
+            background: #e83e8c;
+            font-weight: 700;
+            border-radius: 999px;
+            padding: .4rem .9rem;
+        }
+
+        .tag-filter-box {
+            display: block;
+            margin-top: .75rem;
+            padding: .75rem;
+            border-radius: .9rem;
+            border: 1px solid #f4bfd5;
+            background: #fff;
+        }
+
+        .suggested-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .45rem;
+        }
+
+        .suggested-tag-btn {
+            border: 1px solid #f2a8ca;
+            background: #fff;
+            color: #9a1e5d;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 600;
+            padding: .2rem .65rem;
+        }
+
+        .suggested-tag-btn:hover {
+            background: #ffe2ef;
+        }
+
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .35rem .65rem;
+            border-radius: 999px;
+            background: #ffd9e9;
+            color: #7a0f42;
+            font-size: .85rem;
+            font-weight: 600;
+            margin: .2rem;
+        }
+
+        .tag-chip button {
+            border: none;
+            background: transparent;
+            color: #7a0f42;
+            font-size: .95rem;
+            line-height: 1;
+        }
     </style>
 </head>
 
@@ -137,7 +213,7 @@
         </div>
 
         <!-- Search Form -->
-        <form class="mb-4" method="GET" action="{{ route('mides.search') }}">
+        <form class="mb-4 search-shell" method="GET" action="{{ route('mides.search') }}" id="midesSearchResultForm">
             <div class="row g-2 mb-2">
                 <div class="col-12 col-md-8">
                     <input class="form-control" type="search" name="q" value="{{ $search ?? '' }}" placeholder="Search again..." aria-label="Search">
@@ -165,16 +241,42 @@
                 </div>
                 <div class="col-12 col-md-4">
                     <input
-                        type="text"
-                        inputmode="numeric"
-                        pattern="\d{4}"
-                        maxlength="4"
+                        type="date"
                         class="form-control"
-                        name="year"
-                        placeholder="YEAR (e.g., 2024)"
-                        value="{{ request('year') ?? '' }}"
-                        aria-label="Filter by year"
+                        name="publication_date"
+                        value="{{ request('publication_date') ?? '' }}"
+                        max="{{ date('Y-m-d') }}"
+                        aria-label="Filter by publication date"
                     >
+                </div>
+            </div>
+
+            <div class="tag-discovery-card">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <div class="fw-bold" style="color:#a31358;"><i class="bi bi-stars"></i> Tag Discovery</div>
+                        <div class="small text-muted">Use tags to discover related theses and research quickly.</div>
+                    </div>
+                    <button type="button" class="btn tag-toggle-btn" id="toggleTagSearch2">
+                        <i class="bi bi-tags"></i> Hide Tag Search
+                    </button>
+                </div>
+                <div id="tagFilterBox2" class="tag-filter-box">
+                    <label for="tagInput2" class="form-label fw-semibold mb-1">Type a tag and press Enter</label>
+                    <input type="text" id="tagInput2" class="form-control" list="midesTagSuggestions2" placeholder="e.g. educational technology">
+                    <datalist id="midesTagSuggestions2">
+                        @foreach(($tagSuggestions ?? []) as $suggestion)
+                            <option value="{{ $suggestion }}"></option>
+                        @endforeach
+                    </datalist>
+                    <div class="small text-muted mt-2 mb-1">Suggested tags:</div>
+                    <div class="suggested-tags" id="suggestedTags2">
+                        @foreach(array_slice(($tagSuggestions ?? []), 0, 8) as $suggestion)
+                            <button type="button" class="suggested-tag-btn" data-tag="{{ $suggestion }}">{{ $suggestion }}</button>
+                        @endforeach
+                    </div>
+                    <input type="hidden" name="tags" id="hiddenTags2" value="{{ isset($tagFilters) ? implode(',', $tagFilters) : request('tags', '') }}">
+                    <div id="selectedTags2" class="mt-2"></div>
                 </div>
             </div>
         </form>
@@ -189,7 +291,9 @@
                             {{ $doc->title }}
                         </h5>
                         <div class="small mb-2"><span class="text-muted">Author:</span> {{ $doc->author }}</div>
-                        <div class="small mb-2"><span class="text-muted">Year:</span> {{ $doc->year }}</div>
+                        <div class="small mb-2"><span class="text-muted">Advisor(s):</span> {{ $doc->advisors ?: '—' }}</div>
+                        <div class="small mb-2"><span class="text-muted">Publication Date:</span> {{ optional($doc->publication_date)->format('F d, Y') ?: '—' }}</div>
+                        <div class="small mb-2"><span class="text-muted">Tags:</span> {{ $doc->tags ?: '—' }}</div>
                         <div class="small mb-2"><span class="text-muted">Type:</span> {{ $doc->type }}</div>
                         @if($doc->category)
                         <div class="small mb-2"><span class="text-muted">Category:</span> {{ $doc->category }}</div>
@@ -314,6 +418,73 @@
                 } else {
                     updateProgramDropdown(typeSelect.value);
                 }
+            }
+        })();
+
+        (function() {
+            var toggleBtn = document.getElementById('toggleTagSearch2');
+            var tagBox = document.getElementById('tagFilterBox2');
+            var tagInput = document.getElementById('tagInput2');
+            var selectedTagsEl = document.getElementById('selectedTags2');
+            var suggestedTagsEl = document.getElementById('suggestedTags2');
+            var hiddenTags = document.getElementById('hiddenTags2');
+            var tagList = [];
+
+            function renderTags() {
+                selectedTagsEl.innerHTML = '';
+                tagList.forEach(function(tag, idx) {
+                    var chip = document.createElement('span');
+                    chip.className = 'tag-chip';
+                    chip.innerHTML = '<span>' + tag + '</span><button type="button" data-idx="' + idx + '">&times;</button>';
+                    selectedTagsEl.appendChild(chip);
+                });
+                hiddenTags.value = tagList.join(',');
+            }
+
+            function addTag(value) {
+                var tag = (value || '').trim().toLowerCase();
+                if (!tag || tagList.indexOf(tag) !== -1) return;
+                tagList.push(tag);
+                renderTags();
+            }
+
+            var initial = (hiddenTags.value || '').split(',').map(function(v){ return v.trim().toLowerCase(); }).filter(Boolean);
+            tagList = Array.from(new Set(initial));
+            tagBox.style.display = 'block';
+            renderTags();
+
+            toggleBtn.addEventListener('click', function() {
+                var isHidden = tagBox.style.display === 'none' || tagBox.style.display === '';
+                tagBox.style.display = isHidden ? 'block' : 'none';
+                toggleBtn.innerHTML = isHidden
+                    ? '<i class="bi bi-tags"></i> Hide Tag Search'
+                    : '<i class="bi bi-tags"></i> Show Tag Search';
+            });
+
+            tagInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addTag(tagInput.value);
+                    tagInput.value = '';
+                }
+            });
+
+            selectedTagsEl.addEventListener('click', function(e) {
+                if (e.target.tagName.toLowerCase() === 'button') {
+                    var idx = parseInt(e.target.getAttribute('data-idx'), 10);
+                    if (!isNaN(idx)) {
+                        tagList.splice(idx, 1);
+                        renderTags();
+                    }
+                }
+            });
+
+            if (suggestedTagsEl) {
+                suggestedTagsEl.addEventListener('click', function(e) {
+                    if (e.target.tagName.toLowerCase() === 'button') {
+                        addTag(e.target.getAttribute('data-tag'));
+                    }
+                });
             }
         })();
 

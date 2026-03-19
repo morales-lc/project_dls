@@ -24,7 +24,7 @@
         <div style="height: 30px;"></div>
         <form method="GET" action="{{ route('mides.management') }}" class="row g-2 mb-3 align-items-end">
             <div class="col-md-4">
-                <input type="text" name="search" class="form-control" placeholder="Search by title, author, year..." value="{{ $search ?? '' }}">
+                <input type="text" name="search" class="form-control" placeholder="Search by title, author, advisor, date, tags..." value="{{ $search ?? '' }}">
             </div>
             <div class="col-md-3">
                 <select name="type" class="form-select">
@@ -38,6 +38,7 @@
                 <select name="sort" class="form-select">
                     <option value="latest" {{ $sort == 'latest' ? 'selected' : '' }}>Latest</option>
                     <option value="oldest" {{ $sort == 'oldest' ? 'selected' : '' }}>Oldest</option>
+                    <option value="publication_date" {{ $sort == 'publication_date' ? 'selected' : '' }}>Publication Date</option>
                     <option value="year" {{ $sort == 'year' ? 'selected' : '' }}>Year</option>
                     <option value="author" {{ $sort == 'author' ? 'selected' : '' }}>Author</option>
                     <option value="title" {{ $sort == 'title' ? 'selected' : '' }}>Title</option>
@@ -58,7 +59,9 @@
                         <tr>
                             <th>Title</th>
                             <th>Author</th>
-                            <th>Year</th>
+                            <th>Advisor(s)</th>
+                            <th>Publication Date</th>
+                            <th>Tags</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -68,7 +71,9 @@
                             data-id="{{ $doc->id }}"
                             data-title="{{ $doc->title }}"
                             data-author="{{ $doc->author }}"
-                            data-year="{{ $doc->year }}"
+                            data-advisors="{{ $doc->advisors }}"
+                            data-publication-date="{{ optional($doc->publication_date)->format('Y-m-d') }}"
+                            data-tags="{{ $doc->tags }}"
                             data-type="{{ $typeNames[$doc->type] ?? $doc->type }}"
                             data-category="{{ optional($doc->midesCategory)->name ?? $doc->category ?? $doc->program ?? '—' }}"
                             data-pdf-url="{{ asset('storage/' . $doc->pdf_path) }}"
@@ -76,7 +81,9 @@
                             data-delete-url="{{ route('mides.delete', $doc->id) }}">
                             <td>{{ $doc->title }}</td>
                             <td>{{ $doc->author }}</td>
-                            <td>{{ $doc->year }}</td>
+                            <td>{{ $doc->advisors ?: '—' }}</td>
+                            <td>{{ optional($doc->publication_date)->format('F d, Y') ?: ($doc->year ? $doc->year . '-01-01' : '—') }}</td>
+                            <td>{{ $doc->tags ?: '—' }}</td>
                             <td>
                                 <button type="button" class="btn btn-sm btn-warning" data-no-row-click data-bs-toggle="modal" data-bs-target="#updateModal{{ $doc->id }}">Update</button>
                                 <form method="POST" action="{{ route('mides.delete', $doc->id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this record?');">
@@ -137,12 +144,54 @@
                                                 <input type="text" name="author" class="form-control" value="{{ old('doc_id') == $doc->id ? old('author') : $doc->author }}" maxlength="255" required>
                                             </div>
                                             <div class="mb-2">
-                                                <label class="form-label">Year <span class="text-danger">*</span></label>
-                                                <input type="number" name="year" class="form-control" value="{{ old('doc_id') == $doc->id ? old('year') : $doc->year }}" min="1980" max="{{ date('Y') }}" required>
+                                                <label class="form-label">Advisor(s)</label>
+                                                <input type="text" name="advisors" class="form-control" value="{{ old('doc_id') == $doc->id ? old('advisors') : $doc->advisors }}" maxlength="1000">
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Publication Date <span class="text-danger">*</span></label>
+                                                @php
+                                                    $modalDate = old('doc_id') == $doc->id ? old('publication_date') : optional($doc->publication_date)->format('Y-m-d');
+                                                    $modalYear = $modalDate ? \Illuminate\Support\Carbon::parse($modalDate)->format('Y') : '';
+                                                    $modalMonth = $modalDate ? \Illuminate\Support\Carbon::parse($modalDate)->format('m') : '';
+                                                    $modalDay = $modalDate ? \Illuminate\Support\Carbon::parse($modalDate)->format('d') : '';
+                                                @endphp
+                                                <div class="row g-2">
+                                                    <div class="col-md-4">
+                                                        <select id="publicationMonth{{ $doc->id }}" class="form-select" required>
+                                                            <option value="">Month</option>
+                                                            @foreach(range(1, 12) as $m)
+                                                                @php $mVal = str_pad((string) $m, 2, '0', STR_PAD_LEFT); @endphp
+                                                                <option value="{{ $mVal }}" {{ $modalMonth === $mVal ? 'selected' : '' }}>{{ \Illuminate\Support\Carbon::create(null, $m, 1)->format('F') }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <select id="publicationDay{{ $doc->id }}" class="form-select" required>
+                                                            <option value="">Day</option>
+                                                            @foreach(range(1, 31) as $d)
+                                                                @php $dVal = str_pad((string) $d, 2, '0', STR_PAD_LEFT); @endphp
+                                                                <option value="{{ $dVal }}" {{ $modalDay === $dVal ? 'selected' : '' }}>{{ $d }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <select id="publicationYear{{ $doc->id }}" class="form-select" required>
+                                                            <option value="">Year</option>
+                                                            @foreach(range((int) date('Y'), 1980) as $y)
+                                                                <option value="{{ $y }}" {{ (string) $modalYear === (string) $y ? 'selected' : '' }}>{{ $y }}</option>
+                                                            @endforeach
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" name="publication_date" id="publicationDate{{ $doc->id }}" value="{{ $modalDate }}">
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label">Title <span class="text-danger">*</span></label>
                                                 <input type="text" name="title" class="form-control" value="{{ old('doc_id') == $doc->id ? old('title') : $doc->title }}" maxlength="500" required>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Tags</label>
+                                                <input type="text" name="tags" class="form-control" value="{{ old('doc_id') == $doc->id ? old('tags') : $doc->tags }}" maxlength="1000" placeholder="Comma-separated (e.g., AI, Robotics, Education)">
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label">PDF (leave blank to keep current)</label>
@@ -176,11 +225,33 @@
                                     if (select) select.innerHTML = html;
                                 }
 
+                                function syncModalPublicationDate() {
+                                    var monthEl = document.getElementById('publicationMonth{{ $doc->id }}');
+                                    var dayEl = document.getElementById('publicationDay{{ $doc->id }}');
+                                    var yearEl = document.getElementById('publicationYear{{ $doc->id }}');
+                                    var hiddenEl = document.getElementById('publicationDate{{ $doc->id }}');
+
+                                    if (!monthEl || !dayEl || !yearEl || !hiddenEl) return;
+                                    var month = monthEl.value;
+                                    var day = dayEl.value;
+                                    var year = yearEl.value;
+                                    hiddenEl.value = (year && month && day) ? (year + '-' + month + '-' + day) : '';
+                                }
+
                                 if (typeSelect) typeSelect.addEventListener('change', updateDropdown);
+                                var monthSelect = document.getElementById('publicationMonth{{ $doc->id }}');
+                                var daySelect = document.getElementById('publicationDay{{ $doc->id }}');
+                                var yearSelect = document.getElementById('publicationYear{{ $doc->id }}');
+                                if (monthSelect) monthSelect.addEventListener('change', syncModalPublicationDate);
+                                if (daySelect) daySelect.addEventListener('change', syncModalPublicationDate);
+                                if (yearSelect) yearSelect.addEventListener('change', syncModalPublicationDate);
                                 // If modal is shown, update dropdown to match type
                                 modal.addEventListener('show.bs.modal', function() {
                                     updateDropdown();
+                                    syncModalPublicationDate();
                                 });
+
+                                syncModalPublicationDate();
                             });
                         </script>
                         @php
@@ -241,8 +312,16 @@
                         <div><span id="docCategory" class="badge bg-secondary-subtle text-dark px-3 py-2"></span></div>
                     </div>
                     <div class="col-sm-6">
-                        <div class="small text-uppercase text-muted">Year</div>
-                        <div id="docYear" class="fw-semibold">-</div>
+                        <div class="small text-uppercase text-muted">Publication Date</div>
+                        <div id="docPublicationDate" class="fw-semibold">-</div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="small text-uppercase text-muted">Advisor(s)</div>
+                        <div id="docAdvisors" class="fw-semibold">-</div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="small text-uppercase text-muted">Tags</div>
+                        <div id="docTags" class="fw-semibold">-</div>
                     </div>
                 </div>
             </div>
@@ -295,7 +374,9 @@
             row.addEventListener('click', function() {
                 var title = this.dataset.title || '-';
                 var author = this.dataset.author || '-';
-                var year = this.dataset.year || '-';
+                var publicationDate = this.dataset.publicationDate || '-';
+                var advisors = this.dataset.advisors || '-';
+                var tags = this.dataset.tags || '-';
                 var type = this.dataset.type || '-';
                 var category = this.dataset.category || '—';
                 var pdfUrl = this.dataset.pdfUrl || '#';
@@ -304,7 +385,9 @@
 
                 setText('docTitle', title);
                 setText('docAuthor', author);
-                setText('docYear', year);
+                setText('docPublicationDate', publicationDate);
+                setText('docAdvisors', advisors);
+                setText('docTags', tags);
                 setText('docType', type);
                 setText('docCategory', category);
 

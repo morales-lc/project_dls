@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
         // Use Bootstrap 5 for pagination views
         Paginator::useBootstrapFive();
 
+
         // Register custom MIME types for MARC files
         \Illuminate\Support\Facades\Validator::extend('marc_file', function ($attribute, $value, $parameters, $validator) {
             if (!$value instanceof \Illuminate\Http\UploadedFile) {
@@ -37,8 +38,6 @@ class AppServiceProvider extends ServiceProvider
             return 'The :attribute must be a valid MARC file (.001, .mrc, or .marc).';
         });
 
-        if (app()->environment('production')) {
-            URL::forceScheme('https');
-        }
+
     }
 }

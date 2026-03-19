@@ -6,6 +6,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target.closest('button') || e.target.closest('form') || e.target.closest('a')) {
                 return;
             }
+
+            // First click reveals card actions; second click opens PDF.
+            if (!this.classList.contains('is-active')) {
+                document.querySelectorAll('.alert-book-card.is-active').forEach(function(activeCard) {
+                    activeCard.classList.remove('is-active');
+                });
+                this.classList.add('is-active');
+                return;
+            }
+
             var pdfUrl = this.getAttribute('data-pdf-url');
             if (pdfUrl) {
                 window.open(pdfUrl, '_blank');
@@ -13,6 +23,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('No PDF available for this book.');
             }
         });
+    });
+
+    // Clicking outside closes active alert-book action states.
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.alert-book-card')) {
+            document.querySelectorAll('.alert-book-card.is-active').forEach(function(activeCard) {
+                activeCard.classList.remove('is-active');
+            });
+        }
     });
 
     // Handle bookmark toggle for alert books
