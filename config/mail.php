@@ -54,7 +54,7 @@ return [
     | Custom ALINET Email
     |--------------------------------------------------------------------------
     */
-        'alinet_librarian_email' => env('ALINET_LIBRARIAN_EMAIL'),
+        
 
         'ses' => [
             'transport' => 'ses',
@@ -105,6 +105,8 @@ return [
         ],
 
     ],
+
+    'alinet_librarian_email' => env('ALINET_LIBRARIAN_EMAIL'),
 
     /*
     |--------------------------------------------------------------------------
