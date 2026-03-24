@@ -38,6 +38,10 @@ class AlinetController extends Controller
      */
     public function submitForm(Request $request)
     {
+
+        \Log::info('ALINET FORM HIT');
+
+
         // Base validation rules
         $rules = [
             'prefix' => 'nullable|string|max:10',
@@ -85,7 +89,7 @@ class AlinetController extends Controller
 
         // Send email to library Gmail
         Mail::send('alinet.email', ['appointment' => $appointment], function ($message) {
-            $message->to(env('ALINET_LIBRARIAN_EMAIL'))
+            $message->to(config('mail.alinet_librarian_email'))
                 ->subject('New ALINET Appointment Request');
         });
 

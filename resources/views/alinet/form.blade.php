@@ -286,7 +286,7 @@
                     </div>
                 </div>
             </div>
-
+        
             <!-- Resources - Only for Onsite -->
             <div class="row mb-4" id="resourcesSection" style="display: none;">
                 <div class="col-12">
