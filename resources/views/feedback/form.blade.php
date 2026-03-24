@@ -199,11 +199,6 @@
                             <textarea name="message" class="form-control" rows="5" required>{{ old('message') }}</textarea>
                         </div>
 
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="is_anonymous" id="isAnonymous" value="1" {{ old('is_anonymous') ? 'checked' : '' }}>
-                            <label class="form-check-label" for="isAnonymous">Post anonymously</label>
-                        </div>
-
                         <button type="submit" class="btn btn-forum w-100 py-2 fw-semibold">Post Topic</button>
                     </form>
                     </div>
@@ -243,7 +238,7 @@
                                 <p class="text-muted mb-2" style="white-space: pre-line;">{{ \Illuminate\Support\Str::limit($thread->message, 180) }}</p>
 
                                 <div class="d-flex flex-wrap gap-3 small text-muted">
-                                    <span><i class="bi bi-person-circle me-1"></i>{{ $thread->user ? $thread->user->name : 'Anonymous' }}</span>
+                                    <span><i class="bi bi-person-circle me-1"></i>{{ $thread->user ? $thread->user->name : 'Unavailable' }}</span>
                                     <span><i class="bi bi-chat-square-dots me-1"></i>{{ $thread->replies->count() }} replies</span>
                                     <span><i class="bi bi-clock me-1"></i>{{ $thread->created_at->diffForHumans() }}</span>
                                 </div>

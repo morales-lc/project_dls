@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Laravel\Socialite\Facades\Socialite;
 use App\Models\User;
 use App\Models\StudentFaculty;
+use App\Models\UserLoginLog;
 use Illuminate\Support\Facades\Auth;
 
 class GoogleAuthController extends Controller
@@ -98,6 +99,9 @@ class GoogleAuthController extends Controller
         );
 
         Auth::login($user);
+
+        // Track student/faculty Google sign-ins for login analytics.
+        UserLoginLog::recordForUser($user, request());
 
         // Only prompt profile completion for brand-new Google-created accounts
         if ($createdNow) {

@@ -10,6 +10,8 @@
     // Bookmark count for the sidebar badge
     $bookmarkCount = 0;
     $historyCount = 0;
+    $cartCount = 0;
+    $canUseCart = in_array(auth()->user()->role ?? '', ['student', 'faculty'], true);
     if ($sf) {
     try {
     $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
@@ -21,6 +23,13 @@
     $historyCount = \App\Models\SearchHistory::where('student_faculty_id', $sf->id)->count();
     } catch (\Throwable $e) {
     $historyCount = 0;
+    }
+    if ($canUseCart) {
+    try {
+    $cartCount = \App\Models\CartItem::where('student_faculty_id', $sf->id)->count();
+    } catch (\Throwable $e) {
+    $cartCount = 0;
+    }
     }
     }
         @endphp
@@ -60,6 +69,17 @@
                     @endif
                 </a>
             </li>
+            @if($canUseCart)
+            <li class="nav-item mb-3">
+                <a class="nav-link d-flex align-items-center text-dark p-2 rounded {{ request()->routeIs('cart.*') ? 'bg-light' : '' }}" href="{{ route('cart.index') }}">
+                    <i class="bi bi-cart3 me-2 fs-5"></i>
+                    <span>My Cart</span>
+                    @if($cartCount > 0)
+                    <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $cartCount }}</span>
+                    @endif
+                </a>
+            </li>
+            @endif
 
         </ul>
 
@@ -86,6 +106,8 @@
                 // Bookmark count for the sidebar badge
                 $bookmarkCount = 0;
                 $historyCount = 0;
+                $cartCount = 0;
+                $canUseCart = in_array(auth()->user()->role ?? '', ['student', 'faculty'], true);
                 if ($sf) {
                 try {
                 $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
@@ -97,6 +119,13 @@
                 $historyCount = \App\Models\SearchHistory::where('student_faculty_id', $sf->id)->count();
                 } catch (\Throwable $e) {
                 $historyCount = 0;
+                }
+                if ($canUseCart) {
+                try {
+                $cartCount = \App\Models\CartItem::where('student_faculty_id', $sf->id)->count();
+                } catch (\Throwable $e) {
+                $cartCount = 0;
+                }
                 }
                 }
                 @endphp
@@ -136,6 +165,17 @@
                                 @endif
                             </a>
                     </li>
+                    @if($canUseCart)
+                    <li class="nav-item mb-3">
+                        <a class="nav-link d-flex align-items-center text-dark p-2 rounded {{ request()->routeIs('cart.*') ? 'bg-light' : '' }}" href="{{ route('cart.index') }}">
+                            <i class="bi bi-cart3 me-2 fs-5"></i>
+                            <span>My Cart</span>
+                            @if($cartCount > 0)
+                            <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $cartCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    @endif
                 </ul>
             </div>
         </div>

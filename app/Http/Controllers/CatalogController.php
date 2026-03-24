@@ -7,10 +7,176 @@ use App\Models\Catalog;
 use App\Models\MidesDocument;
 use App\Models\SidlakJournal;
 use App\Models\SidlakArticle;
+use App\Models\CartItem;
+use Illuminate\Support\Facades\Storage;
 
 class CatalogController extends Controller
 {
- 
+    public function manage(Request $request)
+    {
+        $query = Catalog::query();
+
+        $q = strtolower($request->input('q', ''));
+        $normalizedQ = preg_replace('/[[:punct:]]+/', ' ', $q);
+        $normalizedQ = preg_replace('/\s+/', ' ', trim($normalizedQ));
+
+        $tokens = [];
+        $usedFulltext = false;
+        $mode = strtolower($request->input('mode', 'or')) === 'and' ? 'and' : 'or';
+
+        if ($normalizedQ) {
+            $likeFull = "%{$normalizedQ}%";
+            $rawTokens = preg_split('/\s+/', $normalizedQ) ?: [];
+            $stop = ['and', 'or', 'the', 'a', 'an', 'of', 'on', 'for', 'to', 'in', 'with', 'by', 'from', 'at', 'as', 'is', 'are', 'was', 'were', 'be', 'been', 'it', 'this', 'that'];
+
+            $tokens = array_values(array_filter($rawTokens, function ($t) use ($stop) {
+                $t = trim($t);
+                if ($t === '') {
+                    return false;
+                }
+
+                if (in_array($t, $stop, true)) {
+                    return false;
+                }
+
+                return mb_strlen($t) >= 2 || in_array($t, ['c', 'c++', 'c#', 'r'], true);
+            }));
+
+            try {
+                $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
+                if ($driver === 'mysql') {
+                    $ftCount = collect(\Illuminate\Support\Facades\DB::select(
+                        "SELECT COUNT(1) as cnt FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND INDEX_TYPE = 'FULLTEXT'",
+                        ['catalogs']
+                    ))->first();
+                    $hasFulltext = $ftCount && (int) ($ftCount->cnt ?? 0) > 0;
+
+                    if ($hasFulltext) {
+                        $boolean = '';
+                        if ($mode === 'and') {
+                            $boolean = implode(' ', array_map(function ($t) {
+                                return '+' . str_replace('"', '', $t) . '*';
+                            }, $tokens));
+                        } else {
+                            $boolean = implode(' ', array_map(function ($t) {
+                                return str_replace('"', '', $t) . '*';
+                            }, $tokens));
+                        }
+
+                        if (trim($boolean) !== '') {
+                            $query->whereRaw(
+                                "MATCH (title, subjects, additional_details, author, publisher) AGAINST (? IN BOOLEAN MODE)",
+                                [$boolean]
+                            );
+                            $query->orderByRaw(
+                                "MATCH (title, subjects, additional_details, author, publisher) AGAINST (? IN NATURAL LANGUAGE MODE) DESC",
+                                [$normalizedQ]
+                            );
+                            $usedFulltext = true;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                $usedFulltext = false;
+            }
+
+            if (!$usedFulltext && $mode === 'and' && count($tokens) > 0) {
+                $query->where(function ($must) use ($tokens) {
+                    foreach ($tokens as $t) {
+                        $like = '%' . str_replace('%', '\\%', $t) . '%';
+                        $must->where(function ($qq) use ($like) {
+                            $qq->whereRaw("LOWER(title) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(subjects) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(additional_details) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(author) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(publisher) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(call_number) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(isbn) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(issn) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(lccn) LIKE ?", [$like]);
+                        });
+                    }
+                });
+            } elseif (!$usedFulltext) {
+                $query->where(function ($sub) use ($likeFull, $tokens) {
+                    $sub->whereRaw("LOWER(REGEXP_REPLACE(title, '[[:punct:]]+', '')) LIKE ?", [$likeFull])
+                        ->orWhereRaw("LOWER(REGEXP_REPLACE(subjects, '[[:punct:]]+', '')) LIKE ?", [$likeFull])
+                        ->orWhereRaw("LOWER(REGEXP_REPLACE(additional_details, '[[:punct:]]+', '')) LIKE ?", [$likeFull]);
+
+                    foreach ($tokens as $t) {
+                        $like = '%' . str_replace('%', '\\%', $t) . '%';
+                        $sub->orWhere(function ($qq) use ($like) {
+                            $qq->whereRaw("LOWER(title) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(subjects) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(additional_details) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(author) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(publisher) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(format) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(content_type) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(media_type) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(carrier_type) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(isbn) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(issn) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(lccn) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(call_number) LIKE ?", [$like]);
+                        });
+                    }
+                });
+            }
+        }
+
+        if ($request->filled('year')) {
+            $query->where('year', $request->input('year'));
+        }
+
+        if ($request->filled('format')) {
+            $query->where('format', $request->input('format'));
+        }
+
+        if (!$usedFulltext) {
+            $bindings = [];
+            $relevanceSql = [];
+
+            if ($normalizedQ !== '') {
+                $bindings[] = "%{$normalizedQ}%";
+                $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(title, '[[:punct:]]+', '')) LIKE ? THEN 8 ELSE 0 END)";
+                $bindings[] = "%{$normalizedQ}%";
+                $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(subjects, '[[:punct:]]+', '')) LIKE ? THEN 6 ELSE 0 END)";
+                $bindings[] = "%{$normalizedQ}%";
+                $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(additional_details, '[[:punct:]]+', '')) LIKE ? THEN 5 ELSE 0 END)";
+                $bindings[] = "%{$normalizedQ}%";
+                $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(author, '[[:punct:]]+', '')) LIKE ? THEN 4 ELSE 0 END)";
+                $bindings[] = "%{$normalizedQ}%";
+                $relevanceSql[] = "(CASE WHEN LOWER(REGEXP_REPLACE(publisher, '[[:punct:]]+', '')) LIKE ? THEN 2 ELSE 0 END)";
+            }
+
+            foreach ($tokens as $t) {
+                $like = '%' . str_replace('%', '\\%', $t) . '%';
+                $bindings[] = $like;
+                $relevanceSql[] = "(CASE WHEN LOWER(title) LIKE ? THEN 4 ELSE 0 END)";
+                $bindings[] = $like;
+                $relevanceSql[] = "(CASE WHEN LOWER(subjects) LIKE ? THEN 3 ELSE 0 END)";
+                $bindings[] = $like;
+                $relevanceSql[] = "(CASE WHEN LOWER(additional_details) LIKE ? THEN 2 ELSE 0 END)";
+                $bindings[] = $like;
+                $relevanceSql[] = "(CASE WHEN LOWER(author) LIKE ? THEN 2 ELSE 0 END)";
+            }
+
+            if (!empty($relevanceSql)) {
+                $query->orderByRaw('(' . implode(' + ', $relevanceSql) . ') DESC, title ASC', $bindings);
+            } else {
+                $query->orderBy('title');
+            }
+        }
+
+        if (!$request->filled('q') && !$request->filled('year') && !$request->filled('format')) {
+            $query->latest();
+        }
+
+        $catalogs = $query->paginate(20)->appends($request->except('page'));
+
+        return view('catalogs.manage', compact('catalogs'));
+    }
 
 
     // Show catalog creation form
@@ -24,6 +190,7 @@ class CatalogController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string|max:500',
+            'unique_key' => 'nullable|string|max:255|unique:catalogs,unique_key',
             'author' => 'nullable|string|max:255',
             'call_number' => 'nullable|string|max:100',
             'sublocation' => 'nullable|string|max:255',
@@ -34,18 +201,88 @@ class CatalogController extends Controller
             'content_type' => 'nullable|string|max:255',
             'media_type' => 'nullable|string|max:255',
             'carrier_type' => 'nullable|string|max:255',
+            'copies_count' => 'nullable|integer|min:0',
             'isbn' => 'nullable|string|max:100',
             'issn' => 'nullable|string|max:100',
             'lccn' => 'nullable|string|max:100',
             'subjects' => 'nullable|string',
             'additional_details' => 'nullable|string',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
         ]);
+
+        if (!$request->filled('unique_key')) {
+            $data['unique_key'] = (string) \Illuminate\Support\Str::uuid();
+        }
+
+        if ($request->hasFile('cover_image')) {
+            $data['cover_image'] = $request->file('cover_image')->store('catalogs/covers', 'public');
+        }
 
         Catalog::create($data);
 
         return redirect()
-            ->route('catalogs.create')
+            ->route('catalogs.manage')
             ->with('success', 'Catalog item added successfully.');
+    }
+
+    public function edit($id)
+    {
+        $catalog = Catalog::findOrFail($id);
+
+        return view('catalogs.edit', compact('catalog'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $catalog = Catalog::findOrFail($id);
+
+        $data = $request->validate([
+            'title' => 'required|string|max:500',
+            'unique_key' => 'nullable|string|max:255|unique:catalogs,unique_key,' . $catalog->id,
+            'author' => 'nullable|string|max:255',
+            'call_number' => 'nullable|string|max:100',
+            'sublocation' => 'nullable|string|max:255',
+            'publisher' => 'nullable|string|max:255',
+            'year' => 'nullable|string|max:50',
+            'edition' => 'nullable|string|max:100',
+            'format' => 'nullable|string|max:255',
+            'content_type' => 'nullable|string|max:255',
+            'media_type' => 'nullable|string|max:255',
+            'carrier_type' => 'nullable|string|max:255',
+            'copies_count' => 'nullable|integer|min:0',
+            'isbn' => 'nullable|string|max:100',
+            'issn' => 'nullable|string|max:100',
+            'lccn' => 'nullable|string|max:100',
+            'subjects' => 'nullable|string',
+            'additional_details' => 'nullable|string',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'remove_cover_image' => 'nullable|boolean',
+        ]);
+
+        if (!$request->filled('unique_key') && empty($catalog->unique_key)) {
+            $data['unique_key'] = (string) \Illuminate\Support\Str::uuid();
+        }
+
+        if ($request->boolean('remove_cover_image') && $catalog->cover_image) {
+            Storage::disk('public')->delete($catalog->cover_image);
+            $data['cover_image'] = null;
+        }
+
+        if ($request->hasFile('cover_image')) {
+            if ($catalog->cover_image) {
+                Storage::disk('public')->delete($catalog->cover_image);
+            }
+
+            $data['cover_image'] = $request->file('cover_image')->store('catalogs/covers', 'public');
+        }
+
+        unset($data['remove_cover_image']);
+
+        $catalog->update($data);
+
+        return redirect()
+            ->route('catalogs.edit', $catalog->id)
+            ->with('success', 'Catalog updated successfully.');
     }
 
     // Display a specific catalog item and related recommendations
@@ -120,14 +357,20 @@ class CatalogController extends Controller
 
         // determine if current user bookmarked this catalog
         $catalogBookmarked = false;
+        $catalogInCart = false;
         if ($sf) {
             $catalogBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)
                 ->where('bookmarkable_type', \App\Models\Catalog::class)
                 ->where('bookmarkable_id', $catalog->id)
                 ->exists();
+
+            $catalogInCart = CartItem::where('student_faculty_id', $sf->id)
+                ->where('cartable_type', \App\Models\Catalog::class)
+                ->where('cartable_id', $catalog->id)
+                ->exists();
         }
 
-        return view('catalogs.show', compact('catalog', 'recommendations', 'jotformUrl', 'catalogBookmarked'));
+        return view('catalogs.show', compact('catalog', 'recommendations', 'jotformUrl', 'catalogBookmarked', 'catalogInCart'));
     }
 
     // Catalog search

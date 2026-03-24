@@ -65,6 +65,18 @@
             letter-spacing: 0.05em;
         }
 
+        .admin-chip {
+            background: rgba(29, 78, 216, 0.12);
+            color: #1d4ed8;
+            border-radius: 999px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 0.18rem 0.45rem;
+            margin-left: 0.4rem;
+        }
+
         .btn-forum {
             border: none;
             color: #fff;
@@ -113,7 +125,7 @@
                 <span class="category-chip">{{ \App\Models\Feedback::categoryOptions()[$thread->category] ?? ucfirst(str_replace('_', ' ', $thread->category)) }}</span>
             </div>
             <div class="small text-muted mb-3">
-                <i class="bi bi-person-circle me-1"></i>{{ $thread->user ? $thread->user->name : 'Anonymous' }}
+                <i class="bi bi-person-circle me-1"></i>{{ $thread->user ? $thread->user->name : 'Unavailable' }}
                 <span class="mx-2">•</span>
                 <i class="bi bi-clock me-1"></i>{{ $thread->created_at->format('F j, Y g:i A') }}
             </div>
@@ -126,7 +138,10 @@
                 @forelse($thread->replies as $reply)
                     <article class="reply-card p-3">
                         <div class="small text-muted mb-2">
-                            <i class="bi bi-person-circle me-1"></i>{{ $reply->user ? $reply->user->name : 'Anonymous' }}
+                            <i class="bi bi-person-circle me-1"></i>{{ $reply->user ? $reply->user->name : 'Unavailable' }}
+                            @if($reply->user && $reply->user->role === 'admin')
+                                <span class="admin-chip">Admin</span>
+                            @endif
                             <span class="mx-2">•</span>
                             <i class="bi bi-clock me-1"></i>{{ $reply->created_at->diffForHumans() }}
                         </div>
@@ -151,10 +166,6 @@
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Reply</label>
                         <textarea name="message" class="form-control" rows="4" maxlength="2000" required>{{ old('message') }}</textarea>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="is_anonymous" id="replyAnonymous" value="1" {{ old('is_anonymous') ? 'checked' : '' }}>
-                        <label class="form-check-label" for="replyAnonymous">Reply anonymously</label>
                     </div>
                     <button type="submit" class="btn btn-forum px-4">Post Reply</button>
                 </form>

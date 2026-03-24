@@ -120,9 +120,6 @@ Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])-
 
 
 
-// Consolidated admin-only and shared routes are defined below; removed legacy admin block to avoid duplication
-
-
 
 
 // MIDES dashboard and search restricted to authenticated users (student/faculty/guest)
@@ -134,10 +131,18 @@ Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
 });
 
 // Catalog routes
-Route::get('/catalogs/create', [\App\Http\Controllers\CatalogController::class, 'create'])->name('catalogs.create');
 // Ensure the {id} route only matches numeric ids so 'search' and other named routes are not captured
 Route::get('/catalogs/{id}', [\App\Http\Controllers\CatalogController::class, 'show'])->whereNumber('id')->name('catalogs.show');
 Route::get('/catalogs/search', [\App\Http\Controllers\CatalogController::class, 'search'])->name('catalogs.search');
+
+// Catalog management routes (admin and librarian)
+Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
+    Route::get('/catalogs/manage', [\App\Http\Controllers\CatalogController::class, 'manage'])->name('catalogs.manage');
+    Route::get('/catalogs/create', [\App\Http\Controllers\CatalogController::class, 'create'])->name('catalogs.create');
+    Route::post('/catalogs', [\App\Http\Controllers\CatalogController::class, 'store'])->name('catalogs.store');
+    Route::get('/catalogs/{id}/edit', [\App\Http\Controllers\CatalogController::class, 'edit'])->whereNumber('id')->name('catalogs.edit');
+    Route::put('/catalogs/{id}', [\App\Http\Controllers\CatalogController::class, 'update'])->whereNumber('id')->name('catalogs.update');
+});
 
 
 // Sidlak Journal routes
@@ -195,6 +200,11 @@ Route::middleware('auth')->group(function () {
     }], function () {
         Route::get('/bookmarks', [\App\Http\Controllers\BookmarkController::class, 'index'])->name('bookmarks.index');
         Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+
+        // My Cart (Catalog + Alert Books)
+        Route::get('/my-cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+        Route::post('/my-cart/toggle', [\App\Http\Controllers\CartController::class, 'toggle'])->name('cart.toggle');
+        Route::post('/my-cart/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
     });
 });
 
@@ -314,7 +324,9 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/libraries/staff/{id}', [LibraryStaffController::class, 'destroy'])->name('libraries.staff.destroy');
         // Admin-only: keep feedback admin here (categories panel declared below in the dedicated section)
         Route::get('/admin/feedback', [App\Http\Controllers\FeedbackController::class, 'adminList'])->name('feedback.admin');
+        Route::get('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'adminShow'])->whereNumber('id')->name('feedback.admin.show');
         Route::patch('/admin/feedback/{id}/status', [App\Http\Controllers\FeedbackController::class, 'updateStatus'])->name('feedback.status.update');
+        Route::post('/admin/feedback/{id}/reply', [App\Http\Controllers\FeedbackController::class, 'adminReply'])->name('feedback.admin.reply');
         Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'destroy'])->name('feedback.delete');
         // contact-info GET declared above together with PUT; avoid duplicates
         // ALINET manage is shared with librarians below; do not declare here
@@ -331,6 +343,10 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'updateSchedule'])->name('admin.backup.schedule.update');
         Route::delete('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'destroySchedule'])->name('admin.backup.schedule.destroy');
         Route::post('/admin/backup/schedule/{id}/toggle', [\App\Http\Controllers\BackupController::class, 'toggleSchedule'])->name('admin.backup.schedule.toggle');
+        Route::get('/admin/login-analytics', [\App\Http\Controllers\AdminLoginAnalyticsController::class, 'index'])->name('admin.login.analytics');
+        Route::get('/admin/staff-activity-logs', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'index'])->name('admin.staff.activity.logs');
+        Route::get('/admin/staff-activity-logs/export', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'export'])->name('admin.staff.activity.logs.export');
+        Route::get('/admin/staff-activity-logs/export-xlsx', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'exportXlsx'])->name('admin.staff.activity.logs.export.xlsx');
         // // Sidlak create/store for admin (shared with librarian)
         // // Keep original route names so views using `sidlak.create` / `sidlak.store` still work
         // Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
@@ -369,6 +385,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/lira/export-xlsx', [LiRAController::class, 'exportXlsx'])->name('lira.export.xlsx');
         Route::post('/lira/{id}/decide', [LiRAController::class, 'decide'])->name('lira.decide');
         Route::post('/lira/{id}/respond', [LiRAController::class, 'respond'])->name('lira.respond');
+        Route::post('/lira/{id}/return', [LiRAController::class, 'markReturned'])->name('lira.return');
         Route::delete('/lira/{id}', [LiRAController::class, 'destroy'])->name('lira.destroy');
 
         // Online E-Libraries management routes (create/store/manage/edit/update/delete)

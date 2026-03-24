@@ -54,8 +54,16 @@ class ProcessMarcImport implements ShouldQueue
         if (!empty($pythonSpec)) {
             $cmd = preg_split('/\s+/', trim($pythonSpec));
         } else {
-            if (DIRECTORY_SEPARATOR === '\\') {
-                $cmd = ['py', '-3'];
+            $venvPythonWindows = base_path('.venv/Scripts/python.exe');
+            $venvPythonUnix = base_path('.venv/bin/python');
+
+            if (DIRECTORY_SEPARATOR === '\\' && file_exists($venvPythonWindows)) {
+                $cmd = [$venvPythonWindows];
+            } elseif (DIRECTORY_SEPARATOR !== '\\' && file_exists($venvPythonUnix)) {
+                $cmd = [$venvPythonUnix];
+            } elseif (DIRECTORY_SEPARATOR === '\\') {
+                // Windows: prefer python on PATH (py launcher is not always available)
+                $cmd = ['python'];
             } else {
                 $cmd = ['python3'];
             }
@@ -74,6 +82,8 @@ class ProcessMarcImport implements ShouldQueue
             'SystemRoot' => getenv('SystemRoot') ?: (DIRECTORY_SEPARATOR === '\\' ? 'C:\\Windows' : '/'),
             'PATH' => getenv('PATH'),
             'PYTHONHASHSEED' => '0',
+            'PYTHONUTF8' => '1',
+            'PYTHONIOENCODING' => 'utf-8',
             'DB_HOST' => config('database.connections.mysql.host'),
             'DB_USERNAME' => config('database.connections.mysql.username'),
             'DB_PASSWORD' => config('database.connections.mysql.password'),
@@ -96,10 +106,12 @@ class ProcessMarcImport implements ShouldQueue
         }
 
         if (!$process->isSuccessful()) {
-            $err = $process->getErrorOutput();
+            $err = trim((string) $process->getErrorOutput());
+            $stdout = trim((string) $process->getOutput());
+            $combined = trim($err . (empty($stdout) ? '' : ("\n" . $stdout)));
             Log::error('MARC import python error: ' . $err);
             $this->cleanupFile();
-            throw new \Exception('Import failed: ' . trim(substr($err, 0, 1000)));
+            throw new \Exception('Import failed: ' . trim(substr($combined, 0, 1000)));
         }
 
         $output = $process->getOutput();

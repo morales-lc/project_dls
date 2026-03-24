@@ -62,4 +62,9 @@ class User extends Authenticatable
 {
     return $this->hasOne(StudentFaculty::class);
 }
+
+    public function loginLogs()
+    {
+        return $this->hasMany(UserLoginLog::class);
+    }
 }

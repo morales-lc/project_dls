@@ -85,22 +85,13 @@
         max-width: 290px;
     }
 
-    .actions-cell {
-        min-width: 240px;
+    .feedback-row {
+        cursor: pointer;
     }
 
-    .status-editor {
-        display: flex;
-        gap: 0.4rem;
-        margin-bottom: 0.35rem;
-    }
-
-    .status-editor .form-select {
-        min-width: 116px;
-    }
-
-    .status-editor .btn {
-        white-space: nowrap;
+    .feedback-row:focus-visible {
+        outline: 2px solid #93c5fd;
+        outline-offset: -2px;
     }
 
     /* Pink button */
@@ -177,14 +168,31 @@
             grid-column: span 2;
         }
 
-        .actions-cell {
-            min-width: 200px;
+        .table td,
+        .table th {
+            white-space: nowrap;
         }
     }
 </style>
 <div class="py-5">
     <div class="feedback-admin-shell card shadow rounded-4 w-100 feedback-admin-main">
         <div class="card-body p-4 p-lg-4">
+            @if(session('success'))
+                <div class="alert alert-success">{{ session('success') }}</div>
+            @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
+            @if($errors->any())
+                <div class="alert alert-danger mb-3">
+                    <ul class="mb-0 ps-3">
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h2 class="fw-bold mb-0 feedback-admin-title">Feedback Submissions</h2>
                 <div>
@@ -247,14 +255,13 @@
                                 <th>Replies</th>
                                 <th>Status</th>
                                 <th>Date Posted</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             @forelse($feedbacks as $feedback)
-                            <tr>
+                            <tr class="feedback-row" data-href="{{ route('feedback.admin.show', $feedback->id) }}" tabindex="0" role="link" aria-label="Open feedback details">
                                 <td>
-                                    <a href="{{ route('feedback.show', $feedback->id) }}" class="topic-link">
+                                    <a href="{{ route('feedback.admin.show', $feedback->id) }}" class="topic-link">
                                         {{ $feedback->title ?: 'Untitled Topic' }}
                                     </a>
                                     <div class="topic-snippet mt-1">
@@ -266,7 +273,7 @@
                                     {{ $feedback->user->name }}<br>
                                     <small class="text-muted">{{ $feedback->user->email }}</small>
                                     @else
-                                    <span class="text-muted">Anonymous</span>
+                                    <span class="text-muted">Unavailable</span>
                                     @endif
                                 </td>
                                 <td>{{ $feedback->course ?? '-' }}</td>
@@ -282,29 +289,10 @@
                                 </td>
                                 <td>{{ \Carbon\Carbon::parse($feedback->created_at)->format('F j, Y g:i A') }}</td>
 
-                                <td class="actions-cell">
-                                    <form method="POST" action="{{ route('feedback.status.update', $feedback->id) }}" class="status-editor">
-                                        @csrf
-                                        @method('PATCH')
-                                        <select name="status" class="form-select form-select-sm">
-                                            <option value="open" {{ $feedback->status === 'open' ? 'selected' : '' }}>Open</option>
-                                            <option value="resolved" {{ $feedback->status === 'resolved' ? 'selected' : '' }}>Resolved</option>
-                                            <option value="closed" {{ $feedback->status === 'closed' ? 'selected' : '' }}>Closed</option>
-                                        </select>
-                                        <button type="submit" class="btn btn-sm btn-outline-secondary">Save</button>
-                                    </form>
-                                    <form method="POST" action="{{ route('feedback.delete', $feedback->id) }}" onsubmit="return confirm('Delete this feedback?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-red w-100">
-                                            Delete
-                                        </button>
-                                    </form>
-                                </td>
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="9" class="text-center text-muted py-4">No feedback found.</td>
+                                <td colspan="8" class="text-center text-muted py-4">No feedback found.</td>
                             </tr>
                             @endforelse
                         </tbody>
@@ -317,4 +305,31 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var rows = document.querySelectorAll('.feedback-row[data-href]');
+
+        function shouldSkipClick(target) {
+            return !!target.closest('a, button, input, textarea, select, label, form');
+        }
+
+        rows.forEach(function (row) {
+            row.addEventListener('click', function (event) {
+                if (shouldSkipClick(event.target)) {
+                    return;
+                }
+
+                window.location.href = row.dataset.href;
+            });
+
+            row.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    window.location.href = row.dataset.href;
+                }
+            });
+        });
+    });
+</script>
 @endsection

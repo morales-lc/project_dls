@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Models\StudentFaculty;
+use App\Models\UserLoginLog;
 use App\Mail\LoginOtpMail;
 
 class LoginController extends Controller
@@ -122,6 +123,9 @@ class LoginController extends Controller
         // Log the user in
         Auth::login($user);
         $request->session()->regenerate();
+
+        // Record successful student/faculty access for admin analytics.
+        UserLoginLog::recordForUser($user, $request);
 
         // Optional role-based redirection
         if ($user->role === 'admin') {

@@ -24,6 +24,98 @@
     color: #d81b60;
     font-size: 1.75rem;
   }
+
+  .lira-richtext-preview ol,
+  .lira-richtext-preview ul,
+  .lira-detail-richtext ol,
+  .lira-detail-richtext ul {
+    margin-bottom: .5rem;
+    padding-left: 1.4rem;
+  }
+
+  .lira-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: .9rem;
+  }
+
+  .lira-detail-card {
+    border: 1px solid #f7d4e4;
+    border-radius: .85rem;
+    background: linear-gradient(180deg, #fff, #fff8fc);
+    padding: .75rem .85rem;
+  }
+
+  .lira-detail-label {
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: #9a6b83;
+    margin-bottom: .15rem;
+  }
+
+  .lira-detail-value {
+    color: #2f2f2f;
+    font-size: .95rem;
+    word-break: break-word;
+  }
+
+  .lira-details-header {
+    border: 1px solid #f7d4e4;
+    border-radius: .95rem;
+    background: linear-gradient(90deg, #fff7fb 0%, #fff 100%);
+    padding: .9rem;
+    margin-bottom: .9rem;
+  }
+
+  .lira-details-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #d81b60;
+  }
+
+  .lira-detail-meta {
+    font-size: .86rem;
+    color: #7d6874;
+  }
+
+  .lira-status-badge {
+    font-size: .74rem;
+    border-radius: 999px;
+    padding: .35rem .6rem;
+  }
+
+  .lira-inventory-badge-lg {
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: .55rem .9rem;
+  }
+
+  .lira-manual-check-note {
+    border: 1px solid #ffd08a;
+    background: #fff8eb;
+    color: #8a5a00;
+    border-radius: .75rem;
+    padding: .65rem .75rem;
+    font-size: .9rem;
+  }
+
+  #liraDetailsModal .modal-content {
+    border: 1px solid #ffd7e8;
+    border-radius: 1rem;
+    box-shadow: 0 16px 34px rgba(216, 27, 96, 0.15);
+  }
+
+  #liraDetailsModal .modal-header {
+    border-bottom-color: #f9d9e8;
+    background: linear-gradient(90deg, #fff6fb, #fff);
+  }
+
+  #liraDetailsModal .modal-footer {
+    border-top-color: #f9d9e8;
+    background: #fffafb;
+  }
 </style>
 @endpush
 
@@ -61,6 +153,8 @@
         <li class="nav-item"><a data-status="accepted" class="nav-link {{ request('status')=='accepted' ? 'active' : '' }}" href="{{ $build('accepted') }}">Accepted</a></li>
         <li class="nav-item"><a data-status="rejected" class="nav-link {{ request('status')=='rejected' ? 'active' : '' }}" href="{{ $build('rejected') }}">Rejected</a></li>
         <li class="nav-item"><a data-status="awaiting_response" class="nav-link {{ request('status')=='awaiting_response' ? 'active' : '' }}" href="{{ $build('awaiting_response') }}"> Accepted Request to Process </a></li>
+        <li class="nav-item"><a data-status="borrowed" class="nav-link {{ request('status')=='borrowed' ? 'active' : '' }}" href="{{ $build('borrowed') }}">Borrowed</a></li>
+        <li class="nav-item"><a data-status="returned" class="nav-link {{ request('status')=='returned' ? 'active' : '' }}" href="{{ $build('returned') }}">Returned</a></li>
       </ul>
       <form id="liraFilterForm" class="row g-2 align-items-end mb-0" method="GET">
         <div class="col-sm-6 col-md-3">
@@ -126,7 +220,7 @@
             <span class="visually-hidden">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a id="exportXlsxAllLink" class="dropdown-item" href="#">Export all tabs (5 sheets)</a></li>
+            <li><a id="exportXlsxAllLink" class="dropdown-item" href="#">Export all tabs (7 sheets)</a></li>
           </ul>
         </div>
       </div>
@@ -190,6 +284,15 @@
                 <label for="response_message" class="form-label">Message to requester</label>
                 <textarea id="response_message" name="response_message" class="form-control" rows="6" placeholder="Write your response..."></textarea>
               </div>
+              <div id="manualCopyCheckWrap" class="d-none">
+                <div class="lira-manual-check-note mb-2">
+                  This catalog has no copies count in the system. Please verify availability manually in the library before sending a response.
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="manual_copy_check_confirmed" id="manual_copy_check_confirmed" value="1">
+                  <label class="form-check-label" for="manual_copy_check_confirmed">I have manually verified copy availability in the library.</label>
+                </div>
+              </div>
             </form>
             <div id="respondNotice" class="text-muted small mt-1"></div>
           </div>
@@ -247,6 +350,7 @@ document.addEventListener('DOMContentLoaded', function(){
   function bindRowHandlers(scope) {
     scope.querySelectorAll('.lira-row').forEach(r => r.addEventListener('click', onRowClick));
     scope.querySelectorAll('.lira-respond-btn').forEach(b => b.addEventListener('click', onRespondClick));
+    scope.querySelectorAll('.lira-return-form').forEach(form => form.addEventListener('submit', onReturnSubmit));
     scope.querySelectorAll('.pagination a').forEach(a => a.addEventListener('click', onPaginateClick));
     scope.querySelectorAll('.lira-delete-form').forEach(form => form.addEventListener('submit', onDeleteSubmit));
   }
@@ -293,24 +397,100 @@ document.addEventListener('DOMContentLoaded', function(){
       console.error('Failed to parse LiRA row data:', e);
       return;
     }
-    let html = '<dl class="row">';
-    const show = (k,l) => html += `<dt class="col-sm-4">${k}</dt><dd class="col-sm-8">${l??'-'}</dd>`;
-    show('Name', item.first_name + ' ' + (item.middle_name? (item.middle_name + ' ') : '') + item.last_name);
-    show('Email', item.email);
-    show('Designation', item.designation);
-    show('Department', item.department);
-    show('Action', item.action);
-    show('Assistance types', Array.isArray(item.assistance_types) ? item.assistance_types.join(', ') : (item.assistance_types || ''));
-    show('Resource types', Array.isArray(item.resource_types) ? item.resource_types.join(', ') : (item.resource_types || ''));
-    show('Titles of', item.titles_of);
-    show('For borrow/scan (details)', item.for_borrow_scan);
-    show('For list', item.for_list);
-    show('For videos', Array.isArray(item.for_videos) ? item.for_videos.join(', ') : (item.for_videos || ''));
-    const statusText = (item.status === 'accepted' && item.response_sent_at) ? 'Responded' : (item.status || '');
-    show('Status', statusText);
-    show('Submitted', item.created_at);
-    if (item.decision_reason) { show('Decision reason', item.decision_reason); }
-    html += '</dl>';
+    const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+    const sanitizeRich = (v) => {
+      const raw = String(v ?? '');
+      return raw
+        .replace(/<(?!\/?(strong|b|em|ol|ul|li|br|p)\b)[^>]*>/gi, '')
+        .replace(/on\w+\s*=\s*(['"]).*?\1/gi, '');
+    };
+    const fullName = [item.first_name, item.middle_name, item.last_name].filter(Boolean).join(' ');
+    const statusText = item.loan_status === 'borrowed'
+      ? 'Borrowed'
+      : item.loan_status === 'returned'
+        ? 'Returned'
+        : (item.status === 'accepted' && item.response_sent_at)
+          ? 'Responded'
+          : (item.status || 'Pending');
+    const statusClass = statusText === 'Accepted'
+      ? 'bg-success'
+      : statusText === 'Rejected'
+        ? 'bg-danger'
+        : statusText === 'Responded'
+          ? 'bg-info text-dark'
+          : statusText === 'Borrowed'
+            ? 'bg-primary'
+            : statusText === 'Returned'
+              ? 'bg-success'
+              : 'bg-warning text-dark';
+    const assistance = Array.isArray(item.assistance_types) ? item.assistance_types.join(', ') : (item.assistance_types || '-');
+    const resources = Array.isArray(item.resource_types) ? item.resource_types.join(', ') : (item.resource_types || '-');
+    const videos = Array.isArray(item.for_videos) ? item.for_videos.join(', ') : (item.for_videos || '-');
+    const borrowScan = sanitizeRich(item.for_borrow_scan || '-');
+    const hasCatalogInventory = item.catalog && item.catalog.copies_count !== null && item.catalog.copies_count !== undefined;
+    const totalCopies = hasCatalogInventory ? Number(item.catalog.copies_count) : null;
+    const borrowedCopies = hasCatalogInventory ? Number(item.catalog.borrowed_count || 0) : null;
+    const leftCopies = hasCatalogInventory ? Math.max(totalCopies - borrowedCopies, 0) : null;
+    const leftBadgeClass = leftCopies > 0 ? 'bg-success-subtle text-success border' : 'bg-danger-subtle text-danger border';
+
+    let html = `
+      <div class="lira-details-header d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <div class="lira-details-name">${esc(fullName || 'No name')}</div>
+          <div class="lira-detail-meta">${esc(item.email || '-')}</div>
+        </div>
+        <span class="badge lira-status-badge ${statusClass}">${esc(statusText)}</span>
+      </div>
+
+      <div class="lira-detail-grid">
+        <div class="lira-detail-card"><div class="lira-detail-label">Designation</div><div class="lira-detail-value">${esc(item.designation || '-')}</div></div>
+        <div class="lira-detail-card"><div class="lira-detail-label">Department</div><div class="lira-detail-value">${esc(item.department || '-')}</div></div>
+        <div class="lira-detail-card"><div class="lira-detail-label">Action</div><div class="lira-detail-value">${esc(item.action || '-')}</div></div>
+        <div class="lira-detail-card"><div class="lira-detail-label">Submitted</div><div class="lira-detail-value">${esc(item.created_at || '-')}</div></div>
+      </div>
+
+      <div class="lira-detail-grid mt-2">
+        <div class="lira-detail-card"><div class="lira-detail-label">Assistance Types</div><div class="lira-detail-value">${esc(assistance)}</div></div>
+        <div class="lira-detail-card"><div class="lira-detail-label">Resource Types</div><div class="lira-detail-value">${esc(resources)}</div></div>
+      </div>
+
+      <div class="lira-detail-grid mt-2">
+        <div class="lira-detail-card"><div class="lira-detail-label">Titles/Topics</div><div class="lira-detail-value">${esc(item.titles_of || '-')}</div></div>
+        <div class="lira-detail-card"><div class="lira-detail-label">List of References Info</div><div class="lira-detail-value">${esc(item.for_list || '-')}</div></div>
+      </div>
+
+      <div class="lira-detail-card mt-2">
+        <div class="lira-detail-label">Copies Availability</div>
+        <div class="lira-detail-value">
+          ${hasCatalogInventory
+            ? `<span class="badge lira-inventory-badge-lg bg-secondary-subtle text-dark border me-1">Total: ${esc(totalCopies)}</span>
+               <span class="badge lira-inventory-badge-lg bg-primary-subtle text-primary border me-1">Borrowed: ${esc(borrowedCopies)}</span>
+               <span class="badge lira-inventory-badge-lg ${leftBadgeClass}">Left: ${esc(leftCopies)}</span>`
+            : item.action === 'borrow'
+              ? '<span class="badge lira-inventory-badge-lg bg-warning-subtle text-warning border">Manual Check Required</span>'
+              : '<span class="text-muted">N/A (no catalog mapping)</span>'}
+        </div>
+      </div>
+
+      <div class="lira-detail-card mt-2">
+        <div class="lira-detail-label">Borrow/Scan Details</div>
+        <div class="lira-detail-value lira-detail-richtext">${borrowScan || '-'}</div>
+      </div>
+
+      <div class="lira-detail-card mt-2">
+        <div class="lira-detail-label">Videos</div>
+        <div class="lira-detail-value">${esc(videos)}</div>
+      </div>
+    `;
+    if (item.decision_reason) {
+      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Decision Reason</div><div class="lira-detail-value">${esc(item.decision_reason)}</div></div>`;
+    }
+    if (item.borrowed_at) {
+      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Borrowed At</div><div class="lira-detail-value">${esc(item.borrowed_at)}</div></div>`;
+    }
+    if (item.returned_at) {
+      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Returned At</div><div class="lira-detail-value">${esc(item.returned_at)}</div></div>`;
+    }
     details.innerHTML = html;
     decisionForm.action = '/lira/' + item.id + '/decide';
     // Ensure we return to the current filtered/paginated URL
@@ -345,6 +525,8 @@ document.addEventListener('DOMContentLoaded', function(){
     const subjectField = document.getElementById('response_subject');
     const messageField = document.getElementById('response_message');
     const respondNotice = document.getElementById('respondNotice');
+    const manualWrap = document.getElementById('manualCopyCheckWrap');
+    const manualCheckbox = document.getElementById('manual_copy_check_confirmed');
     const info = document.getElementById('liraRespondInfo');
     const parts = [];
     parts.push(`<strong>${item.first_name} ${item.last_name}</strong> <span class="text-muted">(${item.email})</span>`);
@@ -352,10 +534,13 @@ document.addEventListener('DOMContentLoaded', function(){
     if (item.titles_of) parts.push(`<div class="mt-1"><em>${item.titles_of}</em></div>`);
     info.innerHTML = parts.join('');
     const canRespond = (item.status === 'accepted') && !item.response_sent_at;
+    const requiresManualCheck = item.action === 'borrow' && item.catalog && (item.catalog.copies_count === null || item.catalog.copies_count === undefined);
     subjectField.value = 'Response to your LiRA request';
     const submittedStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
     messageField.value = `This is a response to your LiRA request submitted on ${submittedStr}.\n\n[Type your message here]\n\nBest regards,\nLC Learning Commons`;
     const submitBtn = document.querySelector('#liraRespondModal button[type="submit"]');
+    if (manualCheckbox) manualCheckbox.checked = false;
+    if (manualWrap) manualWrap.classList.toggle('d-none', !requiresManualCheck);
     submitBtn.disabled = !canRespond;
     subjectField.disabled = !canRespond;
     messageField.disabled = !canRespond;
@@ -395,6 +580,37 @@ document.addEventListener('DOMContentLoaded', function(){
     }).catch(err => {
       console.error(err);
       alert('Failed to delete request via AJAX. Attempting normal delete...');
+      form.submit();
+    });
+  }
+
+  function onReturnSubmit(e) {
+    e.preventDefault();
+    if (!confirm('Mark this borrowed request as returned?')) return;
+
+    const form = e.target;
+    const token = (form.querySelector('input[name="_token"]').value) || (document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRF-TOKEN': token,
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    }).then(async res => {
+      const data = await res.json().catch(() => ({ success: false }));
+      if (res.ok && data.success !== false) {
+        showSuccessMessage(data.message || 'Request marked as returned.');
+        loadList(window.location.href);
+      } else {
+        alert(data.message || 'Failed to mark as returned.');
+      }
+    }).catch(err => {
+      console.error(err);
       form.submit();
     });
   }
@@ -592,6 +808,13 @@ document.addEventListener('DOMContentLoaded', function(){
   // Intercept respond form submission
   respondForm.addEventListener('submit', function(e){
     e.preventDefault();
+    const manualWrap = document.getElementById('manualCopyCheckWrap');
+    const manualCheckbox = document.getElementById('manual_copy_check_confirmed');
+    if (manualWrap && !manualWrap.classList.contains('d-none') && manualCheckbox && !manualCheckbox.checked) {
+      alert('Please confirm manual copy verification before sending the response.');
+      manualCheckbox.focus();
+      return;
+    }
     const formData = new FormData(respondForm);
     fetch(respondForm.action, {
       method: 'POST',
