@@ -18,6 +18,7 @@
                 'label' => 'Resource Management',
                 'items' => [
                     [ 'route' => 'mides.management', 'icon' => 'bi-journal-text', 'label' => 'MIDES Management' ],
+                    [ 'route' => 'catalogs.manage', 'icon' => 'bi-journals', 'label' => 'Catalog Management' ],
                     [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'SIDLAK Journals' ],
                     [ 'route' => 'e-libraries.manage', 'icon' => 'bi-globe-americas', 'label' => 'Manage Online Libraries' ],
                     [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],
@@ -44,6 +45,8 @@
                 'items' => [
                     [ 'route' => 'libraries.staff.manage', 'icon' => 'bi-person-badge', 'label' => 'Manage Library Staff' ],
                     [ 'route' => 'admin.analytics', 'icon' => 'bi-bar-chart', 'label' => 'Analytics' ],
+                    [ 'route' => 'admin.login.analytics', 'icon' => 'bi-people-fill', 'label' => 'User Login Analytics' ],
+                    [ 'route' => 'admin.staff.activity.logs', 'icon' => 'bi-activity', 'label' => 'Staff Activity Logs' ],
                     [ 'route' => 'marc.import.form', 'icon' => 'bi-file-earmark-arrow-up', 'label' => 'Import Catalog' ],
                     [ 'route' => 'admin.backup', 'icon' => 'bi-database', 'label' => 'System Backup' ],
                 ]

@@ -28,7 +28,12 @@ def log_message(message, also_print=True):
         f.write(log_entry)
     
     if also_print:
-        print(message)
+        try:
+            print(message)
+        except UnicodeEncodeError:
+            # Some Windows environments use cp1252 and cannot print emoji.
+            safe = message.encode("ascii", errors="replace").decode("ascii")
+            print(safe)
 
 # === MYSQL CONNECTION ===
 # Use environment variables for database credentials (passed from Laravel)
@@ -56,6 +61,7 @@ CREATE TABLE IF NOT EXISTS catalogs (
     content_type VARCHAR(255),
     media_type VARCHAR(255),
     carrier_type VARCHAR(255),
+    copies_count INT NULL,
     isbn TEXT,
     issn TEXT,
     lccn VARCHAR(255),
@@ -80,6 +86,8 @@ try:
         alters.append("ADD COLUMN created_at DATETIME NULL")
     if 'updated_at' not in cols:
         alters.append("ADD COLUMN updated_at DATETIME NULL")
+    if 'copies_count' not in cols:
+        alters.append("ADD COLUMN copies_count INT NULL")
     if alters:
         cursor.execute("ALTER TABLE catalogs " + ", ".join(alters))
         conn.commit()
@@ -230,6 +238,39 @@ def build_unique_key(record, title, author, publisher, year, edition):
     basis = (title or '') + '|' + (author or '') + '|' + (publisher or '') + '|' + (year or '') + '|' + (edition or '')
     return hashlib.md5(basis.encode('utf-8')).hexdigest()
 
+def extract_copies_count(record):
+    """Infer copies from holdings fields.
+
+    Priority:
+    1) max numeric 852$t
+    2) unique COPYID values inside 852$x
+    3) number of 852 fields
+    """
+    f852 = record.get_fields("852")
+    if not f852:
+        return None
+
+    t_values = []
+    copy_ids = set()
+
+    for f in f852:
+        if 't' in f:
+            try:
+                t_values.append(int(str(f['t']).strip()))
+            except Exception:
+                pass
+        if 'x' in f:
+            xval = str(f['x'])
+            m = re.search(r"COPYID\s*:\s*([^@\s]+)", xval, re.IGNORECASE)
+            if m:
+                copy_ids.add(m.group(1).strip())
+
+    if t_values:
+        return max(t_values)
+    if copy_ids:
+        return len(copy_ids)
+    return len(f852)
+
 # === READ FILE ARGUMENTS ===
 if len(sys.argv) < 2:
     print("❌ No MARC file provided")
@@ -277,6 +318,7 @@ with open(input_file, "rb") as fh:
         content_type = get_field(record, "336", "a")
         media_type = get_field(record, "337", "a")
         carrier_type = get_field(record, "338", "a")
+        copies_count = extract_copies_count(record)
         isbn = format_isbn(get_field(record, "020", "a"))
         issn = format_issn(get_field(record, "022", "a"))
         subjects = "; ".join([f["a"] for f in record.get_fields("650") if "a" in f])
@@ -293,7 +335,7 @@ with open(input_file, "rb") as fh:
 
         records_data.append((
             unique_key, title, author, call_number, sublocation, publisher, year,
-            edition, format_, content_type, media_type, carrier_type,
+            edition, format_, content_type, media_type, carrier_type, copies_count,
             isbn, issn, lccn, subjects, additional_details
         ))
 
@@ -350,9 +392,9 @@ for batch_start in range(0, len(records_data), BATCH_SIZE):
                 """
                 INSERT INTO catalogs (
                     unique_key, title, author, call_number, sublocation, publisher, year,
-                    edition, format, content_type, media_type, carrier_type,
+                    edition, format, content_type, media_type, carrier_type, copies_count,
                     isbn, issn, lccn, subjects, additional_details, created_at, updated_at
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
                 ON DUPLICATE KEY UPDATE
                     title=VALUES(title),
                     author=VALUES(author),
@@ -365,6 +407,7 @@ for batch_start in range(0, len(records_data), BATCH_SIZE):
                     content_type=VALUES(content_type),
                     media_type=VALUES(media_type),
                     carrier_type=VALUES(carrier_type),
+                    copies_count=VALUES(copies_count),
                     isbn=VALUES(isbn),
                     issn=VALUES(issn),
                     lccn=VALUES(lccn),
@@ -389,9 +432,9 @@ for batch_start in range(0, len(records_data), BATCH_SIZE):
                     """
                     INSERT INTO catalogs (
                         unique_key, title, author, call_number, sublocation, publisher, year,
-                        edition, format, content_type, media_type, carrier_type,
+                        edition, format, content_type, media_type, carrier_type, copies_count,
                         isbn, issn, lccn, subjects, additional_details
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     ON DUPLICATE KEY UPDATE
                         title=VALUES(title),
                         author=VALUES(author),
@@ -404,6 +447,7 @@ for batch_start in range(0, len(records_data), BATCH_SIZE):
                         content_type=VALUES(content_type),
                         media_type=VALUES(media_type),
                         carrier_type=VALUES(carrier_type),
+                        copies_count=VALUES(copies_count),
                         isbn=VALUES(isbn),
                         issn=VALUES(issn),
                         lccn=VALUES(lccn),

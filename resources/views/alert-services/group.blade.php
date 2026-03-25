@@ -215,6 +215,8 @@
         }
         .btn-bookmark:hover { background: rgba(255, 255, 255, 0.2); }
         .btn-bookmarked { background: #28a745; border-color: #28a745; color: #fff; }
+
+        .btn-carted { background: #0d6efd; border-color: #0d6efd; color: #fff; }
     </style>
 </head>
 
@@ -249,6 +251,16 @@
                             <button type="submit" class="btn-bookmark {{ $isBookmarked ? 'btn-bookmarked' : '' }}">
                                 <i class="bi {{ $isBookmarked ? 'bi-bookmark-check-fill' : 'bi-bookmark-plus' }} me-1"></i>
                                 <span class="label">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
+                            </button>
+                        </form>
+                        <form action="{{ route('cart.toggle') }}" method="POST" class="cart-toggle-alert d-flex justify-content-center" onclick="event.stopPropagation();">
+                            @csrf
+                            <input type="hidden" name="id" value="{{ $book->id }}">
+                            <input type="hidden" name="type" value="alert_book">
+                            @php $isInCart = isset($cartIds) && in_array($book->id, $cartIds); @endphp
+                            <button type="submit" class="btn-bookmark {{ $isInCart ? 'btn-carted' : '' }}">
+                                <i class="bi {{ $isInCart ? 'bi-cart-check-fill' : 'bi-cart-plus' }} me-1"></i>
+                                <span class="label">{{ $isInCart ? 'In My Cart' : 'Add to My Cart' }}</span>
                             </button>
                         </form>
                         <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
@@ -350,6 +362,48 @@
                             } else {
                                 btn.innerHTML = originalHTML;
                             }
+                        });
+                    });
+                });
+
+                // Handle cart toggle
+                document.querySelectorAll('.cart-toggle-alert').forEach(function(form) {
+                    form.addEventListener('submit', function(e) {
+                        e.preventDefault();
+                        var btn = form.querySelector('button');
+                        if (!btn) return;
+                        var originalHTML = btn.innerHTML;
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing';
+
+                        var formData = new FormData(form);
+                        fetch(form.action, {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]') ? document.querySelector('meta[name="csrf-token"]').getAttribute('content') : '{{ csrf_token() }}'
+                            },
+                            body: formData
+                        }).then(function(res) {
+                            if (!res.ok && res.status === 403) return res.json().then(function(data){ throw new Error(data.message || 'Forbidden'); });
+                            return res.json();
+                        }).then(function(data) {
+                            if (!data || !data.status) return;
+                            var inCart = data.status === 'added';
+                            if (data.status === 'added' || data.status === 'removed') {
+                                btn.classList.toggle('btn-carted', inCart);
+                                btn.innerHTML = inCart
+                                    ? '<i class="bi bi-cart-check-fill me-1"></i><span class="label">In My Cart</span>'
+                                    : '<i class="bi bi-cart-plus me-1"></i><span class="label">Add to My Cart</span>';
+                            } else {
+                                btn.innerHTML = originalHTML;
+                            }
+                        }).catch(function(err) {
+                            console.error(err);
+                            alert(err && err.message ? err.message : 'Failed to update cart.');
+                            btn.innerHTML = originalHTML;
+                        }).finally(function() {
+                            btn.disabled = false;
                         });
                     });
                 });

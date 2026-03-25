@@ -26,6 +26,11 @@
             </a>
         </li>
         <li class="nav-item mb-1">
+            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('catalogs.manage') || request()->routeIs('catalogs.create') || request()->routeIs('catalogs.edit') ? 'active' : '' }}" href="{{ route('catalogs.manage') }}">
+                <i class="bi bi-journals" style="color:#d81b60;font-size:1.3rem;"></i> <span>Catalog Management</span>
+            </a>
+        </li>
+        <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('sidlak.manage') ? 'active' : '' }}" href="{{ route('sidlak.manage') }}">
                 <i class="bi bi-journal-richtext" style="color:#d81b60;font-size:1.3rem;"></i> <span>SIDLAK Management</span>
             </a>

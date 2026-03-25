@@ -17,12 +17,15 @@
         </div>
 
         <div class="catalog-details">
-            <div class="top-line d-flex align-items-start justify-content-between flex-wrap">
-                <h4 class="title-text">{{ $catalog->title }}</h4>
+            <div class="top-line">
+                <div class="title-block">
+                    <h4 class="title-text" title="{{ $catalog->title }}">{{ $catalog->title }}</h4>
+                </div>
                 <div class="button-group">
                     @if(!Auth::check() || Auth::user()->role !== 'guest')
                     <div class="button-group request-buttons">
                         <a href="{{ route('lira.form', [
+                                            'catalog_id' => $catalog->id,
                                             'title' => $catalog->title,
                                             'author' => $catalog->author,
                                             'call_number' => $catalog->call_number,
@@ -35,6 +38,7 @@
                         </a>
 
                         <a href="{{ route('lira.form', [
+                                            'catalog_id' => $catalog->id,
                                             'title' => $catalog->title,
                                             'author' => $catalog->author,
                                             'call_number' => $catalog->call_number,
@@ -58,6 +62,18 @@
                         <button type="submit" class="btn btn-sm {{ $isBookmarked ? 'btn-primary' : 'btn-outline-dark' }} btn-animated w-100 bookmark-btn">
                             <i class="bi {{ $isBookmarked ? 'bi-bookmark-fill' : 'bi-plus-circle' }} me-1"></i>
                             <span class="bookmark-text">{{ $isBookmarked ? 'Bookmarked' : 'Bookmark' }}</span>
+                        </button>
+                    </form>
+
+                    @php $isInCart = $catalogInCart ?? false; @endphp
+                    <form method="POST" action="{{ route('cart.toggle') }}"
+                        class="d-inline cart-toggle mt-2 w-100 text-center">
+                        @csrf
+                        <input type="hidden" name="id" value="{{ $catalog->id }}">
+                        <input type="hidden" name="type" value="catalog">
+                        <button type="submit" class="btn btn-sm {{ $isInCart ? 'btn-success' : 'btn-outline-primary' }} btn-animated w-100 cart-btn">
+                            <i class="bi {{ $isInCart ? 'bi-cart-check-fill' : 'bi-cart-plus' }} me-1"></i>
+                            <span class="cart-text">{{ $isInCart ? 'In My Cart' : 'Add to My Cart' }}</span>
                         </button>
                     </form>
                     @elseif(!Auth::check())
@@ -115,6 +131,36 @@
                         <tr>
                             <th>Carrier Type</th>
                             <td>{{ $catalog->carrier_type ?? '-' }}</td>
+                        </tr>
+                        <tr>
+                            <th>Copies Count</th>
+                            <td>
+                                @if(is_null($catalog->copies_count))
+                                    <span class="text-warning fw-semibold">No copy information available</span>
+                                @else
+                                    {{ $catalog->copies_count }}
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Borrowed Count</th>
+                            <td>
+                                @if(is_null($catalog->copies_count))
+                                    <span class="text-warning fw-semibold">No copy information available</span>
+                                @else
+                                    {{ $catalog->borrowed_count ?? 0 }}
+                                @endif
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Available Copies</th>
+                            <td>
+                                @if(is_null($catalog->copies_count))
+                                    <span class="text-warning fw-semibold">No copy information available</span>
+                                @else
+                                    {{ max(((int) $catalog->copies_count) - ((int) ($catalog->borrowed_count ?? 0)), 0) }}
+                                @endif
+                            </td>
                         </tr>
                         <tr>
                             <th>ISBN</th>
@@ -266,6 +312,60 @@
         document.addEventListener('submit', function(e){
             if (e.target && e.target.classList && e.target.classList.contains('bookmark-toggle')){
                 handleToggle(e);
+            }
+        });
+    })();
+</script>
+
+<script>
+    (function(){
+        async function handleCartToggle(e){
+            e.preventDefault();
+            var form = e.target.closest('.cart-toggle');
+            if (!form) return;
+            var btn = form.querySelector('.cart-btn');
+            if (!btn) return;
+
+            btn.disabled = true;
+            var originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>...';
+
+            try {
+                var fd = new FormData(form);
+                var csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || form.querySelector('input[name="_token"]').value;
+                var resp = await fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrf
+                    },
+                    body: fd
+                });
+                var data = await resp.json();
+
+                if (data && (data.status === 'added' || data.status === 'removed')) {
+                    var inCart = data.status === 'added';
+                    btn.classList.toggle('btn-success', inCart);
+                    btn.classList.toggle('btn-outline-primary', !inCart);
+                    btn.innerHTML = inCart
+                        ? '<i class="bi bi-cart-check-fill me-1"></i><span class="cart-text">In My Cart</span>'
+                        : '<i class="bi bi-cart-plus me-1"></i><span class="cart-text">Add to My Cart</span>';
+                } else {
+                    alert((data && data.message) || 'Unexpected response');
+                    btn.innerHTML = originalHtml;
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to update cart.');
+                btn.innerHTML = originalHtml;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        document.addEventListener('submit', function(e){
+            if (e.target && e.target.classList && e.target.classList.contains('cart-toggle')) {
+                handleCartToggle(e);
             }
         });
     })();

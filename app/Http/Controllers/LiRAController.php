@@ -5,10 +5,13 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\LiraRequest;
+use App\Models\Catalog;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 use App\Mail\LiraSubmitted;
 use App\Mail\LiraDecision;
+use App\Models\CartItem;
 use Illuminate\Support\Facades\Config;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
@@ -49,6 +52,20 @@ class LiRAController extends Controller
         $isbn = $request->query('isbn', '');
         $lccn = $request->query('lccn', '');
         $issn = $request->query('issn', '');
+        $catalogId = is_numeric($request->query('catalog_id')) ? (int) $request->query('catalog_id') : null;
+
+        // Resolve canonical catalog details by ID when available.
+        if (!empty($catalogId)) {
+            $catalog = Catalog::find($catalogId);
+            if ($catalog) {
+                $title = (string) ($catalog->title ?? '');
+                $author = (string) ($catalog->author ?? '');
+                $call_number = (string) ($catalog->call_number ?? '');
+                $isbn = (string) ($catalog->isbn ?? '');
+                $lccn = (string) ($catalog->lccn ?? '');
+                $issn = (string) ($catalog->issn ?? '');
+            }
+        }
 
         // Compose examplePurposive: Title, Author, Call number, LCCN/ISBN/ISSN
         $examplePurposive = '';
@@ -71,13 +88,18 @@ class LiRAController extends Controller
         $whatKind = $action === 'scanning' ? 'Library Scanning' : 'Book Borrowing';
         $whatType = $action === 'scanning' ? 'Scanning' : 'Books';
 
-        // Build a default prefill for the "For BOOK BORROWING and LIBRARY SCANNING" textarea
-        // Format: "Title, Author, Call Number"
-        $forBorrowScan = trim(implode(', ', array_filter([
-            $title ?: null,
-            $author ?: null,
-            $call_number ?: null,
-        ])));
+        $forBorrowScan = $this->formatBorrowScanLine($title, $author, $call_number);
+
+        $fromCart = (int) $request->query('from_cart', 0) === 1;
+        $checkoutToken = trim((string) $request->query('checkout_token', ''));
+        if ($fromCart) {
+            $cartEntries = session('lira_cart_checkout_maps.' . $checkoutToken, []);
+            if (empty($checkoutToken) || !is_array($cartEntries) || count($cartEntries) === 0) {
+                return redirect()->route('cart.index')->with('error', 'Your checkout session expired. Please checkout again from My Cart.');
+            }
+
+            $forBorrowScan = $this->buildBorrowScanDisplayFromEntries($cartEntries);
+        }
 
         // Prepare data for our internal LIRA form view
         $prefill = [
@@ -95,7 +117,10 @@ class LiRAController extends Controller
             'isbn' => $isbn,
             'lccn' => $lccn,
             'issn' => $issn,
+            'catalog_id' => $catalogId,
             'for_borrow_scan' => $forBorrowScan,
+            'from_cart' => $fromCart ? 1 : 0,
+            'checkout_token' => $checkoutToken,
         ];
 
         return view('lira.form', compact('prefill'));
@@ -111,6 +136,9 @@ class LiRAController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
             'action' => 'nullable|in:borrow,scanning',
+            'catalog_id' => 'nullable|integer|exists:catalogs,id',
+            'from_cart' => 'nullable|integer|in:0,1',
+            'checkout_token' => 'nullable|string|max:128',
             'assistance_types' => 'nullable|array',
             'assistance_types.*' => 'string|max:255',
             'resource_types' => 'nullable|array',
@@ -136,7 +164,17 @@ class LiRAController extends Controller
         if ($videos === null) $videos = [];
         if (!is_array($videos)) $videos = [$videos];
 
-        $lira = LiraRequest::create([
+        $fromCart = (int) $request->input('from_cart', 0) === 1;
+        $checkoutToken = trim((string) $request->input('checkout_token', ''));
+
+        $assistanceNeedsBorrowScan = in_array('Book Borrowing', $assistance, true) || in_array('Library Scanning', $assistance, true);
+        if ($assistanceNeedsBorrowScan && !$fromCart && !$request->filled('catalog_id')) {
+            return redirect()->back()->withErrors([
+                'for_borrow_scan' => 'Please start your request from a Catalog item or via My Cart checkout so title, author, and call number are mapped automatically.'
+            ])->withInput();
+        }
+
+        $basePayload = [
             'user_id' => Auth::id(),
             'consent' => true,
             'first_name' => $request->input('first_name'),
@@ -151,31 +189,143 @@ class LiRAController extends Controller
             'assistance_types' => json_encode($assistance),
             'resource_types' => json_encode($resource),
             'titles_of' => $request->input('titles_of'),
-            // form field name is `for_borrow_scan` in the view
-            'for_borrow_scan' => $request->input('for_borrow_scan'),
             'for_list' => $request->input('for_list'),
             'for_videos' => json_encode($videos),
-        ]);
+        ];
+
+        $createdRequests = [];
+
+        if ($fromCart) {
+            $cartEntries = session('lira_cart_checkout_maps.' . $checkoutToken, []);
+            if (empty($checkoutToken) || !is_array($cartEntries) || count($cartEntries) === 0) {
+                return redirect()->route('cart.index')->with('error', 'Your checkout session expired. Please checkout again from My Cart.');
+            }
+
+            foreach ($cartEntries as $entry) {
+                $catalogId = isset($entry['catalog_id']) && is_numeric($entry['catalog_id']) ? (int) $entry['catalog_id'] : null;
+                $title = trim((string) ($entry['title'] ?? ''));
+                $author = trim((string) ($entry['author'] ?? ''));
+                $callNumber = trim((string) ($entry['call_number'] ?? ''));
+                $forBorrowScan = $this->formatBorrowScanLine($title, $author, $callNumber);
+
+                $createdRequests[] = LiraRequest::create(array_merge($basePayload, [
+                    'catalog_id' => $catalogId,
+                    'for_borrow_scan' => $forBorrowScan,
+                ]));
+            }
+
+            $user = Auth::user();
+            $sf = $user?->studentFaculty;
+            if ($sf) {
+                $cartItemIds = collect($cartEntries)
+                    ->pluck('cart_item_id')
+                    ->filter(fn ($id) => is_numeric($id))
+                    ->map(fn ($id) => (int) $id)
+                    ->values()
+                    ->all();
+
+                if (!empty($cartItemIds)) {
+                    CartItem::where('student_faculty_id', $sf->id)
+                        ->whereIn('id', $cartItemIds)
+                        ->delete();
+                }
+            }
+
+            session()->forget('lira_cart_checkout_maps.' . $checkoutToken);
+        } else {
+            $catalog = null;
+            if ($request->filled('catalog_id')) {
+                $catalog = Catalog::find($request->integer('catalog_id'));
+            }
+
+            $forBorrowScan = null;
+            if ($catalog) {
+                $forBorrowScan = $this->formatBorrowScanLine(
+                    (string) ($catalog->title ?? ''),
+                    (string) ($catalog->author ?? ''),
+                    (string) ($catalog->call_number ?? '')
+                );
+            }
+
+            $createdRequests[] = LiraRequest::create(array_merge($basePayload, [
+                'catalog_id' => $catalog?->id,
+                'for_borrow_scan' => $forBorrowScan,
+            ]));
+        }
 
         // Send notification to librarian/staff
         $librarian = env('ALINET_LIBRARIAN_EMAIL', null);
         if ($librarian) {
-            // Queue the email to avoid blocking the request
-            Mail::to($librarian)->queue(new LiraSubmitted($lira));
+            foreach ($createdRequests as $createdRequest) {
+                // Queue the email to avoid blocking the request
+                Mail::to($librarian)->queue(new LiraSubmitted($createdRequest));
+            }
         }
 
-        return redirect()->route('lira.form')->with('status', 'Your request was submitted. Thank you!');
+        $count = count($createdRequests);
+        $statusMessage = $count > 1
+            ? 'Your requests were submitted successfully (' . $count . ' records). Thank you!'
+            : 'Your request was submitted. Thank you!';
+
+        return redirect()->route('lira.form')->with('status', $statusMessage);
+    }
+
+    private function formatBorrowScanLine(string $title, string $author, string $callNumber): string
+    {
+        $parts = [];
+        $title = trim($title);
+        $author = trim($author);
+        $callNumber = trim($callNumber);
+
+        if ($title !== '') {
+            $parts[] = $title;
+        }
+        if ($author !== '') {
+            $parts[] = $author;
+        }
+        if ($callNumber !== '') {
+            $parts[] = $callNumber;
+        }
+
+        return implode(', ', $parts);
+    }
+
+    private function buildBorrowScanDisplayFromEntries(array $entries): string
+    {
+        $lines = [];
+        foreach ($entries as $entry) {
+            $title = e(trim((string) ($entry['title'] ?? '')));
+            $author = e(trim((string) ($entry['author'] ?? '')));
+            $call = e(trim((string) ($entry['call_number'] ?? '')));
+            $parts = [];
+            if ($title !== '') {
+                $parts[] = '<strong>' . $title . '</strong>';
+            }
+            if ($author !== '') {
+                $parts[] = $author;
+            }
+            if ($call !== '') {
+                $parts[] = $call;
+            }
+            if (!empty($parts)) {
+                $lines[] = '<li>' . implode(', ', $parts) . '</li>';
+            }
+        }
+
+        return '<ol>' . implode('', $lines) . '</ol>';
     }
 
     // Admin listing and filtering
     public function index(Request $request)
     {
-        $q = LiraRequest::query();
+        $q = LiraRequest::query()->with(['catalog:id,title,copies_count,borrowed_count']);
         if ($request->filled('status')) {
             $status = $request->input('status');
             if ($status === 'awaiting_response') {
                 // Accepted but not yet responded
                 $q->where('status', 'accepted')->whereNull('response_sent_at');
+            } elseif ($status === 'borrowed' || $status === 'returned') {
+                $q->where('loan_status', $status);
             } else {
                 $q->where('status', $status);
             }
@@ -243,6 +393,8 @@ class LiRAController extends Controller
         if ($status !== null && $status !== '') {
             if ($status === 'awaiting_response') {
                 $q->where('status', 'accepted')->whereNull('response_sent_at');
+            } elseif ($status === 'borrowed' || $status === 'returned') {
+                $q->where('loan_status', $status);
             } else {
                 $q->where('status', $status);
             }
@@ -309,6 +461,11 @@ class LiRAController extends Controller
                 $resTypes = is_array($it->resource_types) ? $it->resource_types : (json_decode($it->resource_types ?? '[]', true) ?: []);
                 $videos = is_array($it->for_videos) ? $it->for_videos : (json_decode($it->for_videos ?? '[]', true) ?: []);
                 $statusText = ($it->status === 'accepted' && !empty($it->response_sent_at)) ? 'Responded' : ($it->status ?? '');
+                if ($it->loan_status === 'borrowed') {
+                    $statusText = 'Borrowed';
+                } elseif ($it->loan_status === 'returned') {
+                    $statusText = 'Returned';
+                }
                 $rows[] = [
                     'created_at' => optional($it->created_at)->format('Y-m-d H:i:s'),
                     'first_name' => $it->first_name,
@@ -325,9 +482,12 @@ class LiRAController extends Controller
                     'for_list' => $it->for_list,
                     'for_videos' => implode(', ', $videos),
                     'status' => $statusText,
+                    'loan_status' => $it->loan_status,
                     'processed_at' => $it->processed_at ? Carbon::parse($it->processed_at)->format('Y-m-d H:i:s') : '',
                     'decision_reason' => $it->decision_reason,
                     'response_sent_at' => $it->response_sent_at ? Carbon::parse($it->response_sent_at)->format('Y-m-d H:i:s') : '',
+                    'borrowed_at' => $it->borrowed_at ? Carbon::parse($it->borrowed_at)->format('Y-m-d H:i:s') : '',
+                    'returned_at' => $it->returned_at ? Carbon::parse($it->returned_at)->format('Y-m-d H:i:s') : '',
                 ];
             }
             return $rows;
@@ -353,12 +513,16 @@ class LiRAController extends Controller
                 'Accepted' => 'accepted',
                 'Rejected' => 'rejected',
                 'Awaiting Response' => 'awaiting_response',
+                'Borrowed' => 'borrowed',
+                'Returned' => 'returned',
             ];
             $tabbed = [];
             foreach ($titles as $label => $st) {
                 $qq = clone $q; // copy the base filtered (date/email) query
                 if ($st === 'awaiting_response') {
                     $qq->where('status', 'accepted')->whereNull('response_sent_at');
+                } elseif ($st === 'borrowed' || $st === 'returned') {
+                    $qq->where('loan_status', $st);
                 } elseif ($st) {
                     $qq->where('status', $st);
                 }
@@ -435,9 +599,20 @@ class LiRAController extends Controller
             return redirect()->back()->with('status', 'A response has already been sent for this request.');
         }
 
-        $validated = $request->validate([
+        $catalogForCheck = null;
+        if ($lira->action === 'borrow' && !empty($lira->catalog_id)) {
+            $catalogForCheck = Catalog::find($lira->catalog_id);
+        }
+
+        $rules = [
             'response_subject' => 'required|string|max:255',
             'response_message' => 'required|string|max:10000',
+        ];
+        if ($catalogForCheck && is_null($catalogForCheck->copies_count)) {
+            $rules['manual_copy_check_confirmed'] = 'accepted';
+        }
+        $validated = $request->validate($rules, [
+            'manual_copy_check_confirmed.accepted' => 'Manual library copy verification is required for this catalog before sending a response.',
         ]);
 
         // Send email to requester
@@ -448,12 +623,49 @@ class LiRAController extends Controller
             return redirect()->back()->with('status', 'Failed to send email: '.$e->getMessage());
         }
 
-        // Record response metadata
-        $lira->response_subject = $validated['response_subject'];
-        $lira->response_message = $validated['response_message'];
-        $lira->response_sent_at = now();
-        $lira->responded_by = Auth::id();
-        $lira->save();
+        try {
+            DB::transaction(function () use ($lira, $validated) {
+                // Refresh and lock request row to avoid double-borrow race.
+                $lockedLira = LiraRequest::whereKey($lira->id)->lockForUpdate()->firstOrFail();
+
+                // Record response metadata.
+                $lockedLira->response_subject = $validated['response_subject'];
+                $lockedLira->response_message = $validated['response_message'];
+                $lockedLira->response_sent_at = now();
+                $lockedLira->responded_by = Auth::id();
+
+                // For borrow requests tied to a catalog, mark as borrowed and increment inventory usage.
+                if ($lockedLira->action === 'borrow' && !empty($lockedLira->catalog_id)) {
+                    $catalog = Catalog::whereKey($lockedLira->catalog_id)->lockForUpdate()->first();
+                    if ($catalog) {
+                        $totalCopies = is_null($catalog->copies_count) ? null : (int) $catalog->copies_count;
+                        $borrowedCount = (int) ($catalog->borrowed_count ?? 0);
+
+                        if (!is_null($totalCopies) && $borrowedCount >= $totalCopies) {
+                            throw new \RuntimeException('Cannot mark as borrowed: all copies are already borrowed.');
+                        }
+
+                        $catalog->borrowed_count = $borrowedCount + 1;
+                        $catalog->save();
+
+                        $lockedLira->loan_status = 'borrowed';
+                        $lockedLira->borrowed_at = now();
+                        $lockedLira->borrowed_by = Auth::id();
+                        $lockedLira->returned_at = null;
+                        $lockedLira->returned_by = null;
+                    }
+                }
+
+                $lockedLira->save();
+            });
+        } catch (\Throwable $e) {
+            $message = $e->getMessage() ?: 'Failed to update circulation status.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
+            return redirect()->back()->with('status', $message);
+        }
 
         $successMessage = 'Response sent successfully to the requester.';
 
@@ -470,6 +682,56 @@ class LiRAController extends Controller
         if ($returnUrl) {
             return redirect($returnUrl)->with('status', $successMessage);
         }
+        return redirect()->back()->with('status', $successMessage);
+    }
+
+    public function markReturned(Request $request, $id)
+    {
+        $lira = LiraRequest::findOrFail($id);
+
+        if ($lira->loan_status !== 'borrowed') {
+            $message = 'Only borrowed requests can be marked as returned.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
+            return redirect()->back()->with('status', $message);
+        }
+
+        DB::transaction(function () use ($lira) {
+            $lockedLira = LiraRequest::whereKey($lira->id)->lockForUpdate()->firstOrFail();
+            if ($lockedLira->loan_status !== 'borrowed') {
+                return;
+            }
+
+            if (!empty($lockedLira->catalog_id)) {
+                $catalog = Catalog::whereKey($lockedLira->catalog_id)->lockForUpdate()->first();
+                if ($catalog) {
+                    $catalog->borrowed_count = max(((int) ($catalog->borrowed_count ?? 0)) - 1, 0);
+                    $catalog->save();
+                }
+            }
+
+            $lockedLira->loan_status = 'returned';
+            $lockedLira->returned_at = now();
+            $lockedLira->returned_by = Auth::id();
+            $lockedLira->save();
+        });
+
+        $successMessage = 'Request marked as returned and inventory updated.';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+            ]);
+        }
+
+        $returnUrl = $request->input('return_url');
+        if ($returnUrl) {
+            return redirect($returnUrl)->with('status', $successMessage);
+        }
+
         return redirect()->back()->with('status', $successMessage);
     }
 

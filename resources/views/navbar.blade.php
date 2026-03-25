@@ -527,11 +527,20 @@
                                             // Sidebar logic for bookmark count
                                             $sf = Auth::user()->studentFaculty ?? null;
                                             $bookmarkCount = 0;
+                                            $cartCount = 0;
+                                            $canUseCart = in_array(Auth::user()->role ?? '', ['student', 'faculty'], true);
                                             if ($sf) {
                                                 try {
                                                     $bookmarkCount = \App\Models\Bookmark::where('student_faculty_id', $sf->id)->count();
                                                 } catch (\Throwable $e) {
                                                     $bookmarkCount = 0;
+                                                }
+                                                if ($canUseCart) {
+                                                    try {
+                                                        $cartCount = \App\Models\CartItem::where('student_faculty_id', $sf->id)->count();
+                                                    } catch (\Throwable $e) {
+                                                        $cartCount = 0;
+                                                    }
                                                 }
                                             }
                                         @endphp
@@ -545,6 +554,18 @@
                                                 @endif
                                             </a>
                                         </li>
+                                        @if($canUseCart)
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center"
+                                                    href="{{ route('cart.index') }}">
+                                                    <i class="bi bi-cart3 me-2"></i>My Cart
+                                                    @if($cartCount > 0)
+                                                        <span
+                                                            class="badge rounded-pill bg-pink text-white ms-auto">{{ $cartCount }}</span>
+                                                    @endif
+                                                </a>
+                                            </li>
+                                        @endif
                                         <li><a class="dropdown-item" href="{{ route('history') }}"><i
                                                     class="bi bi-clock-history me-2"></i>Search History</a></li>
                                         <li>
@@ -677,8 +698,9 @@
             const profileDropdown = document.getElementById('profileDropdown');
             if (profileDropdown) {
                 profileDropdown.addEventListener('click', function (e) {
-                    // Only redirect if user clicked the avatar or name, not dropdown items
-                    if (!e.target.closest('.dropdown-menu')) {
+                    // Keep dropdown behavior on mobile; only redirect on desktop.
+                    const isMobile = window.matchMedia('(max-width: 991.98px)').matches;
+                    if (!isMobile && !e.target.closest('.dropdown-menu')) {
                         window.location.href = "{{ route('profile') }}";
                     }
                 });

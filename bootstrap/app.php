@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\EnsureRole::class,
             'profile.completed' => \App\Http\Middleware\EnsureProfileCompleted::class,
             'guest.expiration' => \App\Http\Middleware\CheckGuestExpiration::class,
+            'staff.activity' => \App\Http\Middleware\LogStaffActivity::class,
             
         ]);
 
@@ -24,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', [
             \App\Http\Middleware\EnsureProfileCompleted::class,
             \App\Http\Middleware\CheckGuestExpiration::class,
+            \App\Http\Middleware\LogStaffActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

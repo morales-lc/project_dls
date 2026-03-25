@@ -48,6 +48,7 @@ class AlertServiceController extends Controller
         
         // Collect bookmarked AlertBook IDs for the authenticated Student/Faculty user
         $bookmarkedIds = [];
+        $cartIds = [];
         try {
             if (\Illuminate\Support\Facades\Auth::check()) {
                 $user = \Illuminate\Support\Facades\Auth::user();
@@ -57,12 +58,18 @@ class AlertServiceController extends Controller
                         ->where('bookmarkable_type', AlertBook::class)
                         ->pluck('bookmarkable_id')
                         ->toArray();
+
+                    $cartIds = \App\Models\CartItem::where('student_faculty_id', $sf->id)
+                        ->where('cartable_type', AlertBook::class)
+                        ->pluck('cartable_id')
+                        ->toArray();
                 }
             }
         } catch (\Throwable $e) {
             $bookmarkedIds = [];
+            $cartIds = [];
         }
-        return view('alert-services.group', compact('books', 'displayName', 'displayMonth', 'year', 'bookmarkedIds'));
+        return view('alert-services.group', compact('books', 'displayName', 'displayMonth', 'year', 'bookmarkedIds', 'cartIds'));
     }
 
     /**

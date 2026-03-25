@@ -200,7 +200,7 @@
                 @foreach($catalogs as $catalog)
                 <div class="catalog-item">
                     <div class="catalog-thumb">
-                        <img src="{{ asset('images/book-placeholder.png') }}" alt="Cover">
+                        <img src="{{ $catalog->cover_image ? asset('storage/' . $catalog->cover_image) : asset('images/book-placeholder.png') }}" alt="Cover">
                     </div>
                     <div class="catalog-info">
                         <h6>{{ $catalog->title }}</h6>

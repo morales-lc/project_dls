@@ -62,10 +62,19 @@ class MarcController extends Controller
             // Split on whitespace to support "py -3" or "python3"
             $cmd = preg_split('/\s+/', trim($pythonSpec));
         } else {
+            $venvPythonWindows = base_path('.venv/Scripts/python.exe');
+            $venvPythonUnix = base_path('.venv/bin/python');
+
             // Platform-specific defaults
-            if (DIRECTORY_SEPARATOR === '\\') {
-                // Windows: use Python launcher
-                $cmd = ['py', '-3'];
+            if (DIRECTORY_SEPARATOR === '\\' && file_exists($venvPythonWindows)) {
+                // Prefer project venv when present
+                $cmd = [$venvPythonWindows];
+            } elseif (DIRECTORY_SEPARATOR !== '\\' && file_exists($venvPythonUnix)) {
+                // Prefer project venv when present
+                $cmd = [$venvPythonUnix];
+            } elseif (DIRECTORY_SEPARATOR === '\\') {
+                // Windows: prefer python on PATH (py launcher is not always available)
+                $cmd = ['python'];
             } else {
                 // Linux/Unix: use python3
                 $cmd = ['python3'];
@@ -86,6 +95,8 @@ class MarcController extends Controller
             'SystemRoot' => getenv('SystemRoot') ?: (DIRECTORY_SEPARATOR === '\\' ? 'C:\\Windows' : '/'),
             'PATH' => getenv('PATH'),
             'PYTHONHASHSEED' => '0',
+            'PYTHONUTF8' => '1',
+            'PYTHONIOENCODING' => 'utf-8',
             'DB_HOST' => config('database.connections.mysql.host'),
             'DB_USERNAME' => config('database.connections.mysql.username'),
             'DB_PASSWORD' => config('database.connections.mysql.password'),
@@ -109,8 +120,18 @@ class MarcController extends Controller
         }
 
         if (!$process->isSuccessful()) {
-            $err = $process->getErrorOutput();
+            $err = trim((string) $process->getErrorOutput());
+            $stdout = trim((string) $process->getOutput());
+            $combined = trim($err . (empty($stdout) ? '' : ("\n" . $stdout)));
             Log::error('MARC import python error: ' . $err);
+
+            $isPythonNotFound = str_contains(strtolower($combined), "'python' is not recognized")
+                || str_contains(strtolower($combined), 'python was not found')
+                || str_contains(strtolower($combined), 'no such file or directory');
+
+            $userMessage = $isPythonNotFound
+                ? 'Python executable not found. Install Python or set PYTHON_EXE in .env (example: PYTHON_EXE="python" or full python.exe path).'
+                : 'Import failed';
             
             // Clean up the uploaded file on failure
             try {
@@ -121,8 +142,8 @@ class MarcController extends Controller
                 Log::warning('Failed to delete uploaded MARC file after error: ' . $e->getMessage());
             }
             
-            if ($expectsJson) return response()->json(['success' => false, 'message' => 'Import failed', 'error' => trim(substr($err, 0, 2000))], 500);
-            return redirect()->back()->withErrors(['marc_file' => 'Import failed: ' . trim(substr($err, 0, 1000))]);
+            if ($expectsJson) return response()->json(['success' => false, 'message' => $userMessage, 'error' => trim(substr($combined, 0, 2000))], 500);
+            return redirect()->back()->withErrors(['marc_file' => $userMessage . ': ' . trim(substr($combined, 0, 1000))]);
         }
 
         $output = $process->getOutput();

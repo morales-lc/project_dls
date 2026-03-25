@@ -44,21 +44,24 @@ class FeedbackController extends Controller
             'title' => 'required|string|max:120',
             'category' => ['required', 'string', Rule::in(array_keys(Feedback::categoryOptions()))],
             'message' => 'required|string|max:2000',
-            'is_anonymous' => 'nullable|boolean',
         ]);
 
         $user = Auth::user();
+        if (!$user) {
+            abort(403);
+        }
+
         $studentFaculty = $user ? $user->studentFaculty : null;
 
         $thread = Feedback::create([
-            'user_id' => $request->input('is_anonymous') ? null : ($user ? $user->id : null),
+            'user_id' => $user->id,
             'title' => $request->input('title'),
             'parent_id' => null,
             'type' => 'thread',
             'category' => $request->input('category'),
             'course' => $studentFaculty->course ?? null,
             'role' => $studentFaculty->role ?? null,
-            'is_anonymous' => $request->input('is_anonymous') ? true : false,
+            'is_anonymous' => false,
             'status' => 'open',
             'message' => $request->input('message'),
         ]);
@@ -81,7 +84,6 @@ class FeedbackController extends Controller
     {
         $request->validate([
             'message' => 'required|string|max:2000',
-            'is_anonymous' => 'nullable|boolean',
         ]);
 
         $thread = Feedback::query()->threads()->findOrFail($id);
@@ -92,17 +94,21 @@ class FeedbackController extends Controller
         }
 
         $user = Auth::user();
+        if (!$user) {
+            abort(403);
+        }
+
         $studentFaculty = $user ? $user->studentFaculty : null;
 
         Feedback::create([
-            'user_id' => $request->input('is_anonymous') ? null : ($user ? $user->id : null),
+            'user_id' => $user->id,
             'title' => null,
             'parent_id' => $thread->id,
             'type' => 'reply',
             'category' => $thread->category,
             'course' => $studentFaculty->course ?? null,
             'role' => $studentFaculty->role ?? null,
-            'is_anonymous' => $request->boolean('is_anonymous'),
+            'is_anonymous' => false,
             'status' => 'open',
             'message' => $request->input('message'),
         ]);
@@ -150,6 +156,48 @@ class FeedbackController extends Controller
         return view('feedback.admin', compact('feedbacks', 'categoryOptions'));
     }
 
+    public function adminShow($id)
+    {
+        $feedback = Feedback::query()
+            ->threads()
+            ->with(['user', 'replies.user'])
+            ->findOrFail($id);
+
+        $categoryOptions = Feedback::categoryOptions();
+
+        return view('feedback.admin_show', compact('feedback', 'categoryOptions'));
+    }
+
+    public function adminReply(Request $request, $id)
+    {
+        $request->validate([
+            'message' => 'required|string|max:2000',
+        ]);
+
+        $thread = Feedback::query()->threads()->findOrFail($id);
+        $admin = Auth::user();
+
+        if (!$admin) {
+            abort(403);
+        }
+
+        Feedback::create([
+            'user_id' => $admin->id,
+            'title' => null,
+            'parent_id' => $thread->id,
+            'type' => 'reply',
+            'category' => $thread->category,
+            'course' => $thread->course,
+            'role' => $admin->role,
+            'is_anonymous' => false,
+            'status' => 'open',
+            'message' => $request->input('message'),
+        ]);
+
+        return redirect()->back()
+            ->with('success', 'Admin message sent.');
+    }
+
     public function updateStatus(Request $request, $id)
     {
         $request->validate([
@@ -161,7 +209,7 @@ class FeedbackController extends Controller
             'status' => $request->input('status'),
         ]);
 
-        return redirect()->route('feedback.admin')->with('success', 'Topic status updated.');
+        return redirect()->back()->with('success', 'Topic status updated.');
     }
 
     public function followUp($id)

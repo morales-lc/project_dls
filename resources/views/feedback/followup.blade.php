@@ -22,7 +22,7 @@
                             {{ $feedback->user->name }}<br>
                             <small class="text-muted">{{ $feedback->user->email }}</small>
                         @else
-                            <span class="text-muted">Anonymous</span>
+                            <span class="text-muted">Unavailable</span>
                         @endif
                     </div>
                     <div class="mb-3">

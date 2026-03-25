@@ -205,6 +205,44 @@
         justify-content: center;
     }
     .lira-loading-overlay.show { display: flex; }
+
+    .lira-wysiwyg-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+        margin-bottom: .5rem;
+    }
+
+    .lira-wysiwyg-toolbar .btn {
+        padding: .25rem .6rem;
+        font-size: .9rem;
+        border-color: #fcb6d0;
+        color: #d81b60;
+    }
+
+    .lira-wysiwyg-toolbar .btn:hover {
+        background: #ffe3ef;
+        border-color: #fcb6d0;
+        color: #d81b60;
+    }
+
+    .lira-wysiwyg-editor {
+        min-height: 140px;
+        max-height: 360px;
+        overflow: auto;
+        white-space: pre-wrap;
+    }
+
+    .lira-wysiwyg-editor:empty:before {
+        content: attr(data-placeholder);
+        color: #a07c8f;
+    }
+
+    .lira-wysiwyg-editor ol,
+    .lira-wysiwyg-editor ul {
+        margin-bottom: .5rem;
+        padding-left: 1.5rem;
+    }
 </style>
 
 <div style="height: 50px;"></div>
@@ -224,6 +262,9 @@
                     @csrf
 
                     <input type="hidden" name="action" value="{{ $prefill['action'] ?? 'borrow' }}">
+                    <input type="hidden" name="catalog_id" value="{{ $prefill['catalog_id'] ?? '' }}">
+                    <input type="hidden" name="from_cart" value="{{ (int) ($prefill['from_cart'] ?? 0) }}">
+                    <input type="hidden" name="checkout_token" value="{{ $prefill['checkout_token'] ?? '' }}">
 
                     <div id="liraFormBody">
                         <div class="alert alert-danger d-none" id="liraStepError" role="alert"></div>
@@ -364,8 +405,13 @@
                             </div>
                             <div class="mb-3">
                                 <label>For BOOK BORROWING and LIBRARY SCANNING: specify TITLE, AUTHOR and CALL NUMBER</label>
-                                <textarea name="for_borrow_scan" class="form-control" rows="3">{{ old('for_borrow_scan', $prefill['for_borrow_scan'] ?? (old('example_purposive', $prefill['title'] ?? ''))) }}</textarea>
-                                <small class="text-muted">Example: Purposive communication, Zobeta, Mr. Antonieto G., 302.2 T74 2018 cl</small>
+                                @php
+                                    $forBorrowScanRaw = old('for_borrow_scan', $prefill['for_borrow_scan'] ?? (old('example_purposive', $prefill['title'] ?? '')));
+                                    $forBorrowScanDisplay = str_replace(['</li>', '<br>', '<br/>', '<br />'], [PHP_EOL, PHP_EOL, PHP_EOL, PHP_EOL], (string) $forBorrowScanRaw);
+                                    $forBorrowScanDisplay = trim(strip_tags($forBorrowScanDisplay));
+                                @endphp
+                                <textarea name="for_borrow_scan" id="forBorrowScanInput" class="form-control" rows="4" readonly>{{ $forBorrowScanDisplay }}</textarea>
+                                <small class="text-muted">This field is auto-filled from selected Catalog/My Cart items and cannot be edited manually.</small>
                             </div>
                             <div class="mb-3">
                                 <label>For List of References: Specify Course Code and Course Description</label>

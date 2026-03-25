@@ -21,10 +21,13 @@ class Catalog extends Model
         'content_type',
         'media_type',
         'carrier_type',
+        'copies_count',
+        'borrowed_count',
         'isbn',
         'issn',
         'lccn',
         'subjects',
-        'additional_details'
+        'additional_details',
+        'cover_image'
     ];
 }
