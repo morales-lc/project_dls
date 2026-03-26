@@ -347,6 +347,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'destroySchedule'])->name('admin.backup.schedule.destroy');
         Route::post('/admin/backup/schedule/{id}/toggle', [\App\Http\Controllers\BackupController::class, 'toggleSchedule'])->name('admin.backup.schedule.toggle');
         Route::get('/admin/login-analytics', [\App\Http\Controllers\AdminLoginAnalyticsController::class, 'index'])->name('admin.login.analytics');
+        Route::get('/admin/login-analytics/export', [\App\Http\Controllers\AdminLoginAnalyticsController::class, 'export'])->name('admin.login.analytics.export');
+        Route::get('/admin/login-analytics/export-xlsx', [\App\Http\Controllers\AdminLoginAnalyticsController::class, 'exportXlsx'])->name('admin.login.analytics.export.xlsx');
         Route::get('/admin/staff-activity-logs', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'index'])->name('admin.staff.activity.logs');
         Route::get('/admin/staff-activity-logs/export', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'export'])->name('admin.staff.activity.logs.export');
         Route::get('/admin/staff-activity-logs/export-xlsx', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'exportXlsx'])->name('admin.staff.activity.logs.export.xlsx');

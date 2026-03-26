@@ -25,32 +25,7 @@
         </div>
     </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4 stat-card is-blue solid">
-                <div class="card-body">
-                    <div class="text-uppercase small">Total Actions</div>
-                    <div class="h2 fw-bold mb-0 mt-2">{{ $summary['total'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4 stat-card is-indigo solid">
-                <div class="card-body">
-                    <div class="text-uppercase small">Admin Actions</div>
-                    <div class="h2 fw-bold mb-0 mt-2">{{ $summary['admin_actions'] }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card shadow-sm border-0 rounded-4 stat-card is-teal solid">
-                <div class="card-body">
-                    <div class="text-uppercase small">Librarian Actions</div>
-                    <div class="h2 fw-bold mb-0 mt-2">{{ $summary['librarian_actions'] }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <div class="card shadow-sm border-0 rounded-4 mb-4">
         <div class="card-body">
