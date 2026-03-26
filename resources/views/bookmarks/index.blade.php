@@ -307,7 +307,7 @@
                 $route = null;
                 $typeValue = 'mides';
                 if ($bm->bookmarkable_type === \App\Models\MidesDocument::class) {
-                $route = route('mides.viewer', $item->id);
+                $route = route('mides.document.show', $item->id);
                 $typeValue = 'mides';
                 } elseif ($bm->bookmarkable_type === \App\Models\AlertBook::class) {
                 $route = $item->pdf_path ? asset('storage/' . $item->pdf_path) : null;

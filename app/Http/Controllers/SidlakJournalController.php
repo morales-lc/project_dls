@@ -198,13 +198,47 @@ class SidlakJournalController extends Controller
             ? redirect($returnUrl)->with('success', 'Journal deleted successfully!')
             : redirect()->back()->with('success', 'Journal deleted successfully!');
     }
-    public function index()
+    public function index(Request $request)
     {
-        $journals = SidlakJournal::with('articles')
+        $years = SidlakJournal::select('year')
+            ->distinct()
+            ->orderBy('year', 'desc')
+            ->pluck('year');
+
+        $months = [
+            'January', 'February', 'March', 'April', 'May', 'June',
+            'July', 'August', 'September', 'October', 'November', 'December',
+        ];
+
+        $query = SidlakJournal::with('articles');
+
+        if ($request->filled('q')) {
+            $q = trim((string) $request->input('q'));
+            $query->where(function ($inner) use ($q) {
+                $inner->where('title', 'like', "%{$q}%")
+                    ->orWhere('print_issn', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('year')) {
+            $query->where('year', $request->input('year'));
+        }
+
+        if ($request->filled('month')) {
+            $query->where('month', $request->input('month'));
+        }
+
+        $journals = $query
             ->orderByDesc('year')
             ->orderByRaw("STR_TO_DATE(CONCAT('01 ', month, ' ', year), '%d %M %Y') DESC")
-            ->get();
-        return view('sidlak.index', compact('journals'));
+            ->paginate(9)
+            ->appends($request->query());
+
+        $selectedYear = $request->input('year');
+        $selectedMonth = $request->input('month');
+        $q = $request->input('q');
+
+        return view('sidlak.index', compact('journals', 'years', 'months', 'selectedYear', 'selectedMonth', 'q'));
     }
 
     // Record article download and redirect to file

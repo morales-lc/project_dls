@@ -18,8 +18,44 @@
             SIDLAK (effulgence or radiance) refers to the light that radiates from the sun. It also refers to the quality of being bright and sending out rays of light. SIDLAK publishes relevant studies in various disciplines to advance the development of knowledge and inform diverse professional practice. This volume presents studies in social work, library and information science, hospitality management, home economics, and language teaching.
         </div>
     </div>
+
+    <div class="card border-0 shadow-sm mb-4" style="border-radius: 1rem;">
+        <div class="card-body">
+            <form method="GET" action="{{ route('sidlak.index') }}" class="row g-2 align-items-end">
+                <div class="col-12 col-md-5">
+                    <label class="form-label fw-semibold mb-1">Search</label>
+                    <input type="text" name="q" class="form-control" value="{{ $q ?? '' }}" placeholder="Search by title or ISSN">
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label fw-semibold mb-1">Year</label>
+                    <select name="year" class="form-select">
+                        <option value="">All Years</option>
+                        @foreach(($years ?? []) as $year)
+                            <option value="{{ $year }}" {{ (string)($selectedYear ?? '') === (string)$year ? 'selected' : '' }}>{{ $year }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label fw-semibold mb-1">Month</label>
+                    <select name="month" class="form-select">
+                        <option value="">All Months</option>
+                        @foreach(($months ?? []) as $month)
+                            <option value="{{ $month }}" {{ ($selectedMonth ?? '') === $month ? 'selected' : '' }}>{{ $month }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-grid">
+                    <button class="btn btn-dark" type="submit">Apply</button>
+                </div>
+                <div class="col-12">
+                    <a href="{{ route('sidlak.index') }}" class="btn btn-link p-0 text-decoration-none">Reset filters</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="row g-4">
-        @foreach($journals as $journal)
+        @forelse($journals as $journal)
             <div class="col-12 col-md-6 col-lg-4">
                 <a href="{{ route('sidlak.show', $journal->id) }}" class="text-decoration-none sidlak-card-link">
                     <div class="card h-100 shadow-lg border-0 rounded-4 bg-white position-relative overflow-hidden sidlak-card-hover">
@@ -36,8 +72,18 @@
                     </div>
                 </a>
             </div>
-        @endforeach
+        @empty
+            <div class="col-12">
+                <div class="alert alert-info border-0 shadow-sm">No SIDLAK journals matched your search/filter criteria.</div>
+            </div>
+        @endforelse
     </div>
+
+    @if(method_exists($journals, 'links'))
+        <div class="d-flex justify-content-center mt-4">
+            {{ $journals->onEachSide(1)->links('pagination::bootstrap-5') }}
+        </div>
+    @endif
 </div>
 <div style="margin-bottom: 120px;"></div>
 @include('footer')

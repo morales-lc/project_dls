@@ -17,6 +17,7 @@ class MidesDocument extends Model
         'year',
         'publication_date',
         'title',
+        'description',
         'tags',
         'pdf_path',
     ];

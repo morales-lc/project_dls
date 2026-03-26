@@ -96,6 +96,7 @@ class MidesGraduateController extends Controller
                 $q->where('title', 'like', "%$search%")
                     ->orWhere('author', 'like', "%$search%")
                     ->orWhere('advisors', 'like', "%$search%")
+                    ->orWhere('description', 'like', "%$search%")
                     ->orWhere('year', 'like', "%$search%")
                     ->orWhere('publication_date', 'like', "%$search%")
                     ->orWhere('tags', 'like', "%$search%");

@@ -101,6 +101,8 @@ class LiRAController extends Controller
             $forBorrowScan = $this->buildBorrowScanDisplayFromEntries($cartEntries);
         }
 
+        $cancelUrl = $this->resolveCancelUrl($request, $catalogId, $fromCart);
+
         // Prepare data for our internal LIRA form view
         $prefill = [
             'first' => $first,
@@ -121,6 +123,7 @@ class LiRAController extends Controller
             'for_borrow_scan' => $forBorrowScan,
             'from_cart' => $fromCart ? 1 : 0,
             'checkout_token' => $checkoutToken,
+            'cancel_url' => $cancelUrl,
         ];
 
         return view('lira.form', compact('prefill'));
@@ -135,6 +138,7 @@ class LiRAController extends Controller
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'department' => 'required|in:Grade School,Junior High,Senior High,College,Graduate School',
             'action' => 'nullable|in:borrow,scanning',
             'catalog_id' => 'nullable|integer|exists:catalogs,id',
             'from_cart' => 'nullable|integer|in:0,1',
@@ -268,6 +272,62 @@ class LiRAController extends Controller
             : 'Your request was submitted. Thank you!';
 
         return redirect()->route('lira.form')->with('status', $statusMessage);
+    }
+
+    private function resolveCancelUrl(Request $request, ?int $catalogId, bool $fromCart): string
+    {
+        $candidate = trim((string) $request->query('return_to', ''));
+        if ($candidate === '') {
+            $candidate = trim((string) url()->previous());
+        }
+
+        $safe = $this->sanitizeLocalReturnUrl($candidate);
+        if ($safe !== null) {
+            return $safe;
+        }
+
+        if ($fromCart) {
+            return route('cart.index');
+        }
+
+        if (!empty($catalogId)) {
+            return route('catalogs.show', $catalogId);
+        }
+
+        return route('alert-services.index');
+    }
+
+    private function sanitizeLocalReturnUrl(string $url): ?string
+    {
+        if ($url === '') {
+            return null;
+        }
+
+        $parts = parse_url($url);
+        if ($parts === false) {
+            return null;
+        }
+
+        $path = (string) ($parts['path'] ?? '/');
+        if ($path === '') {
+            $path = '/';
+        }
+
+        if (str_starts_with($path, '/lira/form') || str_starts_with($path, '/lira/jotform')) {
+            return null;
+        }
+
+        if (isset($parts['host'])) {
+            $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+            if (!$appHost || strcasecmp((string) $parts['host'], (string) $appHost) !== 0) {
+                return null;
+            }
+        }
+
+        $query = isset($parts['query']) ? ('?' . $parts['query']) : '';
+        $fragment = isset($parts['fragment']) ? ('#' . $parts['fragment']) : '';
+
+        return $path . $query . $fragment;
     }
 
     private function formatBorrowScanLine(string $title, string $author, string $callNumber): string

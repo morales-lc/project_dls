@@ -23,10 +23,10 @@
     <a href="{{ route('mides.categories.panel', ['return' => request()->fullUrl()]) }}" class="btn btn-pink px-4 py-2" style="font-weight:600; font-size:1.05rem;"><i class="bi bi-plus-lg"></i> Manage MIDES Categories</a>
         <div style="height: 30px;"></div>
         <form method="GET" action="{{ route('mides.management') }}" class="row g-2 mb-3 align-items-end">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <input type="text" name="search" class="form-control" placeholder="Search by title, author, advisor, date, tags..." value="{{ $search ?? '' }}">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <select name="type" class="form-select">
                     <option value="">All Types</option>
                     @foreach($types as $t)
@@ -34,20 +34,38 @@
                     @endforeach
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
+                <select name="year" class="form-select">
+                    <option value="">All Years</option>
+                    @foreach(range((int) date('Y'), 1980) as $y)
+                    <option value="{{ $y }}" {{ (string) request('year') === (string) $y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="month" class="form-select">
+                    <option value="">All Months</option>
+                    @foreach(range(1, 12) as $m)
+                    @php $mVal = str_pad((string) $m, 2, '0', STR_PAD_LEFT); @endphp
+                    <option value="{{ $mVal }}" {{ (string) request('month') === $mVal ? 'selected' : '' }}>{{ \Illuminate\Support\Carbon::create(null, $m, 1)->format('F') }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-md-2">
                 <select name="sort" class="form-select">
                     <option value="latest" {{ $sort == 'latest' ? 'selected' : '' }}>Latest</option>
                     <option value="oldest" {{ $sort == 'oldest' ? 'selected' : '' }}>Oldest</option>
                     <option value="publication_date" {{ $sort == 'publication_date' ? 'selected' : '' }}>Publication Date</option>
-                    <option value="year" {{ $sort == 'year' ? 'selected' : '' }}>Year</option>
+                    <option value="year_desc" {{ $sort == 'year_desc' || $sort == 'year' ? 'selected' : '' }}>Year (Newest First)</option>
+                    <option value="year_asc" {{ $sort == 'year_asc' ? 'selected' : '' }}>Year (Oldest First)</option>
                     <option value="author" {{ $sort == 'author' ? 'selected' : '' }}>Author</option>
                     <option value="title" {{ $sort == 'title' ? 'selected' : '' }}>Title</option>
                 </select>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-auto">
                 <button type="submit" class="btn btn-dark w-100">Filter</button>
             </div>
-            <div class="col-md-1">
+            <div class="col-md-auto">
                 <a href="{{ route('mides.management') }}" class="btn btn-pink">Clear</a>
             </div>
         </form>
@@ -70,6 +88,7 @@
                         <tr class="doc-row" style="cursor:pointer;"
                             data-id="{{ $doc->id }}"
                             data-title="{{ $doc->title }}"
+                            data-description="{{ e($doc->description) }}"
                             data-author="{{ $doc->author }}"
                             data-advisors="{{ $doc->advisors }}"
                             data-publication-date="{{ optional($doc->publication_date)->format('Y-m-d') }}"
@@ -188,6 +207,10 @@
                                             <div class="mb-2">
                                                 <label class="form-label">Title <span class="text-danger">*</span></label>
                                                 <input type="text" name="title" class="form-control" value="{{ old('doc_id') == $doc->id ? old('title') : $doc->title }}" maxlength="500" required>
+                                            </div>
+                                            <div class="mb-2">
+                                                <label class="form-label">Abstract / Description</label>
+                                                <textarea name="description" class="form-control" rows="4" maxlength="5000" placeholder="Write a concise abstract or description...">{{ old('doc_id') == $doc->id ? old('description') : $doc->description }}</textarea>
                                             </div>
                                             <div class="mb-2">
                                                 <label class="form-label">Tags</label>
@@ -323,6 +346,10 @@
                         <div class="small text-uppercase text-muted">Tags</div>
                         <div id="docTags" class="fw-semibold">-</div>
                     </div>
+                    <div class="col-sm-12">
+                        <div class="small text-uppercase text-muted">Abstract / Description</div>
+                        <div id="docDescription" class="fw-semibold">-</div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer d-flex justify-content-between">
@@ -377,6 +404,7 @@
                 var publicationDate = this.dataset.publicationDate || '-';
                 var advisors = this.dataset.advisors || '-';
                 var tags = this.dataset.tags || '-';
+                var description = this.dataset.description || '-';
                 var type = this.dataset.type || '-';
                 var category = this.dataset.category || '—';
                 var pdfUrl = this.dataset.pdfUrl || '#';
@@ -388,6 +416,7 @@
                 setText('docPublicationDate', publicationDate);
                 setText('docAdvisors', advisors);
                 setText('docTags', tags);
+                setText('docDescription', description);
                 setText('docType', type);
                 setText('docCategory', category);
 

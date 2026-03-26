@@ -8,48 +8,38 @@
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="{{ asset('css/mides-scholar.css') }}" rel="stylesheet">
 
     <style>
         body {
-            background-color: #fafafa;
+            background: linear-gradient(180deg, #f7f8fc 0%, #ffffff 75%);
         }
 
-        .view-toggle {
-            text-align: right;
+        .paper-item {
+            padding: 1rem 1.1rem;
         }
 
-        .view-toggle .btn {
-            border-radius: 8px;
-            transition: all .2s ease-in-out;
+        .paper-item-row {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-start;
         }
 
-        .view-toggle .btn.active {
-            background-color: #e83e8c;
-            color: #fff;
-            border-color: #e83e8c;
+        .paper-content {
+            min-width: 0;
+            flex: 1;
         }
 
-        .card-footer .btn {
-            min-width: 110px;
-            transition: all 0.2s ease-in-out;
+        .paper-actions {
+            position: relative;
+            z-index: 2;
+            min-width: 132px;
+            display: flex;
+            justify-content: flex-end;
         }
 
-        .card-footer .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .card.h-100 {
-            transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
-            border-radius: 0.85rem;
-            overflow: hidden;
-            border: 2px solid #e0e0e0;
-            background-color: #fff;
-        }
-
-        .card.h-100:hover {
-            transform: translateY(-6px) scale(1.01);
-            box-shadow: 0 10px 30px rgba(216, 27, 96, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06);
-            border-color: #d81b60;
+        .paper-actions .btn {
+            min-width: 112px;
         }
 
         .btn-outline-warning {
@@ -69,31 +59,6 @@
             border: none !important;
         }
 
-        .card-body {
-            background: linear-gradient(180deg, #fff 92%, #fff7fb 100%);
-        }
-
-        .list-view .col-lg-4 {
-            flex: 0 0 100%;
-            max-width: 100%;
-        }
-
-        .list-view .card {
-            flex-direction: row;
-            align-items: stretch;
-            height: 100%;
-        }
-
-        .list-view .card-body {
-            flex: 1;
-        }
-
-        .list-view .card-footer {
-            flex-direction: column;
-            justify-content: center;
-            text-align: center;
-        }
-
         .no-results {
             padding: 3rem 2rem;
             background: #fff;
@@ -109,6 +74,19 @@
         
         .results-container {
             min-height: calc(100vh - 600px);
+        }
+
+        .search-meta-line {
+            color: #475569;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .search-abstract {
+            margin-top: 0.45rem;
+            color: #334155;
+            font-size: 0.92rem;
+            line-height: 1.6;
         }
 
         .search-shell {
@@ -186,17 +164,33 @@
             font-size: .95rem;
             line-height: 1;
         }
+
+        .result-tags {
+            margin-top: 0.55rem;
+        }
+
+        @media (max-width: 768px) {
+            .paper-item-row {
+                flex-direction: column;
+                gap: 0.7rem;
+            }
+
+            .paper-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
     </style>
 </head>
 
-<body>
+<body class="mides-scholar">
     @include('navbar')
 
-    <div class="container py-4">
+    <div class="container py-4 mides-wrap">
         <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
             <h2 class="fw-bold mb-2 mb-md-0">Search Results</h2>
 
-            <div class="view-toggle">
+            <div class="view-toggle mides-view-toggle">
                 <button class="btn btn-outline-secondary btn-sm active" id="grid-view-btn">
                     <i class="bi bi-grid-3x3-gap-fill"></i> Grid
                 </button>
@@ -213,7 +207,7 @@
         </div>
 
         <!-- Search Form -->
-        <form class="mb-4 search-shell" method="GET" action="{{ route('mides.search') }}" id="midesSearchResultForm">
+        <form class="mb-4 mides-search-form" method="GET" action="{{ route('mides.search') }}" id="midesSearchResultForm">
             <div class="row g-2 mb-2">
                 <div class="col-12 col-md-8">
                     <input class="form-control" type="search" name="q" value="{{ $search ?? '' }}" placeholder="Search again..." aria-label="Search">
@@ -251,7 +245,7 @@
                 </div>
             </div>
 
-            <div class="tag-discovery-card">
+            <div class="mides-tag-box">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                     <div>
                         <div class="fw-bold" style="color:#a31358;"><i class="bi bi-stars"></i> Tag Discovery</div>
@@ -282,35 +276,32 @@
         </form>
 
         @if($documents->count())
-        <div id="search-results" class="row g-4 grid-view results-container">
+        <div id="search-results" class="row g-2 results-container mides-results">
             @foreach($documents as $doc)
-            <div class="col-lg-4 col-md-6 col-sm-12">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-body">
-                        <h5 class="card-title fw-semibold text-truncate" title="{{ $doc->title }}">
-                            {{ $doc->title }}
-                        </h5>
-                        <div class="small mb-2"><span class="text-muted">Author:</span> {{ $doc->author }}</div>
-                        <div class="small mb-2"><span class="text-muted">Advisor(s):</span> {{ $doc->advisors ?: '—' }}</div>
-                        <div class="small mb-2"><span class="text-muted">Publication Date:</span> {{ optional($doc->publication_date)->format('F d, Y') ?: '—' }}</div>
-                        <div class="small mb-2"><span class="text-muted">Tags:</span> {{ $doc->tags ?: '—' }}</div>
-                        <div class="small mb-2"><span class="text-muted">Type:</span> {{ $doc->type }}</div>
-                        @if($doc->category)
-                        <div class="small mb-2"><span class="text-muted">Category:</span> {{ $doc->category }}</div>
-                        @endif
-                        @if($doc->program)
-                        <div class="small mb-2"><span class="text-muted">Program:</span> {{ $doc->program }}</div>
-                        @endif
-                    </div>
-                    <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center px-3 py-2">
-                        <a href="{{ route('mides.search.viewer', $doc->id) }}"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
-                            style="border-radius: 8px;">
-                            <i class="bi bi-box-arrow-up-right"></i> Open
-                        </a>
+            <div class="col-12">
+                <div class="paper-item">
+                    <div class="paper-item-row">
+                        <div class="paper-content">
+                            <h5 class="paper-title" title="{{ $doc->title }}">{{ $doc->title }}</h5>
+                            <div class="search-meta-line">{{ $doc->author }} | {{ optional($doc->publication_date)->format('F d, Y') ?: '—' }} | {{ $doc->type }}</div>
+                            <div class="search-meta-line">Advisor(s): {{ $doc->advisors ?: '—' }}</div>
+                            <div class="search-abstract">{{ \Illuminate\Support\Str::limit($doc->description ?: 'No abstract provided.', 220) }}</div>
+                            <div class="result-tags">
+                                @if($doc->tags)
+                                    @foreach(array_slice(array_filter(array_map('trim', explode(',', $doc->tags))), 0, 4) as $tag)
+                                        <a href="{{ route('mides.tag', ['tag' => rawurlencode($tag)]) }}" class="paper-pill text-decoration-none" style="position:relative; z-index:2;">{{ $tag }}</a>
+                                    @endforeach
+                                @endif
+                            </div>
+                            @if($doc->category)
+                                <div class="search-meta-line mt-2">Category: {{ $doc->category }}</div>
+                            @endif
+                            @if($doc->program)
+                                <div class="search-meta-line">Program: {{ $doc->program }}</div>
+                            @endif
+                        </div>
 
+                        <div class="paper-actions">
                         @if(Auth::check() && Auth::user()->role !== 'guest')
                         @php
                         $sf = optional(auth()->user()->studentFaculty);
@@ -335,7 +326,10 @@
                         </form>
                         @endif
                         @endif
+                        </div>
                     </div>
+
+                    <a href="{{ route('mides.document.show', $doc->id) }}" class="stretched-link" aria-label="View details for {{ $doc->title }}"></a>
 
                 </div>
             </div>

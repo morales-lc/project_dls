@@ -32,7 +32,8 @@
                                             'isbn' => $catalog->isbn,
                                             'lccn' => $catalog->lccn,
                                             'issn' => $catalog->issn,
-                                            'action' => 'borrow'
+                                            'action' => 'borrow',
+                                            'return_to' => url()->current()
                                         ]) }}" class="btn btn-pink btn-sm btn-animated">
                             <i class="bi bi-send"></i> Request Borrow
                         </a>
@@ -45,7 +46,8 @@
                                             'isbn' => $catalog->isbn,
                                             'lccn' => $catalog->lccn,
                                             'issn' => $catalog->issn,
-                                            'action' => 'scanning'
+                                            'action' => 'scanning',
+                                            'return_to' => url()->current()
                                         ]) }}" class="btn btn-outline-pink btn-sm btn-animated">
                             <i class="bi bi-printer"></i> Request Scanning
                         </a>
