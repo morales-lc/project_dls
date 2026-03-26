@@ -163,6 +163,7 @@ class CartController extends BaseController
             'action' => 'borrow',
             'from_cart' => 1,
             'checkout_token' => $checkoutToken,
+            'return_to' => route('cart.index'),
         ]);
     }
 

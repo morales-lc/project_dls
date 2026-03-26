@@ -126,6 +126,8 @@ Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])-
 Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
     Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
     Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
+    Route::get('/mides/tag/{tag}', [MidesController::class, 'tag'])->name('mides.tag');
+    Route::get('/mides/document/{id}', [MidesController::class, 'show'])->whereNumber('id')->name('mides.document.show');
     // AJAX endpoint for program dropdown
     Route::get('/mides/programs', [\App\Http\Controllers\MidesDashboardController::class, 'getPrograms']);
 });
@@ -339,6 +341,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/admin/backup/run', [\App\Http\Controllers\BackupController::class, 'run'])->name('admin.backup.run');
         Route::get('/admin/backup/download/{file}', [\App\Http\Controllers\BackupController::class, 'download'])->name('admin.backup.download');
         Route::get('/admin/backup/download-auto/{file}', [\App\Http\Controllers\BackupController::class, 'downloadAndDelete'])->name('admin.backup.download.auto');
+        Route::delete('/admin/backup/log/{id}/file', [\App\Http\Controllers\BackupController::class, 'deleteFile'])->name('admin.backup.file.delete');
         Route::post('/admin/backup/schedule', [\App\Http\Controllers\BackupController::class, 'storeSchedule'])->name('admin.backup.schedule.store');
         Route::put('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'updateSchedule'])->name('admin.backup.schedule.update');
         Route::delete('/admin/backup/schedule/{id}', [\App\Http\Controllers\BackupController::class, 'destroySchedule'])->name('admin.backup.schedule.destroy');

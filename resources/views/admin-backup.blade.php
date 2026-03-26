@@ -49,7 +49,7 @@
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title fw-semibold mb-3">Run Manual Backup</h5>
-                    <form method="POST" action="{{ route('admin.backup.run') }}" class="row g-3">
+                    <form method="POST" action="{{ route('admin.backup.run') }}" class="row g-3" id="manualBackupForm">
                         @csrf
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Backup Type</label>
@@ -60,14 +60,19 @@
                             </select>
                         </div>
                         <div class="col-md-6 d-flex align-items-end">
-                            <button type="submit" class="btn btn-pink w-100">
-                                <i class="bi bi-play-fill"></i> Run Backup Now
+                            <button type="submit" class="btn btn-pink w-100" id="runBackupBtn">
+                                <span id="backupBtnIdle"><i class="bi bi-play-fill"></i> Run Backup Now</span>
+                                <span id="backupBtnLoading" class="d-none">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Queuing backup...
+                                </span>
                             </button>
                         </div>
                     </form>
                     <div class="alert alert-info mt-3 mb-0">
                         <i class="bi bi-info-circle"></i>
-                        <strong>Note:</strong> Manual backups are automatically downloaded after creation and removed from the server.
+                        <strong>Note:</strong> Manual backups are queued and processed in the background so you can continue using the system.
+                        <small class="d-block mt-2">Ensure queue worker is running: <code>php artisan queue:work --tries=3</code></small>
                     </div>
                 </div>
             </div>
@@ -257,6 +262,8 @@
                                         <td>
                                             @if($log->status === 'success')
                                                 <span class="badge bg-success">Success</span>
+                                            @elseif($log->status === 'processing')
+                                                <span class="badge bg-warning text-dark">Processing</span>
                                             @else
                                                 <span class="badge bg-danger">Failed</span>
                                             @endif
@@ -283,11 +290,25 @@
                                             @endif
                                         </td>
                                         <td>
-                                            <button type="button" class="btn btn-sm btn-outline-secondary" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#logModal{{ $log->id }}">
-                                                <i class="bi bi-file-text"></i> View Log
-                                            </button>
+                                            <div class="d-flex gap-1">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#logModal{{ $log->id }}">
+                                                    <i class="bi bi-file-text"></i> View Log
+                                                </button>
+                                                @if($log->status === 'success' && $log->filename)
+                                                    <a href="{{ route('admin.backup.download', ['file' => $log->filename]) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-download"></i> Download
+                                                    </a>
+                                                    <form method="POST" action="{{ route('admin.backup.file.delete', ['id' => $log->id]) }}" onsubmit="return confirm('Delete this backup file from server storage?');">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                     
@@ -413,6 +434,25 @@
     });
 </script>
 @endif
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const form = document.getElementById('manualBackupForm');
+    const button = document.getElementById('runBackupBtn');
+    const idle = document.getElementById('backupBtnIdle');
+    const loading = document.getElementById('backupBtnLoading');
+
+    if (!form || !button || !idle || !loading) {
+        return;
+    }
+
+    form.addEventListener('submit', function () {
+        button.disabled = true;
+        idle.classList.add('d-none');
+        loading.classList.remove('d-none');
+    });
+});
+</script>
 
 @if($errors->any())
 <script>

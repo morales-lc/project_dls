@@ -5,6 +5,14 @@
         </button>
     </div>
     <ul class="nav flex-column mt-4 px-2">
+        @php
+            $newLiraCount = \App\Models\LiraRequest::where(function ($q) {
+                $q->where('status', 'pending')->orWhereNull('status');
+            })->count();
+            $newAlinetCount = \App\Models\AlinetAppointment::where(function ($q) {
+                $q->where('status', 'pending')->orWhereNull('status');
+            })->count();
+        @endphp
         <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('librarian.dashboard') ? 'active' : '' }}" href="{{ route('librarian.dashboard') }}">
                 <i class="bi bi-house-door" style="color:#d81b60;font-size:1.3rem;"></i> <span>Dashboard</span>
@@ -37,7 +45,11 @@
         </li>
         <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('alinet.manage') ? 'active' : '' }}" href="{{ route('alinet.manage') }}">
-                <i class="bi bi-calendar-check" style="color:#d81b60;font-size:1.3rem;"></i> <span>ALINET Appointments</span>
+                <i class="bi bi-calendar-check" style="color:#d81b60;font-size:1.3rem;"></i>
+                <span>ALINET Appointments</span>
+                @if($newAlinetCount > 0)
+                    <span class="badge bg-danger rounded-pill ms-auto">{{ $newAlinetCount > 99 ? '99+' : $newAlinetCount }}</span>
+                @endif
             </a>
         </li>
         <li class="nav-item mb-1">
@@ -59,7 +71,11 @@
 
         <li class="nav-item mb-1">
             <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('lira.manage') ? 'active' : '' }}" href="{{ route('lira.manage') }}">
-                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i> <span>LiRA Requests</span>
+                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i>
+                <span>LiRA Requests</span>
+                @if($newLiraCount > 0)
+                    <span class="badge bg-danger rounded-pill ms-auto">{{ $newLiraCount > 99 ? '99+' : $newLiraCount }}</span>
+                @endif
             </a>
         </li>
 

@@ -3,6 +3,10 @@
         $newLiraCount = \App\Models\LiraRequest::where(function ($q) {
             $q->where('status', 'pending')->orWhereNull('status');
         })->count();
+        $newAlinetCount = \App\Models\AlinetAppointment::where(function ($q) {
+            $q->where('status', 'pending')->orWhereNull('status');
+        })->count();
+        $totalNewRequests = $newLiraCount + $newAlinetCount;
     @endphp
     <div class="container-fluid px-4">
         <button id="sidebarToggleBtnTop" class="btn btn-outline-pink d-none d-lg-inline me-3" type="button" aria-label="Toggle sidebar">
@@ -13,14 +17,31 @@
             <span class="d-none d-md-inline" style="font-weight:600; color:#d81b60;">Librarian Panel</span>
         </a>
         <div class="ms-auto d-flex align-items-center gap-2">
-            <a href="{{ route('lira.manage') }}" class="btn btn-light position-relative d-flex align-items-center justify-content-center rounded-3" aria-label="LiRA new requests" title="LiRA new requests" style="width:44px; height:44px; border:1.5px solid #ffd1e3; box-shadow:0 2px 8px rgba(232,62,140,0.06);">
-                <i class="bi bi-bell" style="font-size:1.25rem; color:#d81b60;"></i>
-                @if($newLiraCount > 0)
-                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.7rem; min-width:1.2rem;">
-                        {{ $newLiraCount > 99 ? '99+' : $newLiraCount }}
-                    </span>
-                @endif
-            </a>
+            <div class="dropdown">
+                <button class="btn btn-light position-relative d-flex align-items-center justify-content-center rounded-3" type="button" id="librarianNotificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" aria-label="New requests" title="New requests" style="width:44px; height:44px; border:1.5px solid #ffd1e3; box-shadow:0 2px 8px rgba(232,62,140,0.06);">
+                    <i class="bi bi-bell" style="font-size:1.25rem; color:#d81b60;"></i>
+                    @if($totalNewRequests > 0)
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.7rem; min-width:1.2rem;">
+                            {{ $totalNewRequests > 99 ? '99+' : $totalNewRequests }}
+                        </span>
+                    @endif
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="librarianNotificationDropdown" style="min-width: 250px;">
+                    <li class="px-3 py-2 small text-muted">New Requests</li>
+                    <li>
+                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="{{ route('alinet.manage', ['status' => 'pending']) }}">
+                            <span><i class="bi bi-calendar-check me-2"></i>ALINET</span>
+                            <span class="badge bg-danger rounded-pill">{{ $newAlinetCount }}</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item d-flex justify-content-between align-items-center" href="{{ route('lira.manage') }}">
+                            <span><i class="bi bi-journal me-2"></i>LiRA</span>
+                            <span class="badge bg-danger rounded-pill">{{ $newLiraCount }}</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
             <div class="dropdown">
                 <button class="btn btn-light d-flex align-items-center gap-2 px-3 py-2 rounded-3" type="button" id="librarianProfileDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="border:1.5px solid #ffd1e3; box-shadow:0 2px 8px rgba(232,62,140,0.06);">
                     <i class="bi bi-person-circle" style="font-size:1.5rem; color:#d81b60;"></i>

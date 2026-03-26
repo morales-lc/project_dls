@@ -26,7 +26,7 @@ class LibraryContentController extends Controller
         }
 
         // Strip all tags except safe ones
-        $allowed_tags = '<br><strong><em><b><i><u><p><ul><ol><li><span><div>';
+        $allowed_tags = '<br><strong><em><b><i><u><p><ul><ol><li><span><div><sub><a>';
         $cleaned = strip_tags($html, $allowed_tags);
         
         // Remove any event handlers and javascript: protocols

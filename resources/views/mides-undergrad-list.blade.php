@@ -8,6 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/mides.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/mides-scholar.css') }}">
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         .filter-shell {
@@ -137,10 +138,10 @@
     </style>
 </head>
 
-<body>
+<body class="mides-scholar">
     @include('navbar')
 
-    <div class="container py-5">
+    <div class="container py-5 mides-wrap">
         <div class="card shadow-lg w-100 border-0" style="max-width:1100px; margin:auto;">
             <div class="card-header bg-pink d-flex align-items-center" style="border-radius:1.25rem 1.25rem 0 0;">
                 <i class="bi bi-journal-bookmark fs-3 me-2"></i>
@@ -154,7 +155,7 @@
             <div class="card-body">
                 <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
                     <h4 class="fw-bold mb-2 mb-md-0">Undergraduate Documents</h4>
-                    <div class="view-toggle">
+                    <div class="view-toggle mides-view-toggle">
                         <button type="button" class="btn btn-outline-secondary btn-sm active" id="grid-view-btn-undergrad">
                             <i class="bi bi-grid-3x3-gap-fill"></i> Grid
                         </button>
@@ -165,7 +166,7 @@
                 </div>
 
                 <!-- Search & Filter Form -->
-                <form class="row g-2 mb-4 filter-shell" method="GET" action="" id="undergradFilterForm">
+                <form class="row g-2 mb-4 mides-search-form" method="GET" action="" id="undergradFilterForm">
                     <div class="col-md-6">
                         <input type="text" name="search" class="form-control" placeholder="Search by title, author, advisor, date, tags..." value="{{ request('search') }}">
                     </div>
@@ -187,7 +188,7 @@
                     </div>
 
                     <div class="col-12">
-                        <div class="tag-discovery-card">
+                        <div class="mides-tag-box">
                             <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                                 <div>
                                     <div class="fw-bold" style="color:#a31358;"><i class="bi bi-stars"></i> Tag Discovery</div>
@@ -217,22 +218,25 @@
 
                 <!-- Table Results -->
                 @if($documents->count())
-                <div id="undergrad-results" class="row g-4 grid-view results-container">
+                <div id="undergrad-results" class="row g-2 results-container mides-results">
                     @foreach($documents as $doc)
-                    <div class="col-lg-4 col-md-6 col-sm-12">
-                        <div class="card h-100 shadow-sm">
+                    <div class="col-12">
+                        <div class="paper-item">
                             <div class="card-body">
-                                <h5 class="card-title fw-semibold text-truncate" title="{{ $doc->title }}">{{ $doc->title }}</h5>
-                                <div class="small mb-2"><span class="text-muted">Author:</span> {{ $doc->author }}</div>
-                                <div class="small mb-2"><span class="text-muted">Advisor(s):</span> {{ $doc->advisors ?: '—' }}</div>
-                                <div class="small mb-2"><span class="text-muted">Publication Date:</span> {{ optional($doc->publication_date)->format('F d, Y') ?: '—' }}</div>
-                                <div class="small mb-2"><span class="text-muted">Tags:</span> {{ $doc->tags ?: '—' }}</div>
-                                <div class="small mb-2"><span class="text-muted">Program:</span> {{ $program }}</div>
+                                <h5 class="paper-title" title="{{ $doc->title }}">{{ $doc->title }}</h5>
+                                <div class="paper-meta">{{ $doc->author }} | {{ optional($doc->publication_date)->format('F d, Y') ?: '—' }} | {{ $program }}</div>
+                                <div class="paper-meta">Advisor(s): {{ $doc->advisors ?: '—' }}</div>
+                                <div class="paper-abstract">{{ \Illuminate\Support\Str::limit($doc->description ?: 'No abstract provided.', 220) }}</div>
+                                <div class="mt-2">
+                                    @if($doc->tags)
+                                        @foreach(array_slice(array_filter(array_map('trim', explode(',', $doc->tags))), 0, 4) as $tag)
+                                            <span class="paper-pill">{{ $tag }}</span>
+                                        @endforeach
+                                    @endif
+                                </div>
+                                <a href="{{ route('mides.document.show', $doc->id) }}" class="stretched-link" aria-label="View details for {{ $doc->title }}"></a>
                             </div>
-                            <div class="card-footer bg-white border-0 d-flex justify-content-between align-items-center px-3 py-2">
-                                <a href="{{ route('mides.undergrad.viewer', $doc->id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" style="border-radius: 8px;">
-                                    <i class="bi bi-box-arrow-up-right"></i> Open
-                                </a>
+                            <div class="paper-footer d-flex justify-content-end align-items-center px-3 py-2">
                                 @if(Auth::check() && Auth::user()->role !== 'guest')
                                 @php
                                     $sf = optional(auth()->user()->studentFaculty);

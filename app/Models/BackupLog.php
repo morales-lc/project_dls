@@ -18,7 +18,7 @@ class BackupLog extends Model
     ];
 
     protected $casts = [
-        'file_size_mb' => 'decimal:2',
+        'file_size_mb' => 'float',
     ];
 
     public function user()

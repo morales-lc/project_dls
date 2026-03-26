@@ -6,6 +6,13 @@
     </div>
     <ul class="nav flex-column mt-4 px-2">
         @php
+        $newLiraCount = \App\Models\LiraRequest::where(function ($q) {
+            $q->where('status', 'pending')->orWhereNull('status');
+        })->count();
+        $newAlinetCount = \App\Models\AlinetAppointment::where(function ($q) {
+            $q->where('status', 'pending')->orWhereNull('status');
+        })->count();
+
         $sidebarSections = [
             'general' => [
                 'label' => null,
@@ -64,7 +71,14 @@
             @foreach($section['items'] as $item)
             <li class="nav-item mb-1">
                 <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs($item['route']) ? 'active' : '' }}" href="{{ route($item['route']) }}">
-                    <i class="bi {{ $item['icon'] }}" style="color:#d81b60;font-size:1.3rem;"></i> <span>{{ $item['label'] }}</span>
+                    <i class="bi {{ $item['icon'] }}" style="color:#d81b60;font-size:1.3rem;"></i>
+                    <span>{{ $item['label'] }}</span>
+                    @if($item['route'] === 'alinet.manage' && $newAlinetCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $newAlinetCount > 99 ? '99+' : $newAlinetCount }}</span>
+                    @endif
+                    @if($item['route'] === 'lira.manage' && $newLiraCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $newLiraCount > 99 ? '99+' : $newLiraCount }}</span>
+                    @endif
                 </a>
             </li>
             @endforeach

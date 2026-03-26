@@ -5,6 +5,7 @@
     <title>Graduate Theses Categories</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/mides-scholar.css') }}" rel="stylesheet">
         <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         .category-card {
@@ -29,18 +30,17 @@
         }
     </style>
 </head>
-<body>
+<body class="mides-scholar">
 @include('navbar')
-<div class="container py-5">
+<div class="container py-5 mides-wrap">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold mb-0">Graduate Theses</h2>
         <a href="{{ route('mides.dashboard') }}" class="btn btn-outline-primary">MIDES Dashboard</a>
     </div>
-    <div class="row g-4">
+    <div class="collection-list">
         @foreach($categories as $cat)
-        <div class="col-md-4 col-12">
-            <a href="{{ route('mides.graduate.category', ['category' => $cat]) }}" class="text-decoration-none mides-card-link">
-                <div class="category-card mides-card-hover">
+            <a href="{{ route('mides.graduate.category', ['category' => $cat]) }}" class="collection-link">
+                <div class="collection-item">
                     <span class="category-icon">
                         @php
                             $icon = 'bi-book';
@@ -67,10 +67,10 @@
                         @endphp
                         <i class="bi {{ $icon }}"></i>
                     </span>
-                    <div class="fw-bold text-center">{{ $cat }}</div>
+                    <h5 class="mb-1">{{ $cat }}</h5>
+                    <div class="small text-muted">Browse theses under this graduate category.</div>
                 </div>
             </a>
-        </div>
         @endforeach
     </div>
 </div>

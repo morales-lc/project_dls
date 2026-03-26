@@ -52,11 +52,18 @@
         appearance: none;
         -webkit-appearance: none;
         -moz-appearance: none;
+        cursor: pointer;
         background-image: url("data:image/svg+xml;charset=UTF-8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 16 10'><path fill='%23d81b60' d='M1.5 1.5l6.5 6 6.5-6L16 3l-8 7-8-7z'/></svg>");
         background-repeat: no-repeat;
-        background-position: right 1rem center;
+        background-position: right 0.9rem center;
         background-size: 12px 8px;
-        padding-right: 2rem;
+        padding-right: 2.6rem;
+        border-width: 2px;
+        box-shadow: inset -34px 0 0 #ffd7e8;
+    }
+
+    .lira-form-card .form-select option[value=""] {
+        color: #9b5a75;
     }
 
     /* Inputs/selects themed like ALINET */
@@ -265,6 +272,7 @@
                     <input type="hidden" name="catalog_id" value="{{ $prefill['catalog_id'] ?? '' }}">
                     <input type="hidden" name="from_cart" value="{{ (int) ($prefill['from_cart'] ?? 0) }}">
                     <input type="hidden" name="checkout_token" value="{{ $prefill['checkout_token'] ?? '' }}">
+                    <input type="hidden" id="cancelUrlInput" value="{{ $prefill['cancel_url'] ?? route('dashboard') }}">
 
                     <div id="liraFormBody">
                         <div class="alert alert-danger d-none" id="liraStepError" role="alert"></div>
@@ -323,6 +331,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label">Designation <span class="required">*</span></label>
                                         <select name="designation" class="form-select">
+                                            <option value="">Select designation...</option>
                                             <option value="Faculty" {{ (old('designation', $prefill['designation'] ?? '')=='Faculty')? 'selected':'' }}>Faculty</option>
                                             <option value="Student" {{ (old('designation', $prefill['designation'] ?? '')=='Student')? 'selected':'' }}>Student</option>
                                             <option value="Staff" {{ (old('designation', $prefill['designation'] ?? '')=='Staff')? 'selected':'' }}>Staff</option>
@@ -343,6 +352,7 @@
                                     <div class="col-md-6">
                                         <label class="form-label">Department <span class="required">*</span></label>
                                         <select name="department" class="form-select">
+                                            <option value="" {{ (old('department', $prefill['department'] ?? '')=='')? 'selected':'' }}>Select department...</option>
                                             <option value="Grade School" {{ (old('department', $prefill['department'] ?? '')=='Grade School')? 'selected':'' }}>Grade School</option>
                                             <option value="Junior High" {{ (old('department', $prefill['department'] ?? '')=='Junior High')? 'selected':'' }}>Junior High</option>
                                             <option value="Senior High" {{ (old('department', $prefill['department'] ?? '')=='Senior High')? 'selected':'' }}>Senior High</option>
@@ -417,11 +427,6 @@
                                 <label>For List of References: Specify Course Code and Course Description</label>
                                 <textarea name="for_list" class="form-control" rows="3">{{ old('for_list') }}</textarea>
                             </div>
-                            <div class="mb-3">
-                                <label>For Videos</label>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" name="for_videos[]" value="Downloaded" id="v1"><label class="form-check-label" for="v1">Downloaded</label></div>
-                                <div class="form-check"><input class="form-check-input" type="checkbox" name="for_videos[]" value="Link/s" id="v2"><label class="form-check-label" for="v2">Link/s</label></div>
-                            </div>
                         </div>
                     </div>
 
@@ -429,6 +434,7 @@
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
                         <button type="button" class="lira-btn-outline" id="backBtn">Back</button>
                         <div class="d-flex gap-2">
+                            <button type="button" class="lira-btn-outline d-none" id="cancelBtn">Cancel</button>
                             <button type="button" class="lira-btn-pink enhanced-next" id="nextBtn">Next</button>
                             <button type="submit" class="lira-btn-pink enhanced-next" id="submitBtn">Submit</button>
                         </div>
@@ -460,6 +466,8 @@
         const steps = Array.from(document.querySelectorAll('.lira-step'));
         const formBody = document.getElementById('liraFormBody');
         const errorBox = document.getElementById('liraStepError');
+        const cancelBtnEl = document.getElementById('cancelBtn');
+        const cancelUrl = document.getElementById('cancelUrlInput')?.value || '{{ route('dashboard') }}';
 
         const computeAndSetHeight = () => {
             let max = 0;
@@ -482,12 +490,27 @@
             document.getElementById('backBtn').style.display = n === 1 ? 'none' : 'inline-block';
             document.getElementById('nextBtn').classList.toggle('d-none', n === total);
             document.getElementById('submitBtn').classList.toggle('d-none', n !== total);
+            if (cancelBtnEl) cancelBtnEl.classList.toggle('d-none', n !== total);
             window.scrollTo({
                 top: el.offsetTop - 20,
                 behavior: 'smooth'
             });
         };
         showStep(step);
+
+        const showStepError = (message) => {
+            const currentStepEl = document.querySelector('.lira-step[data-step="' + step + '"]');
+            if (currentStepEl) {
+                const bannerWrap = currentStepEl.querySelector('.text-center.mb-3');
+                if (bannerWrap && bannerWrap.parentNode) {
+                    bannerWrap.insertAdjacentElement('afterend', errorBox);
+                } else {
+                    currentStepEl.prepend(errorBox);
+                }
+            }
+            errorBox.textContent = message;
+            errorBox.classList.remove('d-none');
+        };
 
         const validateStep = (n) => {
             if (n === 1) {
@@ -499,9 +522,11 @@
                 const first = document.querySelector('input[name="first_name"]').value.trim();
                 const last = document.querySelector('input[name="last_name"]').value.trim();
                 const email = document.querySelector('input[name="email"]').value.trim();
+                const department = document.querySelector('select[name="department"]').value.trim();
                 if (!first) return 'Please enter your First Name.';
                 if (!last) return 'Please enter your Last Name.';
                 if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return 'Please enter a valid Email address.';
+                if (!department) return 'Please select your Department before proceeding.';
                 return null;
             }
             if (n === 3) {
@@ -517,8 +542,7 @@
         document.getElementById('nextBtn').addEventListener('click', function() {
             const err = validateStep(step);
             if (err) {
-                errorBox.textContent = err;
-                errorBox.classList.remove('d-none');
+                showStepError(err);
                 return;
             }
             if (step < total) step++;
@@ -535,6 +559,12 @@
         const backBtnEl = document.getElementById('backBtn');
         const submitBtnEl = document.getElementById('submitBtn');
 
+        if (cancelBtnEl) {
+            cancelBtnEl.addEventListener('click', function() {
+                window.location.href = cancelUrl;
+            });
+        }
+
         document.getElementById('liraForm').addEventListener('submit', function(e) {
             const err = validateStep(1) || validateStep(2) || validateStep(3);
             if (err) {
@@ -550,6 +580,7 @@
             }
             if (nextBtnEl) nextBtnEl.disabled = true;
             if (backBtnEl) backBtnEl.disabled = true;
+            if (cancelBtnEl) cancelBtnEl.disabled = true;
             if (submitBtnEl) submitBtnEl.disabled = true;
         });
     });

@@ -8,6 +8,7 @@
     <link href="{{ asset('css/styles.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="{{ asset('css/mides.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/mides-scholar.css') }}" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ asset('learningcommons.ico') }}">
     <style>
         .mides-search-panel {
@@ -88,10 +89,10 @@
     </style>
 </head>
 
-<body>
+<body class="mides-scholar">
     @include('navbar')
 
-    <div class="container py-5">
+    <div class="container py-5 mides-wrap">
         <!-- Centered top section -->
         <div class="text-center mb-4">
             <h2 class="fw-bold mb-2" style="color:#e83e8c;">Welcome to MIDES Repository!</h2>
@@ -105,7 +106,7 @@
         </div>
 
         <!-- Search form -->
-        <form class="mb-4 mides-search-panel" method="GET" action="{{ route('mides.search') }}" id="midesSearchForm">
+        <form class="mb-4 mides-search-form" method="GET" action="{{ route('mides.search') }}" id="midesSearchForm">
             <!-- Search bar -->
             <div class="row justify-content-center mb-3">
                 <div class="col-12 col-md-8">
@@ -156,7 +157,7 @@
                 </div>
             </div>
 
-            <div class="tag-discovery-card">
+            <div class="mides-tag-box">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
                     <div>
                         <div class="fw-bold" style="color:#a31358;"><i class="bi bi-stars"></i> Tag Discovery</div>
@@ -274,7 +275,8 @@
 
                 var initial = (hiddenTags.value || '').split(',').map(function(v){ return v.trim().toLowerCase(); }).filter(Boolean);
                 tagList = Array.from(new Set(initial));
-                tagBox.style.display = 'block';
+                tagBox.style.display = 'none';
+                toggleBtn.innerHTML = '<i class="bi bi-tags"></i> Show Tag Search';
                 renderTags();
 
                 toggleBtn.addEventListener('click', function() {
@@ -314,51 +316,31 @@
         </script>
 
         <!-- Categories Section -->
-        <div class="mt-5 row g-4 justify-content-center">
-            <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.graduate.categories') }}" class="text-decoration-none mides-card-link mides-card--grad">
-                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
-                            <span class="display-4 text-primary"><i class="bi bi-journal-bookmark"></i></span>
-                            <h5 class="mt-3 mb-1 fw-bold">Graduate Theses</h5>
-                            <div class="text-muted small">Masters and related research</div>
-                        </div>
+        <div class="mt-5">
+            <h4 class="fw-bold mb-3">Browse Collections</h4>
+            <div class="collection-list">
+                <a href="{{ route('mides.graduate.categories') }}" class="collection-link">
+                    <div class="collection-item">
+                        <h5><i class="bi bi-journal-bookmark me-2"></i>Graduate Theses</h5>
+                        <div class="text-muted small">Masters and related research</div>
                     </div>
                 </a>
-            </div>
-
-            <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.undergrad.programs') }}" class="text-decoration-none mides-card-link mides-card--undergrad">
-                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
-                            <span class="display-4 text-danger"><i class="bi bi-journal-text"></i></span>
-                            <h5 class="mt-3 mb-1 fw-bold">Undergraduate Baby Thesis</h5>
-                            <div class="text-muted small">Undergraduate research</div>
-                        </div>
+                <a href="{{ route('mides.undergrad.programs') }}" class="collection-link">
+                    <div class="collection-item">
+                        <h5><i class="bi bi-journal-text me-2"></i>Undergraduate Baby Thesis</h5>
+                        <div class="text-muted small">Undergraduate research</div>
                     </div>
                 </a>
-            </div>
-
-            <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.faculty_theses') }}" class="text-decoration-none mides-card-link mides-card--faculty">
-                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
-                            <span class="display-4 text-info"><i class="bi bi-person-badge"></i></span>
-                            <h5 class="mt-3 mb-1 fw-bold">Faculty/Theses/Dissertations</h5>
-                            <div class="text-muted small">Faculty publications, theses, and dissertations</div>
-                        </div>
+                <a href="{{ route('mides.faculty_theses') }}" class="collection-link">
+                    <div class="collection-item">
+                        <h5><i class="bi bi-person-badge me-2"></i>Faculty, Theses, and Dissertations</h5>
+                        <div class="text-muted small">Faculty publications, theses, and dissertations</div>
                     </div>
                 </a>
-            </div>
-
-            <div class="col-md-3 col-sm-6">
-                <a href="{{ route('mides.seniorhigh.programs') }}" class="text-decoration-none mides-card-link mides-card--shs">
-                    <div class="card h-100 mides-card-hover shadow-sm text-center border-0">
-                        <div class="card-body d-flex flex-column align-items-center justify-content-center" style="min-height: 220px;">
-                            <span class="display-4 text-success"><i class="bi bi-mortarboard"></i></span>
-                            <h5 class="mt-3 mb-1 fw-bold">Senior High School Research Paper</h5>
-                            <div class="text-muted small">ABM, HUMSS, STEM, TVL, ICT, Culinary Arts</div>
-                        </div>
+                <a href="{{ route('mides.seniorhigh.programs') }}" class="collection-link">
+                    <div class="collection-item">
+                        <h5><i class="bi bi-mortarboard me-2"></i>Senior High School Research Paper</h5>
+                        <div class="text-muted small">ABM, HUMSS, STEM, TVL, ICT, Culinary Arts</div>
                     </div>
                 </a>
             </div>

@@ -263,7 +263,7 @@
                                 <span class="label">{{ $isInCart ? 'In My Cart' : 'Add to My Cart' }}</span>
                             </button>
                         </form>
-                        <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number]) }}"
+                        <a href="{{ route('lira.jotform', ['title' => $book->title, 'author' => $book->author, 'call_number' => $book->call_number, 'return_to' => request()->fullUrl()]) }}"
                             target="_blank" rel="noopener noreferrer" class="btn-pink text-center" onclick="event.stopPropagation();">
                             <i class="bi bi-journal-bookmark-fill"></i> Request via LiRA
                         </a>

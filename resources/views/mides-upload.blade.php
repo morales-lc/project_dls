@@ -87,6 +87,11 @@
                 <label class="form-label">Title of Thesis/Paper <span class="text-danger">*</span></label>
                 <input type="text" name="title" id="title" class="form-control form-control-lg" value="{{ old('title') }}" required>
             </div>
+                <div class="col-12">
+                    <label class="form-label">Abstract / Description</label>
+                    <textarea name="description" id="description" class="form-control form-control-lg" rows="5" maxlength="5000" placeholder="Write a concise abstract or description of this document...">{{ old('description') }}</textarea>
+                    <small class="text-muted">Optional. Maximum 5000 characters.</small>
+                </div>
 
             <div class="col-12">
                 <label class="form-label">Publication Date <span class="text-danger">*</span></label>
