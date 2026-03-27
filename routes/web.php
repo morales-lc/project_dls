@@ -4,53 +4,39 @@
 
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\ResourceController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\UserManagementController;
-use App\Http\Controllers\LibraryContentController;
-use App\Http\Controllers\GoogleAuthController;
-use App\Http\Controllers\MidesController;
-use App\Http\Controllers\MidesDashboardController;
-
-use App\Http\Controllers\MidesUndergradController;
-
-use App\Http\Controllers\MidesGraduateController;
-
-use App\Http\Controllers\MidesSeniorHighController;
-use Illuminate\Http\Request;
-
-use App\Http\Controllers\LoginController;
-
-use App\Http\Controllers\LibraryStaffController;
 use App\Http\Controllers\AlertServiceController;
 use App\Http\Controllers\AlinetAppointmentManageController;
-
-// Information Literacy routes
-use App\Http\Controllers\InformationLiteracyController;
-
-use App\Http\Controllers\ContactController;
-
-use Illuminate\Support\Facades\Auth;
-
-// Online E-Libraries page 
-use App\Http\Controllers\ELibraryController;
-
-
-// LiRA Jotform
-use App\Http\Controllers\LiRAController;
-
-// Book Borrowing page
-use App\Http\Controllers\BookBorrowingController;
-use App\Http\Controllers\NetzoneController;
-use App\Http\Controllers\LearningSpaceController;
-
 use App\Http\Controllers\AlinetController;
+use App\Http\Controllers\BookBorrowingController;
+use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ELibraryController;
+use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\InformationLiteracyController;
+use App\Http\Controllers\LearningSpaceController;
+use App\Http\Controllers\LibraryContentController;
+use App\Http\Controllers\LibraryStaffController;
+use App\Http\Controllers\LiRAController;
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\MidesController;
+use App\Http\Controllers\MidesDashboardController;
+use App\Http\Controllers\MidesGraduateController;
+use App\Http\Controllers\MidesSeniorHighController;
+use App\Http\Controllers\MidesUndergradController;
+use App\Http\Controllers\NetzoneController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ResourceController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\SidlakJournalController;
+use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\YearbookController;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 
 
+
+// Public Pages
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 
 
@@ -59,6 +45,7 @@ Route::get('/about/contact', [ContactController::class, 'index'])->name('about.c
 
 
 
+// Authentication and Entry
 Route::get('/', function () {
     if (Auth::check()) {
         $user = Auth::user();
@@ -94,7 +81,7 @@ Route::get('/login', function () {
 
 // Keep the POST login action only for guests
 Route::middleware('guest')->group(function () {
-    Route::post('/login', [LoginController::class, 'login'])->name('login');
+    Route::post('/login', [LoginController::class, 'login']);
     Route::get('/login/verify-otp', [LoginController::class, 'showOtpForm'])->name('login.verify.otp');
     Route::post('/login/verify-otp', [LoginController::class, 'verifyOtp'])->name('login.verify.otp.submit');
     Route::post('/login/resend-otp', [LoginController::class, 'resendOtp'])->name('login.resend.otp');
@@ -122,6 +109,7 @@ Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])-
 
 
 
+// MIDES and Catalog
 // MIDES dashboard and search restricted to authenticated users (student/faculty/guest)
 Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
     Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
@@ -148,8 +136,6 @@ Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
 
 
 // Sidlak Journal routes
-use App\Http\Controllers\SidlakJournalController;
-
 // SIDLAK public views (no login required)
 Route::get('/sidlak-journals', [SidlakJournalController::class, 'index'])->name('sidlak.index');
 Route::get('/sidlak-journals/{id}', [SidlakJournalController::class, 'show'])->whereNumber('id')->name('sidlak.show');
@@ -184,41 +170,43 @@ Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
     Route::get('/mides/seniorhigh/viewer/{id}', [MidesSeniorHighController::class, 'viewer'])->name('mides.seniorhigh.viewer');
 });
 
+// Yearbook archive (authenticated users only)
+Route::middleware('auth')->group(function () {
+    Route::get('/yearbook-archive', [YearbookController::class, 'index'])->name('yearbook.index');
+});
+
 // Sidlak management (create/edit/delete) for librarian and admin
 Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
-    Route::get('/sidlak-journals/manage', [SidlakJournalController::class, 'manage'])->name('sidlak.manage');
-    Route::get('/sidlak-journals/create', [SidlakJournalController::class, 'create'])->name('sidlak.create');
-    Route::post('/sidlak-journals', [SidlakJournalController::class, 'store'])->name('sidlak.store');
-    Route::get('/sidlak-journals/{id}/edit', [SidlakJournalController::class, 'edit'])->whereNumber('id')->name('sidlak.edit');
-    Route::put('/sidlak-journals/{id}', [SidlakJournalController::class, 'update'])->whereNumber('id')->name('sidlak.update');
-    Route::delete('/sidlak-journals/{id}', [SidlakJournalController::class, 'destroy'])->whereNumber('id')->name('sidlak.destroy');
+    Route::get('/sidlak-journals/manage', [SidlakJournalController::class, 'manage']);
+    Route::get('/sidlak-journals/create', [SidlakJournalController::class, 'create']);
+    Route::post('/sidlak-journals', [SidlakJournalController::class, 'store']);
+    Route::get('/sidlak-journals/{id}/edit', [SidlakJournalController::class, 'edit'])->whereNumber('id');
+    Route::put('/sidlak-journals/{id}', [SidlakJournalController::class, 'update'])->whereNumber('id');
+    Route::delete('/sidlak-journals/{id}', [SidlakJournalController::class, 'destroy'])->whereNumber('id');
 });
 
 // Bookmarks (students/faculty)
-Route::middleware('auth')->group(function () {
-    Route::group(['middleware' => function ($request, $next) {
-        if (Auth::check() && Auth::user()->role === 'guest') abort(403);
-        return $next($request);
-    }], function () {
-        Route::get('/bookmarks', [\App\Http\Controllers\BookmarkController::class, 'index'])->name('bookmarks.index');
-        Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
+Route::middleware(['auth', 'role:student,faculty,admin,librarian'])->group(function () {
+    Route::get('/bookmarks', [\App\Http\Controllers\BookmarkController::class, 'index'])->name('bookmarks.index');
+    Route::post('/bookmarks/toggle', [\App\Http\Controllers\BookmarkController::class, 'toggle'])->name('bookmarks.toggle');
 
-        // My Cart (Catalog + Alert Books)
-        Route::get('/my-cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
-        Route::post('/my-cart/toggle', [\App\Http\Controllers\CartController::class, 'toggle'])->name('cart.toggle');
-        Route::post('/my-cart/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
-    });
+    // My Cart (Catalog + Alert Books)
+    Route::get('/my-cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
+    Route::post('/my-cart/toggle', [\App\Http\Controllers\CartController::class, 'toggle'])->name('cart.toggle');
+    Route::post('/my-cart/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
 });
 
 
 
+
+// Staff Dashboards and Protected Management
 // Admin Dashboard
 Route::get('/admin-dashboard', function () {
     if (Auth::check() && Auth::user()->role === 'admin') {
         return view('admin-dashboard');
     }
     abort(403);
-})->middleware('auth')->name('admin.dashboard');
+})->middleware('auth');
 
 // Librarian Dashboard
 Route::get('/librarian-dashboard', function () {
@@ -230,11 +218,7 @@ Route::get('/librarian-dashboard', function () {
 
 
 // Admin-only routes group
-Route::middleware(['auth'])->group(function () {
-    Route::group(['middleware' => function ($request, $next) {
-        if (Auth::user()->role !== 'admin') abort(403);
-        return $next($request);
-    }], function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/admin-dashboard', function () {
             if (Auth::check() && Auth::user()->role === 'admin') {
                 return view('admin-dashboard');
@@ -244,54 +228,54 @@ Route::middleware(['auth'])->group(function () {
 
 
         // Library content management (admin-only: Library Hours GIF + Announcements + Contact Info + Slideshow)
-        Route::get('/library-content', [LibraryContentController::class, 'manage'])->name('library.content.manage');
-        Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif'])->name('library.content.gif');
-        Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement'])->name('library.content.announcements.store');
-        Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement'])->name('library.content.announcements.update');
-        Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement'])->name('library.content.announcements.delete');
-        Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements'])->name('library.content.announcements.reorder');
-        Route::post('/library-content/slideshow', [LibraryContentController::class, 'storeSlideshowImage'])->name('library.content.slideshow.store');
-        Route::put('/library-content/slideshow/{id}', [LibraryContentController::class, 'updateSlideshowImage'])->name('library.content.slideshow.update');
-        Route::delete('/library-content/slideshow/{id}', [LibraryContentController::class, 'deleteSlideshowImage'])->name('library.content.slideshow.delete');
-        Route::post('/library-content/slideshow/reorder', [LibraryContentController::class, 'reorderSlideshowImages'])->name('library.content.slideshow.reorder');
+        Route::get('/library-content', [LibraryContentController::class, 'manage']);
+        Route::post('/library-content/gif', [LibraryContentController::class, 'updateGif']);
+        Route::post('/library-content/announcements', [LibraryContentController::class, 'storeAnnouncement']);
+        Route::put('/library-content/announcements/{id}', [LibraryContentController::class, 'updateAnnouncement']);
+        Route::delete('/library-content/announcements/{id}', [LibraryContentController::class, 'deleteAnnouncement']);
+        Route::post('/library-content/announcements/reorder', [LibraryContentController::class, 'reorderAnnouncements']);
+        Route::post('/library-content/slideshow', [LibraryContentController::class, 'storeSlideshowImage']);
+        Route::put('/library-content/slideshow/{id}', [LibraryContentController::class, 'updateSlideshowImage']);
+        Route::delete('/library-content/slideshow/{id}', [LibraryContentController::class, 'deleteSlideshowImage']);
+        Route::post('/library-content/slideshow/reorder', [LibraryContentController::class, 'reorderSlideshowImages']);
         
         // Netzone management routes
-        Route::post('/library-content/netzone', [LibraryContentController::class, 'updateNetzone'])->name('library.content.netzone.update');
-        Route::post('/library-content/netzone/image', [LibraryContentController::class, 'addNetzoneImage'])->name('library.content.netzone.image.add');
-        Route::delete('/library-content/netzone/image', [LibraryContentController::class, 'deleteNetzoneImage'])->name('library.content.netzone.image.delete');
-        Route::post('/library-content/netzone/reminder', [LibraryContentController::class, 'addNetzoneReminder'])->name('library.content.netzone.reminder.add');
-        Route::put('/library-content/netzone/reminder', [LibraryContentController::class, 'updateNetzoneReminder'])->name('library.content.netzone.reminder.update');
-        Route::delete('/library-content/netzone/reminder', [LibraryContentController::class, 'deleteNetzoneReminder'])->name('library.content.netzone.reminder.delete');
+        Route::post('/library-content/netzone', [LibraryContentController::class, 'updateNetzone']);
+        Route::post('/library-content/netzone/image', [LibraryContentController::class, 'addNetzoneImage']);
+        Route::delete('/library-content/netzone/image', [LibraryContentController::class, 'deleteNetzoneImage']);
+        Route::post('/library-content/netzone/reminder', [LibraryContentController::class, 'addNetzoneReminder']);
+        Route::put('/library-content/netzone/reminder', [LibraryContentController::class, 'updateNetzoneReminder']);
+        Route::delete('/library-content/netzone/reminder', [LibraryContentController::class, 'deleteNetzoneReminder']);
         
         // Learning Space management routes
-        Route::post('/library-content/learning-space', [LibraryContentController::class, 'updateLearningSpace'])->name('library.content.learning-space.update');
-        Route::post('/library-content/learning-space/image', [LibraryContentController::class, 'addLearningSpaceImage'])->name('library.content.learning-space.image.add');
-        Route::delete('/library-content/learning-space/image', [LibraryContentController::class, 'deleteLearningSpaceImage'])->name('library.content.learning-space.image.delete');
-        Route::put('/library-content/learning-space/content', [LibraryContentController::class, 'updateLearningSpaceContent'])->name('library.content.learning-space.content.update');
-        Route::post('/library-content/learning-space/section', [LibraryContentController::class, 'addLearningSpaceSection'])->name('library.content.learning-space.section.add');
-        Route::put('/library-content/learning-space/section', [LibraryContentController::class, 'updateLearningSpaceSection'])->name('library.content.learning-space.section.update');
-        Route::delete('/library-content/learning-space/section', [LibraryContentController::class, 'deleteLearningSpaceSection'])->name('library.content.learning-space.section.delete');
-        Route::post('/library-content/learning-space/section/item', [LibraryContentController::class, 'addLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.add');
-        Route::put('/library-content/learning-space/section/item', [LibraryContentController::class, 'updateLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.update');
-        Route::delete('/library-content/learning-space/section/item', [LibraryContentController::class, 'deleteLearningSpaceSectionItem'])->name('library.content.learning-space.section.item.delete');
+        Route::post('/library-content/learning-space', [LibraryContentController::class, 'updateLearningSpace']);
+        Route::post('/library-content/learning-space/image', [LibraryContentController::class, 'addLearningSpaceImage']);
+        Route::delete('/library-content/learning-space/image', [LibraryContentController::class, 'deleteLearningSpaceImage']);
+        Route::put('/library-content/learning-space/content', [LibraryContentController::class, 'updateLearningSpaceContent']);
+        Route::post('/library-content/learning-space/section', [LibraryContentController::class, 'addLearningSpaceSection']);
+        Route::put('/library-content/learning-space/section', [LibraryContentController::class, 'updateLearningSpaceSection']);
+        Route::delete('/library-content/learning-space/section', [LibraryContentController::class, 'deleteLearningSpaceSection']);
+        Route::post('/library-content/learning-space/section/item', [LibraryContentController::class, 'addLearningSpaceSectionItem']);
+        Route::put('/library-content/learning-space/section/item', [LibraryContentController::class, 'updateLearningSpaceSectionItem']);
+        Route::delete('/library-content/learning-space/section/item', [LibraryContentController::class, 'deleteLearningSpaceSectionItem']);
         
         // Book Borrowing management routes
-        Route::post('/library-content/book-borrowing', [LibraryContentController::class, 'updateBookBorrowing'])->name('library.content.book-borrowing.update');
-        Route::post('/library-content/book-borrowing/image', [LibraryContentController::class, 'addBookBorrowingImage'])->name('library.content.book-borrowing.image.add');
-        Route::delete('/library-content/book-borrowing/image', [LibraryContentController::class, 'deleteBookBorrowingImage'])->name('library.content.book-borrowing.image.delete');
-        Route::post('/library-content/book-borrowing/step', [LibraryContentController::class, 'addBookBorrowingStep'])->name('library.content.book-borrowing.step.add');
-        Route::put('/library-content/book-borrowing/step', [LibraryContentController::class, 'updateBookBorrowingStep'])->name('library.content.book-borrowing.step.update');
-        Route::delete('/library-content/book-borrowing/step', [LibraryContentController::class, 'deleteBookBorrowingStep'])->name('library.content.book-borrowing.step.delete');
+        Route::post('/library-content/book-borrowing', [LibraryContentController::class, 'updateBookBorrowing']);
+        Route::post('/library-content/book-borrowing/image', [LibraryContentController::class, 'addBookBorrowingImage']);
+        Route::delete('/library-content/book-borrowing/image', [LibraryContentController::class, 'deleteBookBorrowingImage']);
+        Route::post('/library-content/book-borrowing/step', [LibraryContentController::class, 'addBookBorrowingStep']);
+        Route::put('/library-content/book-borrowing/step', [LibraryContentController::class, 'updateBookBorrowingStep']);
+        Route::delete('/library-content/book-borrowing/step', [LibraryContentController::class, 'deleteBookBorrowingStep']);
         
         // Scanning Service management routes
-        Route::post('/library-content/scanning-service', [LibraryContentController::class, 'updateScanningService'])->name('library.content.scanning-service.update');
-        Route::post('/library-content/scanning-service/image', [LibraryContentController::class, 'addScanningServiceImage'])->name('library.content.scanning-service.image.add');
-        Route::delete('/library-content/scanning-service/image', [LibraryContentController::class, 'deleteScanningServiceImage'])->name('library.content.scanning-service.image.delete');
-        Route::post('/library-content/scanning-service/step', [LibraryContentController::class, 'addScanningServiceStep'])->name('library.content.scanning-service.step.add');
-        Route::put('/library-content/scanning-service/step', [LibraryContentController::class, 'updateScanningServiceStep'])->name('library.content.scanning-service.step.update');
-        Route::delete('/library-content/scanning-service/step', [LibraryContentController::class, 'deleteScanningServiceStep'])->name('library.content.scanning-service.step.delete');
+        Route::post('/library-content/scanning-service', [LibraryContentController::class, 'updateScanningService']);
+        Route::post('/library-content/scanning-service/image', [LibraryContentController::class, 'addScanningServiceImage']);
+        Route::delete('/library-content/scanning-service/image', [LibraryContentController::class, 'deleteScanningServiceImage']);
+        Route::post('/library-content/scanning-service/step', [LibraryContentController::class, 'addScanningServiceStep']);
+        Route::put('/library-content/scanning-service/step', [LibraryContentController::class, 'updateScanningServiceStep']);
+        Route::delete('/library-content/scanning-service/step', [LibraryContentController::class, 'deleteScanningServiceStep']);
         
-        Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
+        Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo']);
 
         // import routes
         Route::get('/admin/import-marc', [App\Http\Controllers\MarcController::class, 'showForm'])->name('marc.import.form');
@@ -354,36 +338,31 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/staff-activity-logs/export-xlsx', [\App\Http\Controllers\AdminStaffActivityLogController::class, 'exportXlsx'])->name('admin.staff.activity.logs.export.xlsx');
         // // Sidlak create/store for admin (shared with librarian)
         // // Keep original route names so views using `sidlak.create` / `sidlak.store` still work
-        // Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create');
-        // Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store');
+        // Route::get('/sidlak-journals/create', [App\Http\Controllers\SidlakJournalController::class, 'create']);
+        // Route::post('/sidlak-journals', [App\Http\Controllers\SidlakJournalController::class, 'store']);
         // // Additional (shared) short paths
-        // Route::get('/sidlak/create', [App\Http\Controllers\SidlakJournalController::class, 'create'])->name('sidlak.create.short');
-        // Route::post('/sidlak', [App\Http\Controllers\SidlakJournalController::class, 'store'])->name('sidlak.store.short');
+        // Route::get('/sidlak/create', [App\Http\Controllers\SidlakJournalController::class, 'create']);
+        // Route::post('/sidlak', [App\Http\Controllers\SidlakJournalController::class, 'store']);
 
 
         // Alert Services create/store/edit/update/destroy (shared with librarian)
-        Route::get('/alert-services/create', [AlertServiceController::class, 'create'])->name('alert-services.create');
-        Route::post('/alert-services', [AlertServiceController::class, 'store'])->name('alert-services.store');
-        Route::get('/alert-services/{id}/edit', [AlertServiceController::class, 'edit'])->name('alert-services.edit');
-        Route::put('/alert-services/{id}', [AlertServiceController::class, 'update'])->name('alert-services.update');
-        Route::delete('/alert-services/{id}', [AlertServiceController::class, 'destroy'])->name('alert-services.destroy');
+        Route::get('/alert-services/create', [AlertServiceController::class, 'create']);
+        Route::post('/alert-services', [AlertServiceController::class, 'store']);
+        Route::get('/alert-services/{id}/edit', [AlertServiceController::class, 'edit']);
+        Route::put('/alert-services/{id}', [AlertServiceController::class, 'update']);
+        Route::delete('/alert-services/{id}', [AlertServiceController::class, 'destroy']);
 
         // ALINET status update (shared)
-        Route::post('/alinet/{id}/status', [AlinetAppointmentManageController::class, 'updateStatus'])->name('alinet.status');
+        Route::post('/alinet/{id}/status', [AlinetAppointmentManageController::class, 'updateStatus']);
         // Post edit/update/delete for admin (shared with librarian UI expectations)
-        Route::get('/admin-posts-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
-        Route::put('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
-        Route::delete('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('post.delete');
-        Route::get('/admin-posts-management/create', [App\Http\Controllers\PostController::class, 'create'])->name('post.create');
-    });
+        Route::get('/admin-posts-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit']);
+        Route::put('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'update']);
+        Route::delete('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'destroy']);
+        Route::get('/admin-posts-management/create', [App\Http\Controllers\PostController::class, 'create']);
 });
 
 // Librarian routes: grant access to management modules (same as admin)
-Route::middleware(['auth'])->group(function () {
-    Route::group(['middleware' => function ($request, $next) {
-        if (!in_array(Auth::user()->role, ['librarian', 'admin'])) abort(403);
-        return $next($request);
-    }], function () {
+Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
         
         // LiRA management routes
         Route::get('/lira/manage', [LiRAController::class, 'index'])->name('lira.manage');
@@ -400,6 +379,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/e-libraries/{id}/edit', [ELibraryController::class, 'edit'])->name('e-libraries.edit');
         Route::put('/e-libraries/{id}', [ELibraryController::class, 'update'])->name('e-libraries.update');
         Route::delete('/e-libraries/{id}', [ELibraryController::class, 'destroy'])->name('e-libraries.destroy');
+
+        // Yearbook archive management (admin/librarian)
+        Route::get('/yearbook/manage', [YearbookController::class, 'manage'])->name('yearbook.manage');
+        Route::get('/yearbook/create', [YearbookController::class, 'create'])->name('yearbook.create');
+        Route::post('/yearbook', [YearbookController::class, 'store'])->name('yearbook.store');
+        Route::get('/yearbook/{yearbook}/edit', [YearbookController::class, 'edit'])->name('yearbook.edit');
+        Route::put('/yearbook/{yearbook}', [YearbookController::class, 'update'])->name('yearbook.update');
+        Route::delete('/yearbook/{yearbook}', [YearbookController::class, 'destroy'])->name('yearbook.destroy');
 
 
         // Information Literacy manage routes declared below (create/store/manage/edit/update/delete)
@@ -453,9 +440,9 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/admin/contact-info', [ContactController::class, 'updateContactInfo'])->name('admin.contact-info.update');
         
         // Post Management routes
-        Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
-        Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
-        Route::delete('/post-management/{id}', [App\Http\Controllers\PostController::class, 'destroy'])->name('post.delete');
+        Route::get('/post-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit']);
+        Route::put('/post-management/{id}', [App\Http\Controllers\PostController::class, 'update']);
+        Route::delete('/post-management/{id}', [App\Http\Controllers\PostController::class, 'destroy']);
         Route::get('/post-management/create', [App\Http\Controllers\PostController::class, 'create'])->name('post.create');
         Route::get('/post-management', [App\Http\Controllers\PostController::class, 'postManagement'])->name('post.management');
 
@@ -483,7 +470,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/alinet/manage', [AlinetAppointmentManageController::class, 'index'])->name('alinet.manage');
         Route::post('/alinet/{id}/status', [AlinetAppointmentManageController::class, 'updateStatus'])->name('alinet.status');
         Route::get('/alert-services/manage', [AlertServiceController::class, 'manage'])->name('alert-services.manage');
-        Route::get('/mides-management', [MidesController::class, 'index'])->name('mides.management');
+        Route::get('/mides-management', [MidesController::class, 'index']);
         // Post edit/update/delete for librarian (shared)
         Route::get('/admin-posts-management/{id}/edit', [App\Http\Controllers\PostController::class, 'edit'])->name('post.edit');
         Route::put('/admin-posts-management/{id}', [App\Http\Controllers\PostController::class, 'update'])->name('post.update');
@@ -515,12 +502,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/admin/analytics', [\App\Http\Controllers\AdminAnalyticsController::class, 'index'])->name('admin.analytics');
         Route::get('/admin/analytics/export', [\App\Http\Controllers\AdminAnalyticsController::class, 'export'])->name('admin.analytics.export');
         Route::get('/admin/analytics/export-xlsx', [\App\Http\Controllers\AdminAnalyticsController::class, 'exportXlsx'])->name('admin.analytics.export.xlsx');
-    });
 });
 
 
 
 
+
+// Public and Shared Feature Routes
 // Post routes
 Route::post('/dashboard/post', [App\Http\Controllers\PostController::class, 'store'])->name('dashboard.post.store');
 
@@ -544,7 +532,7 @@ Route::post('/alinet', [AlinetController::class, 'submitForm'])->name('alinet.su
 // Learning Spaces page
 Route::get('/learning-spaces', function () {
     return view('learning-spaces');
-})->name('learning-spaces');
+});
 
 // API-like endpoints to fetch programs and courses (used by profile complete form)
 Route::get('/api/programs', function () {
@@ -582,38 +570,32 @@ Route::get('/libraries/senior-high', [LibraryStaffController::class, 'index'])->
 Route::get('/libraries/k-10', [LibraryStaffController::class, 'index'])->defaults('department', 'ibed')->name('libraries.ibed');
 
 
-// Feedback routes (only for authenticated non-guest users)
-Route::middleware('auth')->group(function () {
-    Route::group(['middleware' => function ($request, $next) {
-        if (Auth::check() && Auth::user()->role === 'guest') abort(403);
-        return $next($request);
-    }], function () {
-        Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
-        Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
-        Route::get('/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'show'])->whereNumber('id')->name('feedback.show');
-        Route::post('/feedback/{id}/reply', [App\Http\Controllers\FeedbackController::class, 'reply'])->whereNumber('id')->name('feedback.reply');
-        // Search history
-        Route::get('/history', [App\Http\Controllers\SearchHistoryController::class, 'index'])->name('history');
-        Route::delete('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'destroy'])->name('history.delete');
-        Route::delete('/history', [App\Http\Controllers\SearchHistoryController::class, 'clearAll'])->name('history.clear');
-        Route::put('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'update'])->name('history.update');
 
-        Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
-    });
+// User Account and Utility Features
+// Feedback routes (only for authenticated non-guest users)
+Route::middleware(['auth', 'role:student,faculty,admin,librarian'])->group(function () {
+    Route::get('/feedback', [App\Http\Controllers\FeedbackController::class, 'showForm'])->name('feedback.form');
+    Route::post('/feedback', [App\Http\Controllers\FeedbackController::class, 'submit'])->name('feedback.submit');
+    Route::get('/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'show'])->whereNumber('id')->name('feedback.show');
+    Route::post('/feedback/{id}/reply', [App\Http\Controllers\FeedbackController::class, 'reply'])->whereNumber('id')->name('feedback.reply');
+    // Search history
+    Route::get('/history', [App\Http\Controllers\SearchHistoryController::class, 'index'])->name('history');
+    Route::delete('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'destroy'])->name('history.delete');
+    Route::delete('/history', [App\Http\Controllers\SearchHistoryController::class, 'clearAll'])->name('history.clear');
+    Route::put('/history/{id}', [App\Http\Controllers\SearchHistoryController::class, 'update'])->name('history.update');
+
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile');
 });
 
 
 // E-Libraries management (admin/librarian)
-Route::middleware(['auth'])->group(function () {
-    Route::group(['middleware' => function ($request, $next) {
-        if (!in_array(Auth::user()->role, ['librarian', 'admin'])) abort(403);
-        return $next($request);
-    }], function () {});
-});
+Route::middleware(['auth', 'role:librarian,admin'])->group(function () {});
 
 
 
 
+
+// Service Pages
 Route::get('/book-borrowing', [BookBorrowingController::class, 'show'])->name('book.borrowing');
 
 // Scanning Services page

@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+    function decodeHtmlEntities(input) {
+        var parser = document.createElement('textarea');
+        parser.innerHTML = input;
+        return parser.value;
+    }
+
     // Handle alert book card clicks to view PDF
     document.querySelectorAll('.alert-book-card').forEach(function(card) {
         card.addEventListener('click', function(e) {
@@ -199,7 +205,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
             var title = card.getAttribute('data-title') || '';
             var type = card.getAttribute('data-type') || '';
-            var desc = card.getAttribute('data-description') || '';
+            var descContainer = card.querySelector('.post-description-html');
+            var desc = descContainer ? descContainer.innerHTML : (card.getAttribute('data-description') || '');
+            if (desc && desc.indexOf('&lt;') !== -1) {
+                desc = decodeHtmlEntities(desc);
+            }
             var photo = card.getAttribute('data-photo') || '';
             var youtube = card.getAttribute('data-youtube') || '';
             var website = card.getAttribute('data-website') || '';
@@ -222,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             document.getElementById('postModalLabel').textContent = title;
             document.getElementById('postModalType').textContent = type;
-            document.getElementById('postModalDesc').textContent = desc;
+            document.getElementById('postModalDesc').innerHTML = desc || '<p class="mb-0">No description provided.</p>';
             document.getElementById('postModalImageWrap').innerHTML = imageHtml;
 
             var linksHtml = '';

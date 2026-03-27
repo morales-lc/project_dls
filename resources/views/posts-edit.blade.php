@@ -3,6 +3,29 @@
 @push('management-head')
 <link href="{{ asset('css/admin-dashboard.css') }}" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.snow.css">
+<style>
+    .quill-editor-wrapper .ql-toolbar {
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+
+    .quill-editor-wrapper .ql-container {
+        min-height: 220px;
+        border-radius: 0 0 0.5rem 0.5rem;
+        font-size: 1rem;
+    }
+
+    .quill-editor-wrapper .ql-editor {
+        min-height: 180px;
+        max-height: 420px;
+        overflow-y: auto;
+    }
+
+    .quill-editor-wrapper.quill-invalid .ql-toolbar,
+    .quill-editor-wrapper.quill-invalid .ql-container {
+        border-color: #dc3545;
+    }
+</style>
 @endpush
 
 @section('title', 'Edit Post / Announcement')
@@ -107,9 +130,13 @@
                     <div class="row g-4 mt-1">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Description</label>
-                            <textarea name="description" class="form-control @error('description') is-invalid @enderror" rows="5" maxlength="5000" required>{{ old('description', $post->description) }}</textarea>
+                            <div class="quill-editor-wrapper @error('description') quill-invalid @enderror">
+                                <div id="descriptionEditor" class="quill-editor"></div>
+                            </div>
+                            <input type="hidden" id="descriptionInput" name="description" value="{{ old('description', $post->description) }}">
+                            <small class="text-muted">You can format text with headings, lists, and links.</small>
                             @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
                         </div>
                     </div>
@@ -172,7 +199,51 @@
 </div>
 
 @push('management-scripts')
+<script src="https://cdn.jsdelivr.net/npm/quill@1.3.7/dist/quill.min.js"></script>
 <script>
+    function initializeDescriptionEditor() {
+        var editorEl = document.getElementById('descriptionEditor');
+        var descriptionInput = document.getElementById('descriptionInput');
+        if (!editorEl || !descriptionInput || typeof Quill === 'undefined') {
+            return;
+        }
+
+        var quill = new Quill(editorEl, {
+            theme: 'snow',
+            placeholder: 'Write post description...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['blockquote', 'code-block'],
+                    ['link'],
+                    ['clean']
+                ]
+            }
+        });
+
+        var initialHtml = descriptionInput.value || '';
+        if (initialHtml.trim() !== '') {
+            quill.clipboard.dangerouslyPasteHTML(initialHtml);
+        }
+
+        function syncDescriptionField() {
+            var html = quill.root.innerHTML.trim();
+            descriptionInput.value = html === '<p><br></p>' ? '' : html;
+        }
+
+        quill.on('text-change', syncDescriptionField);
+        syncDescriptionField();
+
+        var form = descriptionInput.closest('form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                syncDescriptionField();
+            });
+        }
+    }
+
     function toggleMediaInputs() {
         var type = document.getElementById('mediaType').value;
         var imageInput = document.getElementById('imageInput');
@@ -196,9 +267,10 @@
             if (webField) webField.value = '';
         }
     }
-    window.onload = function() {
+    document.addEventListener('DOMContentLoaded', function() {
         toggleMediaInputs();
-    };
+        initializeDescriptionEditor();
+    });
 </script>
 @endpush
 @endsection

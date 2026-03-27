@@ -9,7 +9,7 @@
         $totalNewRequests = $newLiraCount + $newAlinetCount;
     @endphp
     <div class="container-fluid px-4">
-        <button id="sidebarToggleTop" class="btn btn-outline-pink d-none d-lg-inline me-3" type="button" aria-label="Toggle sidebar">
+        <button id="sidebarToggleTop" class="btn btn-outline-pink d-inline-flex me-3" type="button" aria-label="Toggle sidebar">
             <i class="bi bi-list fs-2"></i>
         </button>
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('admin.dashboard') }}" style="color:#d81b60;">

@@ -54,10 +54,14 @@
                     }
                 }
 
-                // sidebar bottom toggles (in case used)
-                if(t && (t.id === 'sidebarToggleBottom' || t.closest('#sidebarToggleBottom'))) {
-                    // determine which sidebar this belongs to
-                    var parent = t.closest('#librarianSidebar') ? librarianSidebar : adminSidebar;
+                // sidebar header/bottom toggles
+                if(t && (
+                    t.id === 'sidebarToggleBtn' || t.closest('#sidebarToggleBtn') ||
+                    t.id === 'sidebarToggleBottom' || t.closest('#sidebarToggleBottom')
+                )) {
+                    // determine which sidebar this toggle belongs to
+                    var trigger = t.closest('#sidebarToggleBtn') || t.closest('#sidebarToggleBottom') || t;
+                    var parent = trigger.closest('#librarianSidebar') ? librarianSidebar : adminSidebar;
                     if(window.innerWidth >= 992) collapseSidebar(parent); else slideToggleSidebar(parent);
                 }
             });

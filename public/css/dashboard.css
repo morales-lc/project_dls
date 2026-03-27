@@ -317,17 +317,31 @@
 }
 
 @media (max-width: 575.98px) {
+    .news-carousel-wrap {
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }
+
+    .news-carousel[id^="news-carousel-"] .carousel-card {
+        flex: 0 0 calc(100vw - 6rem);
+        max-width: calc(100vw - 6rem);
+        min-width: calc(100vw - 6rem);
+    }
+
     .carousel-btn {
+        top: 92px;
+        transform: translateY(-50%);
         width: 2rem;
         height: 2rem;
+        z-index: 4;
     }
 
     .carousel-btn.left {
-        left: 0.1rem;
+        left: 0.35rem;
     }
 
     .carousel-btn.right {
-        right: 0.1rem;
+        right: 0.35rem;
     }
 
     .search-box .form-select,

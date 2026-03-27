@@ -96,6 +96,27 @@
     word-break: break-word;
   }
 
+  #postModalDesc p,
+  #postModalDesc h1,
+  #postModalDesc h2,
+  #postModalDesc h3,
+  #postModalDesc ul,
+  #postModalDesc ol,
+  #postModalDesc blockquote,
+  #postModalDesc pre {
+    margin-bottom: 0.8rem;
+  }
+
+  #postModalDesc ul,
+  #postModalDesc ol {
+    padding-left: 1.25rem;
+  }
+
+  #postModalDesc a {
+    color: #b8004c;
+    text-decoration: underline;
+  }
+
   #postModalLinks a {
     margin-right: 0.5rem;
     margin-bottom: 0.5rem;

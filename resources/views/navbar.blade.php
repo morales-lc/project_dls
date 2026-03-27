@@ -411,13 +411,13 @@
 
                         <!-- Libraries Dropdown -->
                         <li
-                            class="nav-item dropdown {{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'show active' : '' }}">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'active' : '' }}"
+                            class="nav-item dropdown {{ request()->routeIs('libraries.*', 'wiley.*', 'gale.*', 'proquest.*') ? 'show active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('libraries.*', 'wiley.*', 'gale.*', 'proquest.*') ? 'active' : '' }}"
                                 href="#" id="librariesDropdown" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="{{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'true' : 'false' }}">
+                                aria-expanded="{{ request()->routeIs('libraries.*', 'wiley.*', 'gale.*', 'proquest.*') ? 'true' : 'false' }}">
                                 Libraries
                             </a>
-                            <ul class="dropdown-menu {{ request()->routeIs('libraries.*', 'elibraries', 'wiley.*', 'gale.*', 'proquest.*') ? 'show' : '' }}"
+                            <ul class="dropdown-menu {{ request()->routeIs('libraries.*', 'wiley.*', 'gale.*', 'proquest.*') ? 'show' : '' }}"
                                 aria-labelledby="librariesDropdown">
                                 <li><a class="dropdown-item {{ request()->routeIs('libraries.ibed') ? 'active' : '' }}"
                                         href="{{ route('libraries.ibed') }}">K-10 Library</a></li>
@@ -472,20 +472,27 @@
                         </li>
 
                         <!-- E-Resources Dropdown -->
-                        <li class="nav-item dropdown {{ request()->routeIs('mides.*', 'sidlak.*') ? 'show active' : '' }}">
-                            <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.*', 'sidlak.*') ? 'active' : '' }}"
+                        <li class="nav-item dropdown {{ request()->routeIs('mides.*', 'sidlak.*', 'yearbook.*') ? 'show active' : '' }}">
+                            <a class="nav-link dropdown-toggle {{ request()->routeIs('mides.*', 'sidlak.*', 'yearbook.*') ? 'active' : '' }}"
                                 href="#" id="eresourcesDropdown" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="{{ request()->routeIs('mides.*', 'sidlak.*') ? 'true' : 'false' }}">
+                                aria-expanded="{{ request()->routeIs('mides.*', 'sidlak.*', 'yearbook.*') ? 'true' : 'false' }}">
                                 Electronic Resources
                             </a>
-                            <ul class="dropdown-menu {{ request()->routeIs('mides.*', 'sidlak.*') ? 'show' : '' }}"
+                            <ul class="dropdown-menu {{ request()->routeIs('mides.*', 'sidlak.*', 'yearbook.*') ? 'show' : '' }}"
                                 aria-labelledby="eresourcesDropdown">
                                 @auth
                                     <li><a class="dropdown-item {{ request()->routeIs('mides.*') ? 'active' : '' }}"
                                             href="{{ route('mides.dashboard') }}">MIDES Repository</a></li>
+                                    <li><a class="dropdown-item {{ request()->routeIs('yearbook.*') ? 'active' : '' }}"
+                                            href="{{ route('yearbook.index') }}">Yearbook Archive</a></li>
                                 @endauth
                                 <li><a class="dropdown-item {{ request()->routeIs('sidlak.*') ? 'active' : '' }}"
                                         href="{{ route('sidlak.index') }}">SIDLAK</a></li>
+
+                                        @auth
+
+
+                                        @endauth
                             </ul>
                         </li>
                     @endif

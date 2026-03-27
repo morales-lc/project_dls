@@ -565,13 +565,13 @@
                         <div class="lc-news-card card-clickable" tabindex="0" role="button"
                             data-title="{{ e($post->title) }}"
                             data-type="{{ e($post->type) }}"
-                            data-description="{{ e($post->description) }}"
                             data-photo="{{ $post->photo ? asset('storage/' . $post->photo) : '' }}"
                             data-youtube="{{ $post->youtube_link ?? '' }}"
                             data-website="{{ $post->website_link ?? '' }}"
                             data-ogthumb="{{ $post->og_image ?? '' }}"
                             data-favicon="{{ $post->website_link ? (parse_url($post->website_link, PHP_URL_SCHEME) . '://' . parse_url($post->website_link, PHP_URL_HOST) . '/favicon.ico') : '' }}"
                             data-placeholder="{{ asset('images/placeholder.jpg') }}">
+                            <div class="d-none post-description-html">{!! $post->description !!}</div>
                             @if($post->photo)
                             <img src="{{ asset('storage/' . $post->photo) }}" alt="Photo" class="lc-news-card-img">
                             @elseif($post->youtube_link)
@@ -596,7 +596,15 @@
                                     <span class="badge {{ $i % 2 == 0 ? 'bg-pink text-white' : 'bg-white text-pink' }}">{{ $post->type }}</span>
                                 </div>
                                 <div class="lc-news-card-title" style="display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; min-height:2.7em; font-size:1.13rem; line-height:1.35;">{{ $post->title }}</div>
-                                <div class="lc-news-card-desc">{{ $post->description }}</div>
+                                @php
+                                $descriptionSource = (string) ($post->description ?? '');
+                                $descriptionText = preg_replace('/<\s*li[^>]*>/i', ' • ', $descriptionSource);
+                                $descriptionText = preg_replace('/<\s*br\s*\/?>/i', ' ', $descriptionText);
+                                $descriptionText = preg_replace('/<\/\s*(p|div|h[1-6]|li|ul|ol|blockquote)\s*>/i', ' ', $descriptionText);
+                                $descriptionText = html_entity_decode(strip_tags($descriptionText), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                $descriptionPreview = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', trim($descriptionText)), 180);
+                                @endphp
+                                <div class="lc-news-card-desc">{{ $descriptionPreview }}</div>
                                 @if($post->website_link)
                                 <a href="{{ $post->website_link }}" target="_blank" class="lc-news-card-btn" onclick="event.stopPropagation();">Read More</a>
                                 @endif

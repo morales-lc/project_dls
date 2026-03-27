@@ -113,7 +113,15 @@
                                             style="min-height:220px;">
                                             <div class="d-flex flex-column justify-content-start h-100 mt-md-4">
                                                 <h5 class="mb-2">{{ $post->title }}</h5>
-                                                <p class="text-muted mb-0">{{ $post->description }}</p>
+                                                @php
+                                                $descriptionSource = (string) ($post->description ?? '');
+                                                $descriptionText = preg_replace('/<\s*li[^>]*>/i', ' • ', $descriptionSource);
+                                                $descriptionText = preg_replace('/<\s*br\s*\/?>/i', ' ', $descriptionText);
+                                                $descriptionText = preg_replace('/<\/\s*(p|div|h[1-6]|li|ul|ol|blockquote)\s*>/i', ' ', $descriptionText);
+                                                $descriptionText = html_entity_decode(strip_tags($descriptionText), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                                                $descriptionPreview = \Illuminate\Support\Str::limit(preg_replace('/\s+/', ' ', trim($descriptionText)), 260);
+                                                @endphp
+                                                <p class="text-muted mb-0">{{ $descriptionPreview }}</p>
                                             </div>
                                             <div class="d-flex gap-2 justify-content-end align-items-end mt-2">
                                                 <a href="{{ route('post.edit', [$post->id, 'return' => request()->fullUrl() . (request()->getQueryString() ? '&' : '?') . 'tab=' . strtolower($post->type)]) }}" class="btn btn-sm btn-warning">Edit</a>

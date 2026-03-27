@@ -26,6 +26,7 @@
                 'items' => [
                     [ 'route' => 'mides.management', 'icon' => 'bi-journal-text', 'label' => 'MIDES Management' ],
                     [ 'route' => 'catalogs.manage', 'icon' => 'bi-journals', 'label' => 'Catalog Management' ],
+                    [ 'route' => 'yearbook.manage', 'icon' => 'bi-collection-play', 'label' => 'Yearbook Archive' ],
                     [ 'route' => 'sidlak.manage', 'icon' => 'bi-journal-richtext', 'label' => 'SIDLAK Journals' ],
                     [ 'route' => 'e-libraries.manage', 'icon' => 'bi-globe-americas', 'label' => 'Manage Online Libraries' ],
                     [ 'route' => 'alert-services.manage', 'icon' => 'bi-bell', 'label' => 'Alert Services' ],

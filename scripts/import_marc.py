@@ -135,7 +135,10 @@ except Exception as e:
 def format_lccn(value):
     if not value:
         return None
+    value = str(value).strip()
     value = re.sub(r"[^0-9]", "", value)
+    if not value:
+        return None
     if len(value) > 4:
         return f"{value[:4]}-{value[4:]}"
     return value
@@ -143,30 +146,58 @@ def format_lccn(value):
 def format_issn(value):
     if not value:
         return None
-    digits = re.sub(r"\D", "", value)
-    if len(digits) == 8:
-        return f"{digits[:4]}-{digits[4:]}"
-    return value
+    token = re.sub(r"[^0-9Xx]", "", str(value)).upper()
+    if len(token) == 8:
+        return f"{token[:4]}-{token[4:]}"
+    return str(value).strip() or None
 
 def format_isbn(value):
     if not value:
         return None
-    digits = re.sub(r"[^0-9Xx]", "", value)
+    digits = re.sub(r"[^0-9Xx]", "", str(value))
     if len(digits) == 13:
         return f"{digits[:3]}-{digits[3]}-{digits[4:7]}-{digits[7:12]}-{digits[12]}"
     elif len(digits) == 10:
         return f"{digits[0]}-{digits[1:4]}-{digits[4:9]}-{digits[9]}"
-    return value
+    return str(value).strip() or None
+
+def normalize_text(value):
+    if value is None:
+        return None
+    text = str(value)
+    text = text.replace("\x1f", " ").replace("\x1e", " ").replace("\x1d", " ")
+    text = re.sub(r"\s+", " ", text).strip(" /:;,")
+    return text or None
+
+def dedupe(values):
+    seen = set()
+    out = []
+    for value in values:
+        if not value or value in seen:
+            continue
+        seen.add(value)
+        out.append(value)
+    return out
+
+def field_subfields(field, codes):
+    values = []
+    for code in codes:
+        try:
+            values.extend(field.get_subfields(code))
+        except Exception:
+            if code in field:
+                values.append(field[code])
+    return values
 
 def get_field(record, tag, code=None):
     values = []
     for f in record.get_fields(tag):
         if code:
-            if code in f:
-                values.append(f[code])
+            values.extend(field_subfields(f, [code]))
         else:
             values.append(f.format_field())
-    return "; ".join(values).strip() or None
+    cleaned = dedupe([normalize_text(v) for v in values if normalize_text(v)])
+    return "; ".join(cleaned) if cleaned else None
 
 def get_field_concat(record, tag, codes):
     fields = record.get_fields(tag)
@@ -174,10 +205,9 @@ def get_field_concat(record, tag, codes):
         return None
     values = []
     for f in fields:
-        for code in codes:
-            if code in f:
-                values.append(f[code])
-    return " ".join(values).strip(" /:;") if values else None
+        values.extend(field_subfields(f, codes))
+    cleaned = dedupe([normalize_text(v) for v in values if normalize_text(v)])
+    return " ".join(cleaned).strip(" /:;") if cleaned else None
 
 def get_control_field(record, tag):
     try:
@@ -187,6 +217,130 @@ def get_control_field(record, tag):
     except Exception:
         return None
     return None
+
+def collect_values(record, tag_specs, separator="; "):
+    values = []
+    for tag, codes in tag_specs:
+        for field in record.get_fields(tag):
+            if codes:
+                values.extend(field_subfields(field, codes))
+            else:
+                values.append(field.format_field())
+    cleaned = dedupe([normalize_text(v) for v in values if normalize_text(v)])
+    return separator.join(cleaned) if cleaned else None
+
+def extract_title(record):
+    return (
+        collect_values(record, [("245", ["a", "b", "n", "p", "c"])], separator=" ") or
+        collect_values(record, [("246", ["a", "b", "n", "p"])], separator=" ") or
+        collect_values(record, [("130", ["a", "d", "f", "k", "l", "m", "n", "o", "p", "r", "s", "t"])], separator=" ") or
+        collect_values(record, [("240", ["a", "d", "f", "k", "l", "m", "n", "o", "p", "r", "s", "t"])], separator=" ") or
+        collect_values(record, [("740", ["a", "n", "p"])], separator=" ") or
+        ""
+    )
+
+def extract_author(record):
+    author_specs = [
+        ("100", ["a", "b", "c", "d", "e", "q"]),
+        ("110", ["a", "b", "c", "d", "e"]),
+        ("111", ["a", "c", "d", "e", "q"]),
+        ("700", ["a", "b", "c", "d", "e", "q"]),
+        ("710", ["a", "b", "c", "d", "e"]),
+        ("711", ["a", "c", "d", "e", "q"]),
+        ("720", ["a"]),
+    ]
+    author = collect_values(record, author_specs)
+    if author:
+        return author
+    # Fallback to statement of responsibility when no author fields exist.
+    return collect_values(record, [("245", ["c"])]) or ""
+
+def extract_call_number(record):
+    return (
+        collect_values(record, [("090", ["a", "b"])], separator=" ") or
+        collect_values(record, [("050", ["a", "b"])], separator=" ") or
+        collect_values(record, [("060", ["a", "b"])], separator=" ") or
+        collect_values(record, [("082", ["a", "b"])], separator=" ") or
+        collect_values(record, [("086", ["a", "b"])], separator=" ") or
+        collect_values(record, [("099", ["a", "b"])], separator=" ") or
+        collect_values(record, [("092", ["a", "b"])], separator=" ") or
+        collect_values(record, [("852", ["h", "i", "j"])], separator=" ")
+    )
+
+def extract_sublocation(record):
+    return collect_values(record, [
+        ("852", ["b", "c", "a"]),
+        ("952", ["b", "c", "a"]),
+        ("049", ["a"]),
+    ])
+
+def extract_isbn(record):
+    values = []
+    for tag, codes in [("020", ["a", "z"]), ("776", ["z"]), ("880", ["z"])]:
+        for field in record.get_fields(tag):
+            for raw in field_subfields(field, codes):
+                for part in re.split(r"[;|]", str(raw)):
+                    formatted = format_isbn(part)
+                    if formatted:
+                        values.append(formatted)
+    cleaned = dedupe([normalize_text(v) for v in values if normalize_text(v)])
+    return "; ".join(cleaned) if cleaned else None
+
+def extract_issn(record):
+    values = []
+    for tag, codes in [("022", ["a", "l", "m", "y", "z"]), ("440", ["x"]), ("490", ["x"]), ("773", ["x"]), ("776", ["x"])]:
+        for field in record.get_fields(tag):
+            for raw in field_subfields(field, codes):
+                for part in re.split(r"[;|]", str(raw)):
+                    formatted = format_issn(part)
+                    if formatted:
+                        values.append(formatted)
+    cleaned = dedupe([normalize_text(v) for v in values if normalize_text(v)])
+    return "; ".join(cleaned) if cleaned else None
+
+def extract_lccn(record):
+    values = []
+    for field in record.get_fields("010"):
+        for raw in field_subfields(field, ["a", "b", "z"]):
+            formatted = format_lccn(raw)
+            if formatted:
+                values.append(formatted)
+    cleaned = dedupe([normalize_text(v) for v in values if normalize_text(v)])
+    return "; ".join(cleaned) if cleaned else None
+
+def extract_subjects(record):
+    subject_specs = [
+        ("600", ["a", "b", "c", "d", "q", "t", "x", "y", "z", "v"]),
+        ("610", ["a", "b", "c", "d", "t", "x", "y", "z", "v"]),
+        ("611", ["a", "c", "d", "e", "n", "q", "t", "x", "y", "z", "v"]),
+        ("630", ["a", "d", "f", "k", "l", "m", "n", "o", "p", "r", "s", "t", "x", "y", "z", "v"]),
+        ("648", ["a", "x", "y", "z", "v"]),
+        ("650", ["a", "x", "y", "z", "v"]),
+        ("651", ["a", "x", "y", "z", "v"]),
+        ("653", ["a", "x", "y", "z", "v"]),
+        ("655", ["a", "x", "y", "z", "v"]),
+    ]
+    return collect_values(record, subject_specs)
+
+def extract_additional_details(record):
+    excluded_tags = {
+        "001", "003", "005", "008", "010", "020", "022", "035", "040", "041",
+        "050", "060", "082", "086", "090", "092", "099", "100", "110", "111",
+        "245", "246", "250", "260", "264", "300", "336", "337", "338", "650",
+        "651", "852", "952", "049"
+    }
+    lines = []
+    for field in record.get_fields():
+        tag = getattr(field, "tag", "")
+        if not tag or tag in excluded_tags:
+            continue
+        if tag.isdigit() and int(tag) < 10:
+            continue
+        formatted = normalize_text(field.format_field())
+        if formatted:
+            lines.append(f"{tag}: {formatted}")
+    unique_lines = dedupe(lines)
+    return "\n".join(unique_lines) if unique_lines else None
 
 def normalize_oclc(raw):
     if not raw:
@@ -219,21 +373,21 @@ def build_unique_key(record, title, author, publisher, year, edition):
                 break
     if ocn:
         return f"oclc:{ocn}"
-    raw_isbn = get_field(record, '020', 'a')
-    if raw_isbn:
-        isbn_only = re.sub(r"[^0-9Xx]", "", raw_isbn).strip()
-        if isbn_only:
-            return f"isbn:{isbn_only.upper()}"
-    raw_issn = get_field(record, '022', 'a')
-    if raw_issn:
-        issn_only = re.sub(r"\D", "", raw_issn).strip()
-        if len(issn_only) >= 7:
-            return f"issn:{issn_only}"
-    raw_lccn = get_field(record, '010', 'a')
-    if raw_lccn:
-        lccn_norm = re.sub(r"[^0-9]", "", raw_lccn)
-        if lccn_norm:
-            return f"lccn:{lccn_norm}"
+    for f in record.get_fields('020'):
+        for raw_isbn in field_subfields(f, ['a', 'z']):
+            isbn_only = re.sub(r"[^0-9Xx]", "", str(raw_isbn)).strip().upper()
+            if len(isbn_only) in (10, 13):
+                return f"isbn:{isbn_only}"
+    for f in record.get_fields('022'):
+        for raw_issn in field_subfields(f, ['a', 'l', 'm', 'y', 'z']):
+            issn_only = re.sub(r"[^0-9Xx]", "", str(raw_issn)).strip().upper()
+            if len(issn_only) == 8:
+                return f"issn:{issn_only}"
+    for f in record.get_fields('010'):
+        for raw_lccn in field_subfields(f, ['a', 'b', 'z']):
+            lccn_norm = re.sub(r"[^0-9]", "", str(raw_lccn))
+            if lccn_norm:
+                return f"lccn:{lccn_norm}"
     # Last-resort: hash of multiple descriptive fields to reduce collisions
     basis = (title or '') + '|' + (author or '') + '|' + (publisher or '') + '|' + (year or '') + '|' + (edition or '')
     return hashlib.md5(basis.encode('utf-8')).hexdigest()
@@ -291,26 +445,12 @@ records_data = []
 with open(input_file, "rb") as fh:
     reader = MARCReader(fh, to_unicode=True, force_utf8=True)
     for record in reader:
-        title = get_field_concat(record, "245", ["a", "b", "c"]) or ""
-        author_main = get_field(record, "100", "a") or ""
-        authors_added = [f["a"] for f in record.get_fields("700") if "a" in f]
-        author = "; ".join(filter(None, [author_main] + authors_added))
-
-        raw_lccn = get_field(record, "010", "a")
-        lccn = format_lccn(raw_lccn)
-
-        # === Robust unique key to avoid unintended merges ===
-        unique_key = build_unique_key(record, title, author, None, None, None)
-        new_keys.add(unique_key)
+        title = extract_title(record)
+        author = extract_author(record)
 
         # Collect all data for insert/update
-        call_number = (
-            get_field_concat(record, "090", ["a", "b"]) or
-            get_field_concat(record, "082", ["a", "b"]) or
-            get_field_concat(record, "852", ["h", "i"]) or
-            get_field_concat(record, "050", ["a", "b"])
-        )
-        sublocation = get_field(record, "852", "b")
+        call_number = extract_call_number(record)
+        sublocation = extract_sublocation(record)
         publisher = get_field_concat(record, "260", ["a", "b"]) or get_field_concat(record, "264", ["a", "b"]) or None
         year = get_field(record, "260", "c") or get_field(record, "264", "c")
         edition = get_field(record, "250", "a")
@@ -319,19 +459,15 @@ with open(input_file, "rb") as fh:
         media_type = get_field(record, "337", "a")
         carrier_type = get_field(record, "338", "a")
         copies_count = extract_copies_count(record)
-        isbn = format_isbn(get_field(record, "020", "a"))
-        issn = format_issn(get_field(record, "022", "a"))
-        subjects = "; ".join([f["a"] for f in record.get_fields("650") if "a" in f])
+        isbn = extract_isbn(record)
+        issn = extract_issn(record)
+        lccn = extract_lccn(record)
+        subjects = extract_subjects(record)
+        additional_details = extract_additional_details(record)
 
-        # OPTIMIZATION: Parse additional fields selectively - skip if processing large batches
-        # For typical catalogs, these extra fields add richness; for massive imports, they can be disabled
-        extras = []
-        if len(records_data) < 10000:  # Only parse extra fields for smaller imports
-            for tag in ["246", "490", "500", "504", "505", "520", "700", "740"]:
-                for f in record.get_fields(tag):
-                    if "a" in f:
-                        extras.append(f["a"])
-        additional_details = "\n".join(extras) if extras else None
+        # Robust unique key to avoid unintended merges for records missing control IDs.
+        unique_key = build_unique_key(record, title, author, publisher, year, edition)
+        new_keys.add(unique_key)
 
         records_data.append((
             unique_key, title, author, call_number, sublocation, publisher, year,

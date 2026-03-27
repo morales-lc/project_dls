@@ -70,7 +70,7 @@ class PostController extends Controller
         $request->validate([
             'type' => 'required|string|in:Announcement,Event,Update,Post',
             'title' => 'required|string|max:255',
-            'description' => 'required|string|max:5000',
+            'description' => 'required|string|max:15000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'youtube_link' => 'nullable|url|max:500',
             'website_link' => 'nullable|url|max:500',
@@ -81,7 +81,7 @@ class PostController extends Controller
             'title.required' => 'Title is required.',
             'title.max' => 'Title cannot exceed 255 characters.',
             'description.required' => 'Description is required.',
-            'description.max' => 'Description cannot exceed 5000 characters.',
+            'description.max' => 'Description cannot exceed 15000 characters.',
             'photo.image' => 'The file must be an image.',
             'photo.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
             'photo.max' => 'Image size cannot exceed 5MB.',
@@ -92,6 +92,11 @@ class PostController extends Controller
             'media_type.required' => 'Please select a media type.',
             'media_type.in' => 'Invalid media type selected.',
         ]);
+
+        $sanitizedDescription = $this->sanitizePostDescription($request->description);
+        if ($sanitizedDescription === '') {
+            return back()->withInput()->withErrors(['description' => 'Description is required.']);
+        }
 
         $photoPath = null;
         $hasPhoto = $request->hasFile('photo');
@@ -150,7 +155,7 @@ class PostController extends Controller
         Post::create([
             'type' => $request->type,
             'title' => $request->title,
-            'description' => $request->description,
+            'description' => $sanitizedDescription,
             'photo' => $photoPath,
             'youtube_link' => $request->youtube_link,
             'website_link' => $request->website_link,
@@ -185,7 +190,7 @@ class PostController extends Controller
         $request->validate([
             'type' => 'required|string|in:Announcement,Event,Update,Post',
             'title' => 'required|string|max:255',
-            'description' => 'required|string|max:5000',
+            'description' => 'required|string|max:15000',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'youtube_link' => 'nullable|url|max:500',
             'website_link' => 'nullable|url|max:500',
@@ -196,7 +201,7 @@ class PostController extends Controller
             'title.required' => 'Title is required.',
             'title.max' => 'Title cannot exceed 255 characters.',
             'description.required' => 'Description is required.',
-            'description.max' => 'Description cannot exceed 5000 characters.',
+            'description.max' => 'Description cannot exceed 15000 characters.',
             'photo.image' => 'The file must be an image.',
             'photo.mimes' => 'Image must be a JPEG, PNG, JPG, or GIF file.',
             'photo.max' => 'Image size cannot exceed 5MB.',
@@ -207,6 +212,11 @@ class PostController extends Controller
             'media_type.required' => 'Please select a media type.',
             'media_type.in' => 'Invalid media type selected.',
         ]);
+
+        $sanitizedDescription = $this->sanitizePostDescription($request->description);
+        if ($sanitizedDescription === '') {
+            return back()->withInput()->withErrors(['description' => 'Description is required.']);
+        }
         
         // Validate YouTube link format if provided
         if ($request->filled('youtube_link')) {
@@ -251,7 +261,7 @@ class PostController extends Controller
         $post->update([
             'type' => $request->type,
             'title' => $request->title,
-            'description' => $request->description,
+            'description' => $sanitizedDescription,
             'photo' => $photoPath,
             'youtube_link' => $request->youtube_link,
             'website_link' => $request->website_link,
@@ -308,6 +318,134 @@ class PostController extends Controller
             'website_link' => $post->website_link,
             'og_image' => $post->og_image,
         ]);
+    }
+
+    /**
+     * Sanitize rich text HTML from Quill before persisting.
+     */
+    private function sanitizePostDescription(?string $description): string
+    {
+        $description = trim((string) $description);
+        if ($description === '') {
+            return '';
+        }
+
+        $allowedTags = ['p', 'br', 'strong', 'em', 'u', 's', 'ol', 'ul', 'li', 'a', 'blockquote', 'code', 'pre', 'h1', 'h2', 'h3'];
+        $allowedAttributes = [
+            'a' => ['href', 'target', 'rel'],
+        ];
+
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $wrappedHtml = '<div id="post-description-root">' . $description . '</div>';
+
+        $internalErrors = libxml_use_internal_errors(true);
+        $dom->loadHTML('<?xml encoding="utf-8" ?>' . $wrappedHtml, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+        libxml_clear_errors();
+        libxml_use_internal_errors($internalErrors);
+
+        $root = $dom->getElementById('post-description-root');
+        if (!$root) {
+            return '';
+        }
+
+        $this->sanitizeHtmlNode($root, $allowedTags, $allowedAttributes);
+
+        $cleanHtml = '';
+        foreach ($root->childNodes as $child) {
+            $cleanHtml .= $dom->saveHTML($child);
+        }
+
+        $cleanHtml = trim($cleanHtml);
+        if (trim(strip_tags($cleanHtml)) === '') {
+            return '';
+        }
+
+        return $cleanHtml;
+    }
+
+    private function sanitizeHtmlNode(\DOMNode $node, array $allowedTags, array $allowedAttributes): void
+    {
+        if ($node->nodeType === XML_COMMENT_NODE) {
+            $node->parentNode?->removeChild($node);
+            return;
+        }
+
+        if ($node instanceof \DOMElement) {
+            $tagName = strtolower($node->tagName);
+            if (!in_array($tagName, $allowedTags, true) && $tagName !== 'div') {
+                $parent = $node->parentNode;
+                if ($parent) {
+                    $removeEntirely = in_array($tagName, ['script', 'style', 'iframe', 'object', 'embed'], true);
+                    if (!$removeEntirely) {
+                        while ($node->firstChild) {
+                            $parent->insertBefore($node->firstChild, $node);
+                        }
+                    }
+                    $parent->removeChild($node);
+                }
+                return;
+            }
+
+            if ($tagName !== 'div' && $node->hasAttributes()) {
+                $allowedForTag = $allowedAttributes[$tagName] ?? [];
+                $attrsToRemove = [];
+
+                foreach ($node->attributes as $attribute) {
+                    $attrName = strtolower($attribute->nodeName);
+                    if (str_starts_with($attrName, 'on') || !in_array($attrName, $allowedForTag, true)) {
+                        $attrsToRemove[] = $attribute->nodeName;
+                    }
+                }
+
+                foreach ($attrsToRemove as $attrName) {
+                    $node->removeAttribute($attrName);
+                }
+            }
+
+            if ($tagName === 'a') {
+                $href = trim((string) $node->getAttribute('href'));
+                if ($href === '') {
+                    $node->removeAttribute('href');
+                } else {
+                    $scheme = parse_url($href, PHP_URL_SCHEME);
+                    if ($scheme !== null && !in_array(strtolower($scheme), ['http', 'https', 'mailto'], true)) {
+                        $node->removeAttribute('href');
+                    }
+                }
+
+                $target = strtolower((string) $node->getAttribute('target'));
+                if (!in_array($target, ['', '_blank', '_self'], true)) {
+                    $node->removeAttribute('target');
+                    $target = '';
+                }
+
+                if ($target === '_blank') {
+                    $existingRel = trim((string) $node->getAttribute('rel'));
+                    $relParts = $existingRel === '' ? [] : preg_split('/\s+/', $existingRel);
+                    $relParts = array_filter(array_unique(array_map('strtolower', $relParts ?: [])));
+
+                    if (!in_array('noopener', $relParts, true)) {
+                        $relParts[] = 'noopener';
+                    }
+                    if (!in_array('noreferrer', $relParts, true)) {
+                        $relParts[] = 'noreferrer';
+                    }
+
+                    $node->setAttribute('rel', implode(' ', $relParts));
+                } else {
+                    $node->removeAttribute('rel');
+                }
+            }
+        }
+
+        $children = [];
+        foreach ($node->childNodes as $child) {
+            $children[] = $child;
+        }
+
+        foreach ($children as $child) {
+            $this->sanitizeHtmlNode($child, $allowedTags, $allowedAttributes);
+        }
     }
     
     /**

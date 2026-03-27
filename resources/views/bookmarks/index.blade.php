@@ -698,7 +698,7 @@
               }
             }
             imageWrap.innerHTML = imageHtml;
-            descEl.textContent = data.description || '';
+            descEl.innerHTML = data.description || '<p class="mb-0">No description provided.</p>';
             linksEl.innerHTML = '';
             if (data.website_link) {
               var a = document.createElement('a');

@@ -9,7 +9,7 @@
         $totalNewRequests = $newLiraCount + $newAlinetCount;
     @endphp
     <div class="container-fluid px-4">
-        <button id="sidebarToggleBtnTop" class="btn btn-outline-pink d-none d-lg-inline me-3" type="button" aria-label="Toggle sidebar">
+        <button id="sidebarToggleBtnTop" class="btn btn-outline-pink d-inline-flex me-3" type="button" aria-label="Toggle sidebar">
             <i class="bi bi-list fs-2"></i>
         </button>
         <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{{ route('librarian.dashboard') }}" style="color:#d81b60;">
@@ -50,6 +50,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end mt-2" aria-labelledby="librarianProfileDropdown">
                     <li><a class="dropdown-item" href="{{ route('librarian.profile') }}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.analytics') }}"><i class="bi bi-bar-chart me-2"></i>Analytics</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">

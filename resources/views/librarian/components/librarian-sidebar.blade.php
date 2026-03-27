@@ -12,73 +12,138 @@
             $newAlinetCount = \App\Models\AlinetAppointment::where(function ($q) {
                 $q->where('status', 'pending')->orWhereNull('status');
             })->count();
+
+            $sidebarSections = [
+                'general' => [
+                    'label' => null,
+                    'items' => [
+                        [
+                            'route' => 'librarian.dashboard',
+                            'icon' => 'bi-house-door',
+                            'label' => 'Dashboard',
+                        ],
+                    ],
+                ],
+                'resource' => [
+                    'label' => 'Resource Management',
+                    'items' => [
+                        [
+                            'route' => 'mides.management',
+                            'icon' => 'bi-journal-text',
+                            'label' => 'MIDES Management',
+                            'active' => ['mides.management', 'mides.upload'],
+                        ],
+                        [
+                            'route' => 'catalogs.manage',
+                            'icon' => 'bi-journals',
+                            'label' => 'Catalog Management',
+                            'active' => ['catalogs.manage', 'catalogs.create', 'catalogs.edit'],
+                        ],
+                        [
+                            'route' => 'yearbook.manage',
+                            'icon' => 'bi-collection-play',
+                            'label' => 'Yearbook Archive',
+                            'active' => ['yearbook.manage', 'yearbook.create', 'yearbook.edit'],
+                        ],
+                        [
+                            'route' => 'sidlak.manage',
+                            'icon' => 'bi-journal-richtext',
+                            'label' => 'SIDLAK Management',
+                        ],
+                        [
+                            'route' => 'e-libraries.manage',
+                            'icon' => 'bi-globe-americas',
+                            'label' => 'Manage Online Libraries',
+                        ],
+                        [
+                            'route' => 'alert-services.manage',
+                            'icon' => 'bi-bell',
+                            'label' => 'Alert Services',
+                        ],
+                    ],
+                ],
+                'content' => [
+                    'label' => 'Content Management',
+                    'items' => [
+                        [
+                            'route' => 'library.content.manage',
+                            'icon' => 'bi-layout-text-window-reverse',
+                            'label' => 'Library Content Management',
+                            'active' => ['library.content.*'],
+                        ],
+                        [
+                            'route' => 'post.management',
+                            'icon' => 'bi-file-earmark-post',
+                            'label' => 'Posts Management',
+                            'active' => ['post.management', 'post.create', 'post.edit'],
+                        ],
+                        [
+                            'route' => 'information_literacy.manage',
+                            'icon' => 'bi-book',
+                            'label' => 'Information Literacy',
+                            'active' => ['information_literacy.*'],
+                        ],
+                    ],
+                ],
+                'services' => [
+                    'label' => 'Services & Requests',
+                    'items' => [
+                        [
+                            'route' => 'alinet.manage',
+                            'icon' => 'bi-calendar-check',
+                            'label' => 'ALINET Appointments',
+                            'badge' => 'alinet',
+                        ],
+                        [
+                            'route' => 'lira.manage',
+                            'icon' => 'bi-journal',
+                            'label' => 'LiRA Requests',
+                            'badge' => 'lira',
+                        ],
+                    ],
+                ],
+                'system' => [
+                    'label' => 'System Management',
+                    'items' => [
+                        [
+                            'route' => 'admin.analytics',
+                            'icon' => 'bi-bar-chart',
+                            'label' => 'Analytics',
+                        ],
+                    ],
+                ],
+            ];
         @endphp
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('librarian.dashboard') ? 'active' : '' }}" href="{{ route('librarian.dashboard') }}">
-                <i class="bi bi-house-door" style="color:#d81b60;font-size:1.3rem;"></i> <span>Dashboard</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('information_literacy.*') ? 'active' : '' }}" href="{{ route('information_literacy.manage') }}">
-                <i class="bi bi-book" style="color:#d81b60;font-size:1.3rem;"></i> <span>Information Literacy</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('post.management') ? 'active' : '' }}" href="{{ route('post.management') }}">
-                <i class="bi bi-file-earmark-post" style="color:#d81b60;font-size:1.3rem;"></i> <span>Posts Management</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('mides.management') ? 'active' : '' }}" href="{{ route('mides.management') }}">
-                <i class="bi bi-journal-text" style="color:#d81b60;font-size:1.3rem;"></i> <span>MIDES Management</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('catalogs.manage') || request()->routeIs('catalogs.create') || request()->routeIs('catalogs.edit') ? 'active' : '' }}" href="{{ route('catalogs.manage') }}">
-                <i class="bi bi-journals" style="color:#d81b60;font-size:1.3rem;"></i> <span>Catalog Management</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('sidlak.manage') ? 'active' : '' }}" href="{{ route('sidlak.manage') }}">
-                <i class="bi bi-journal-richtext" style="color:#d81b60;font-size:1.3rem;"></i> <span>SIDLAK Management</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('alinet.manage') ? 'active' : '' }}" href="{{ route('alinet.manage') }}">
-                <i class="bi bi-calendar-check" style="color:#d81b60;font-size:1.3rem;"></i>
-                <span>ALINET Appointments</span>
-                @if($newAlinetCount > 0)
-                    <span class="badge bg-danger rounded-pill ms-auto">{{ $newAlinetCount > 99 ? '99+' : $newAlinetCount }}</span>
-                @endif
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('alert-services.manage') ? 'active' : '' }}" href="{{ route('alert-services.manage') }}">
-                <i class="bi bi-bell" style="color:#d81b60;font-size:1.3rem;"></i> <span>Alert Services</span>
-            </a>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('admin.analytics') ? 'active' : '' }}" href="{{ route('admin.analytics') }}">
-                <i class="bi bi-bar-chart" style="color:#d81b60;font-size:1.3rem;"></i> <span>Analytics</span>
-            </a>
-        </li>
-        </li>
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('e-libraries.manage') ? 'active' : '' }}" href="{{ route('e-libraries.manage') }}">
-                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i> <span>Manage Online Libraries</span>
-            </a>
-        </li>
 
-        <li class="nav-item mb-1">
-            <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ request()->routeIs('lira.manage') ? 'active' : '' }}" href="{{ route('lira.manage') }}">
-                <i class="bi bi-globe-americas" style="color:#d81b60;font-size:1.3rem;"></i>
-                <span>LiRA Requests</span>
-                @if($newLiraCount > 0)
-                    <span class="badge bg-danger rounded-pill ms-auto">{{ $newLiraCount > 99 ? '99+' : $newLiraCount }}</span>
-                @endif
-            </a>
-        </li>
+        @foreach($sidebarSections as $section)
+            @if($section['label'])
+                <li class="nav-item mt-3 mb-2">
+                    <div class="px-3 py-1">
+                        <small class="text-uppercase fw-bold text-muted" style="font-size: 0.75rem; letter-spacing: 0.5px;">{{ $section['label'] }}</small>
+                    </div>
+                </li>
+            @endif
 
+            @foreach($section['items'] as $item)
+                @php
+                    $activePatterns = $item['active'] ?? [$item['route']];
+                    $isActive = collect($activePatterns)->contains(fn ($pattern) => request()->routeIs($pattern));
+                @endphp
+                <li class="nav-item mb-1">
+                    <a class="nav-link d-flex align-items-center gap-2 rounded-3 px-3 py-2 {{ $isActive ? 'active' : '' }}" href="{{ route($item['route']) }}">
+                        <i class="bi {{ $item['icon'] }}" style="color:#d81b60;font-size:1.3rem;"></i>
+                        <span>{{ $item['label'] }}</span>
 
+                        @if(($item['badge'] ?? null) === 'alinet' && $newAlinetCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $newAlinetCount > 99 ? '99+' : $newAlinetCount }}</span>
+                        @endif
+
+                        @if(($item['badge'] ?? null) === 'lira' && $newLiraCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $newLiraCount > 99 ? '99+' : $newLiraCount }}</span>
+                        @endif
+                    </a>
+                </li>
+            @endforeach
+        @endforeach
     </ul>
 </nav>
