@@ -18,6 +18,10 @@ class AdminLoginAnalyticsController extends Controller
         $month = (int) $request->input('month', date('n'));
         $startDateInput = $request->input('start_date');
         $endDateInput = $request->input('end_date');
+        $activeLogTab = $request->input('log_tab', 'student');
+        if (!in_array($activeLogTab, ['student', 'faculty'], true)) {
+            $activeLogTab = 'student';
+        }
         $perPage = (int) $request->input('per_page', 20);
         if ($perPage < 10) {
             $perPage = 10;
@@ -67,37 +71,64 @@ class AdminLoginAnalyticsController extends Controller
             ->paginate($perPage, ['*'], 'faculty_page')
             ->withQueryString();
 
-        $recentLogs = UserLoginLog::query()
+        $recentStudentLogs = UserLoginLog::query()
             ->with(['user', 'studentFaculty.program'])
-            ->whereIn('role', ['student', 'faculty'])
-            ->whereBetween('logged_in_at', [$start, $end])
-            ->orderByDesc('logged_in_at')
-            ->paginate($perPage, ['*'], 'logs_page')
+            ->leftJoin('student_faculty as sf', 'user_login_logs.student_faculty_id', '=', 'sf.id')
+            ->whereBetween('user_login_logs.logged_in_at', [$start, $end])
+            ->whereRaw("COALESCE(NULLIF(sf.role, ''), user_login_logs.role) = 'student'")
+            ->select('user_login_logs.*')
+            ->orderByDesc('user_login_logs.logged_in_at')
+            ->paginate($perPage, ['*'], 'student_logs_page')
             ->withQueryString();
 
-        $programChartRows = UserLoginLog::query()
+        $recentFacultyLogs = UserLoginLog::query()
+            ->with(['user', 'studentFaculty.program'])
+            ->leftJoin('student_faculty as sf', 'user_login_logs.student_faculty_id', '=', 'sf.id')
+            ->whereBetween('user_login_logs.logged_in_at', [$start, $end])
+            ->whereRaw("COALESCE(NULLIF(sf.role, ''), user_login_logs.role) = 'faculty'")
+            ->select('user_login_logs.*')
+            ->orderByDesc('user_login_logs.logged_in_at')
+            ->paginate($perPage, ['*'], 'faculty_logs_page')
+            ->withQueryString();
+
+        $studentProgramChartRows = UserLoginLog::query()
             ->selectRaw('COALESCE(programs.name, "Unknown") as program_name')
             ->selectRaw('COUNT(*) as total_logins')
             ->leftJoin('programs', 'user_login_logs.program_id', '=', 'programs.id')
-            ->whereIn('user_login_logs.role', ['student', 'faculty'])
+            ->leftJoin('student_faculty as sf', 'user_login_logs.student_faculty_id', '=', 'sf.id')
             ->whereBetween('user_login_logs.logged_in_at', [$start, $end])
+            ->whereRaw("COALESCE(NULLIF(sf.role, ''), user_login_logs.role) = 'student'")
             ->groupBy('program_name')
             ->orderBy('program_name')
             ->get();
 
-        $courseChartRows = UserLoginLog::query()
+        $facultyProgramChartRows = UserLoginLog::query()
+            ->selectRaw('COALESCE(programs.name, "Unknown") as program_name')
+            ->selectRaw('COUNT(*) as total_logins')
+            ->leftJoin('programs', 'user_login_logs.program_id', '=', 'programs.id')
+            ->leftJoin('student_faculty as sf', 'user_login_logs.student_faculty_id', '=', 'sf.id')
+            ->whereBetween('user_login_logs.logged_in_at', [$start, $end])
+            ->whereRaw("COALESCE(NULLIF(sf.role, ''), user_login_logs.role) = 'faculty'")
+            ->groupBy('program_name')
+            ->orderBy('program_name')
+            ->get();
+
+        $studentCourseChartRows = UserLoginLog::query()
             ->selectRaw("COALESCE(NULLIF(TRIM(user_login_logs.course), ''), 'Unassigned') as course_name")
             ->selectRaw('COUNT(*) as total_logins')
-            ->where('user_login_logs.role', 'student')
+            ->leftJoin('student_faculty as sf', 'user_login_logs.student_faculty_id', '=', 'sf.id')
             ->whereBetween('user_login_logs.logged_in_at', [$start, $end])
+            ->whereRaw("COALESCE(NULLIF(sf.role, ''), user_login_logs.role) = 'student'")
             ->groupBy('course_name')
             ->orderBy('course_name')
             ->get();
 
-        $programChartLabels = $programChartRows->pluck('program_name')->values();
-        $programChartValues = $programChartRows->pluck('total_logins')->map(fn ($v) => (int) $v)->values();
-        $courseChartLabels = $courseChartRows->pluck('course_name')->values();
-        $courseChartValues = $courseChartRows->pluck('total_logins')->map(fn ($v) => (int) $v)->values();
+        $studentProgramChartLabels = $studentProgramChartRows->pluck('program_name')->values();
+        $studentProgramChartValues = $studentProgramChartRows->pluck('total_logins')->map(fn ($v) => (int) $v)->values();
+        $facultyProgramChartLabels = $facultyProgramChartRows->pluck('program_name')->values();
+        $facultyProgramChartValues = $facultyProgramChartRows->pluck('total_logins')->map(fn ($v) => (int) $v)->values();
+        $studentCourseChartLabels = $studentCourseChartRows->pluck('course_name')->values();
+        $studentCourseChartValues = $studentCourseChartRows->pluck('total_logins')->map(fn ($v) => (int) $v)->values();
 
         return view('admin.login-analytics', compact(
             'mode',
@@ -106,15 +137,19 @@ class AdminLoginAnalyticsController extends Controller
             'perPage',
             'startDateInput',
             'endDateInput',
+            'activeLogTab',
             'timeLabel',
             'summary',
             'studentByProgramCourse',
             'facultyByProgram',
-            'recentLogs',
-            'programChartLabels',
-            'programChartValues',
-            'courseChartLabels',
-            'courseChartValues'
+            'recentStudentLogs',
+            'recentFacultyLogs',
+            'studentProgramChartLabels',
+            'studentProgramChartValues',
+            'facultyProgramChartLabels',
+            'facultyProgramChartValues',
+            'studentCourseChartLabels',
+            'studentCourseChartValues'
         ));
     }
 

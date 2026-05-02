@@ -25,6 +25,10 @@ class AdminAnalyticsController extends Controller
         $month = (int) $request->input('month', date('n'));
         $startDateInput = $request->input('start_date');
         $endDateInput = $request->input('end_date');
+        $topMidesLimit = (int) $request->input('top_mides_limit', 10);
+        if (!in_array($topMidesLimit, [10, 50, 100], true)) {
+            $topMidesLimit = 10;
+        }
 
         // Normalize timeframe to a concrete date range and a human label
         $start = null; $end = null; $timeLabel = '';
@@ -80,6 +84,13 @@ class AdminAnalyticsController extends Controller
             ->groupBy('program_id');
 
         $programs = Program::orderBy('name')->get();
+        if ($programCounts->has('Unknown') && !$programs->contains('name', 'Unknown')) {
+            $programs = $programs->push((object) [
+                'id' => null,
+                'name' => 'Unknown',
+                'courses' => collect(),
+            ]);
+        }
 
         // Monthly and semester aggregates only for YEAR mode (for breakdown widgets and drilldown)
         $monthlyCounts = null; $semester1 = null; $semester2 = null; $monthlyByProgram = [];
@@ -131,10 +142,178 @@ class AdminAnalyticsController extends Controller
             }
         }
 
+        $mostSearchedTermsByType = [];
+        foreach (['mides', 'sidlak'] as $searchType) {
+            $rows = ResourceView::query()
+                ->selectRaw('LOWER(TRIM(search_term)) as term, COUNT(*) as total')
+                ->where('document_type', $searchType)
+                ->where('action', 'search')
+                ->whereNotNull('search_term')
+                ->where('search_term', '!=', '')
+                ->whereBetween('created_at', [$start, $end])
+                ->groupBy(DB::raw('LOWER(TRIM(search_term))'))
+                ->orderByDesc('total')
+                ->limit(30)
+                ->get();
+
+            $mostSearchedTermsByType[$searchType] = $rows->map(function ($row) {
+                return [
+                    'term' => (string) ($row->term ?? ''),
+                    'total' => (int) ($row->total ?? 0),
+                ];
+            })->values()->toArray();
+        }
+
+        $mostSearchedRow = collect($mostSearchedTermsByType[$documentType] ?? [])->first();
+        $mostSearchedTerm = $mostSearchedRow['term'] ?? null;
+        $mostSearchedCount = (int) ($mostSearchedRow['total'] ?? 0);
+
+        $mostVisitedMidesCategory = null;
+        $mostVisitedMidesCategoryCount = 0;
+        $mostVisitedMidesCategories = [];
+        $mostVisitedSidlakJournal = null;
+        $mostVisitedSidlakJournalCount = 0;
+        $mostVisitedSidlakJournals = [];
+
+        $topMidesDocuments = collect();
+        $topSidlakArticles = collect();
+        $topMidesTop10Labels = [];
+        $topMidesTop10Values = [];
+        $topSidlakTop10Labels = [];
+        $topSidlakTop10Values = [];
+
+        if ($documentType === 'mides') {
+            $categoryRows = ResourceView::query()
+                ->join('mides_documents', 'resource_views.document_id', '=', 'mides_documents.id')
+                ->leftJoin('mides_categories', 'mides_documents.mides_category_id', '=', 'mides_categories.id')
+                ->where('resource_views.document_type', 'mides')
+                ->where('resource_views.action', 'view')
+                ->whereBetween('resource_views.created_at', [$start, $end])
+                ->selectRaw('mides_categories.name as mides_category_name, mides_documents.category as legacy_category, mides_documents.program as legacy_program, COUNT(*) as total')
+                ->groupBy('mides_categories.name', 'mides_documents.category', 'mides_documents.program')
+                ->get();
+
+            $categoryCounts = $categoryRows
+                ->map(function ($row) {
+                    $name = trim((string) ($row->mides_category_name ?? ''));
+                    if ($name === '') {
+                        $name = trim((string) ($row->legacy_category ?? ''));
+                    }
+                    if ($name === '') {
+                        $name = trim((string) ($row->legacy_program ?? ''));
+                    }
+
+                    return [
+                        'category_name' => $name !== '' ? $name : 'Uncategorized',
+                        'total' => (int) ($row->total ?? 0),
+                    ];
+                })
+                ->groupBy('category_name')
+                ->map(function ($rows) {
+                    return (int) collect($rows)->sum('total');
+                })
+                ->sortDesc();
+
+            $mostVisitedMidesCategory = $categoryCounts->keys()->first();
+            $mostVisitedMidesCategoryCount = (int) ($categoryCounts->first() ?? 0);
+            $mostVisitedMidesCategories = $categoryCounts
+                ->map(function ($total, $name) {
+                    return [
+                        'category_name' => (string) $name,
+                        'total' => (int) $total,
+                    ];
+                })
+                ->values()
+                ->toArray();
+
+            $topMidesDocuments = ResourceView::query()
+                ->join('mides_documents', 'resource_views.document_id', '=', 'mides_documents.id')
+                ->where('resource_views.document_type', 'mides')
+                ->where('resource_views.action', 'view')
+                ->whereBetween('resource_views.created_at', [$start, $end])
+                ->selectRaw('resource_views.document_id as document_id, mides_documents.title as title, mides_documents.author as author, mides_documents.type as type, COUNT(*) as total_views')
+                ->groupBy('resource_views.document_id', 'mides_documents.title', 'mides_documents.author', 'mides_documents.type')
+                ->orderByDesc('total_views')
+                ->limit($topMidesLimit)
+                ->get();
+
+            $topMidesTop10 = ResourceView::query()
+                ->join('mides_documents', 'resource_views.document_id', '=', 'mides_documents.id')
+                ->where('resource_views.document_type', 'mides')
+                ->where('resource_views.action', 'view')
+                ->whereBetween('resource_views.created_at', [$start, $end])
+                ->selectRaw('resource_views.document_id as document_id, mides_documents.title as title, COUNT(*) as total_views')
+                ->groupBy('resource_views.document_id', 'mides_documents.title')
+                ->orderByDesc('total_views')
+                ->limit(10)
+                ->get();
+
+            $topMidesTop10Labels = $topMidesTop10->pluck('title')->toArray();
+            $topMidesTop10Values = $topMidesTop10->pluck('total_views')->map(function ($v) {
+                return (int) $v;
+            })->toArray();
+        } else {
+            $journalRows = ResourceView::query()
+                ->join('sidlak_articles', 'resource_views.document_id', '=', 'sidlak_articles.id')
+                ->join('sidlak_journals', 'sidlak_articles.sidlak_journal_id', '=', 'sidlak_journals.id')
+                ->where('resource_views.document_type', 'sidlak')
+                ->where('resource_views.action', 'download')
+                ->whereBetween('resource_views.created_at', [$start, $end])
+                ->selectRaw('sidlak_journals.id as journal_id, sidlak_journals.title as journal_title, sidlak_journals.month as journal_month, sidlak_journals.year as journal_year, COUNT(*) as total')
+                ->groupBy('sidlak_journals.id', 'sidlak_journals.title', 'sidlak_journals.month', 'sidlak_journals.year')
+                ->orderByDesc('total')
+                ->get();
+
+            $mostVisitedSidlakJournals = $journalRows->map(function ($row) {
+                return [
+                    'journal_id' => (int) $row->journal_id,
+                    'journal_title' => (string) $row->journal_title,
+                    'journal_period' => trim((string) (($row->journal_month ?? '') . ' ' . ($row->journal_year ?? ''))),
+                    'total' => (int) ($row->total ?? 0),
+                ];
+            })->toArray();
+
+            $mostVisitedSidlakJournal = $mostVisitedSidlakJournals[0]['journal_title'] ?? null;
+            $mostVisitedSidlakJournalCount = (int) ($mostVisitedSidlakJournals[0]['total'] ?? 0);
+
+            $topSidlakArticles = ResourceView::query()
+                ->join('sidlak_articles', 'resource_views.document_id', '=', 'sidlak_articles.id')
+                ->join('sidlak_journals', 'sidlak_articles.sidlak_journal_id', '=', 'sidlak_journals.id')
+                ->where('resource_views.document_type', 'sidlak')
+                ->where('resource_views.action', 'download')
+                ->whereBetween('resource_views.created_at', [$start, $end])
+                ->selectRaw('sidlak_articles.id as article_id, sidlak_articles.title as article_title, sidlak_articles.authors as article_authors, sidlak_journals.id as journal_id, sidlak_journals.title as journal_title, COUNT(*) as total_downloads')
+                ->groupBy('sidlak_articles.id', 'sidlak_articles.title', 'sidlak_articles.authors', 'sidlak_journals.id', 'sidlak_journals.title')
+                ->orderByDesc('total_downloads')
+                ->limit($topMidesLimit)
+                ->get();
+
+            $topSidlakTop10 = ResourceView::query()
+                ->join('sidlak_articles', 'resource_views.document_id', '=', 'sidlak_articles.id')
+                ->where('resource_views.document_type', 'sidlak')
+                ->where('resource_views.action', 'download')
+                ->whereBetween('resource_views.created_at', [$start, $end])
+                ->selectRaw('sidlak_articles.id as article_id, sidlak_articles.title as article_title, COUNT(*) as total_downloads')
+                ->groupBy('sidlak_articles.id', 'sidlak_articles.title')
+                ->orderByDesc('total_downloads')
+                ->limit(10)
+                ->get();
+
+            $topSidlakTop10Labels = $topSidlakTop10->pluck('article_title')->toArray();
+            $topSidlakTop10Values = $topSidlakTop10->pluck('total_downloads')->map(function ($v) {
+                return (int) $v;
+            })->toArray();
+        }
+
         return view('admin.analytics', compact(
             'programCounts', 'courseCounts', 'programs', 'documentType', 'action',
             'mode', 'year', 'month', 'startDateInput', 'endDateInput', 'timeLabel',
-            'monthlyCounts', 'semester1', 'semester2', 'monthlyByProgram'
+            'monthlyCounts', 'semester1', 'semester2', 'monthlyByProgram',
+            'mostSearchedTerm', 'mostSearchedCount', 'mostVisitedMidesCategory', 'mostVisitedMidesCategoryCount',
+            'mostSearchedTermsByType', 'mostVisitedMidesCategories',
+            'topMidesDocuments', 'topMidesLimit', 'topMidesTop10Labels', 'topMidesTop10Values',
+            'mostVisitedSidlakJournal', 'mostVisitedSidlakJournalCount', 'mostVisitedSidlakJournals',
+            'topSidlakArticles', 'topSidlakTop10Labels', 'topSidlakTop10Values'
         ));
     }
 

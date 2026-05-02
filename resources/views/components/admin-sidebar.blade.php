@@ -12,6 +12,20 @@
         $newAlinetCount = \App\Models\AlinetAppointment::where(function ($q) {
             $q->where('status', 'pending')->orWhereNull('status');
         })->count();
+        $newFeedbackCount = \App\Models\Feedback::query()
+            ->threads()
+            ->where('status', 'open')
+            ->count();
+        $newFeedbackCommentCount = \App\Models\Feedback::query()
+            ->replies()
+            ->whereHas('parent', function ($q) {
+                $q->threads()->where('status', 'open');
+            })
+            ->where(function ($q) {
+                $q->whereNull('role')->orWhereNotIn('role', ['admin', 'librarian']);
+            })
+            ->count();
+        $newFeedbackTotalCount = $newFeedbackCount + $newFeedbackCommentCount;
 
         $sidebarSections = [
             'general' => [
@@ -79,6 +93,9 @@
                     @endif
                     @if($item['route'] === 'lira.manage' && $newLiraCount > 0)
                         <span class="badge bg-danger rounded-pill ms-auto">{{ $newLiraCount > 99 ? '99+' : $newLiraCount }}</span>
+                    @endif
+                    @if($item['route'] === 'feedback.admin' && $newFeedbackTotalCount > 0)
+                        <span class="badge bg-danger rounded-pill ms-auto">{{ $newFeedbackTotalCount > 99 ? '99+' : $newFeedbackTotalCount }}</span>
                     @endif
                 </a>
             </li>

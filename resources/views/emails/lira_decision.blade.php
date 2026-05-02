@@ -37,6 +37,16 @@
                     <div style="background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:12px 14px;border-radius:8px;margin:10px 0 16px 0;">
                         <strong>Status:</strong> Accepted — We will process your request shortly. Expect a response within <strong>3–5 working days</strong>.
                     </div>
+                    @elseif($decision === 'canceled')
+                    <div style="background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;padding:12px 14px;border-radius:8px;margin:10px 0 12px 0;">
+                        <strong>Status:</strong> Canceled
+                    </div>
+                    @if(!empty($reason))
+                    <div style="background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;padding:12px 14px;border-radius:8px;margin:8px 0 14px 0;">
+                        <strong>Reason provided:</strong><br>{{ $reason }}
+                    </div>
+                    @endif
+                    <p style="color:#6b7280;">This request was previously accepted but has been canceled by the library. If you have questions, please contact LC Learning Commons.</p>
                     @else
                     <div style="background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;padding:12px 14px;border-radius:8px;margin:10px 0 12px 0;">
                         <strong>Status:</strong> Rejected
@@ -69,10 +79,6 @@
                         @endif
                         @if(!empty($lira->for_list))
                         <tr><td style="color:#6b7280;">For list</td><td>{{ $lira->for_list }}</td></tr>
-                        @endif
-                        @if(!empty($lira->for_videos))
-                        <tr><td style="color:#6b7280;">Videos requested</td>
-                            <td>{{ is_array($lira->for_videos) ? implode(', ', $lira->for_videos) : $lira->for_videos }}</td></tr>
                         @endif
                     </table>
 

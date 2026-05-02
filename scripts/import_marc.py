@@ -338,7 +338,7 @@ def extract_additional_details(record):
             continue
         formatted = normalize_text(field.format_field())
         if formatted:
-            lines.append(f"{tag}: {formatted}")
+            lines.append(formatted)
     unique_lines = dedupe(lines)
     return "\n".join(unique_lines) if unique_lines else None
 

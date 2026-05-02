@@ -284,6 +284,11 @@
                 <label for="response_message" class="form-label">Message to requester</label>
                 <textarea id="response_message" name="response_message" class="form-control" rows="6" placeholder="Write your response..."></textarea>
               </div>
+              <div id="returnDueDateWrap" class="mb-2 d-none">
+                <label for="return_due_date" class="form-label">Return date to library</label>
+                <input id="return_due_date" name="return_due_date" type="date" class="form-control">
+                <div class="form-text">Set the date when the borrower should return the item to the library.</div>
+              </div>
               <div id="manualCopyCheckWrap" class="d-none">
                 <div class="lira-manual-check-note mb-2">
                   This catalog has no copies count in the system. Please verify availability manually in the library before sending a response.
@@ -304,6 +309,33 @@
       </div>
     </div>
 
+    <div class="modal fade" id="liraCancelModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Cancel Accepted Request</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div id="liraCancelInfo" class="mb-3 text-muted small"></div>
+            <form id="cancelForm" method="POST" action="">
+              @csrf
+              <input type="hidden" name="return_url" value="{{ request()->fullUrl() }}">
+              <div class="mb-2">
+                <label for="cancel_reason" class="form-label">Reason for cancellation</label>
+                <textarea id="cancel_reason" name="cancel_reason" class="form-control" rows="5" placeholder="Explain why this accepted request is being canceled..."></textarea>
+              </div>
+            </form>
+            <div id="cancelNotice" class="text-muted small mt-1"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" form="cancelForm" class="btn btn-outline-danger">Send Cancellation</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   <!-- pagination is rendered inside liraListContainer -->
 </div>
 
@@ -316,7 +348,9 @@ document.addEventListener('DOMContentLoaded', function(){
   const details = document.getElementById('liraDetailsHtml');
   const decisionForm = document.getElementById('decisionForm');
   const respondForm = document.getElementById('respondForm');
+  const cancelForm = document.getElementById('cancelForm');
   const respondModal = new bootstrap.Modal(document.getElementById('liraRespondModal'));
+  const cancelModal = new bootstrap.Modal(document.getElementById('liraCancelModal'));
   const listContainer = document.getElementById('liraListContainer');
 
   // Helper to show success messages
@@ -350,9 +384,9 @@ document.addEventListener('DOMContentLoaded', function(){
   function bindRowHandlers(scope) {
     scope.querySelectorAll('.lira-row').forEach(r => r.addEventListener('click', onRowClick));
     scope.querySelectorAll('.lira-respond-btn').forEach(b => b.addEventListener('click', onRespondClick));
+    scope.querySelectorAll('.lira-cancel-btn').forEach(b => b.addEventListener('click', onCancelClick));
     scope.querySelectorAll('.lira-return-form').forEach(form => form.addEventListener('submit', onReturnSubmit));
     scope.querySelectorAll('.pagination a').forEach(a => a.addEventListener('click', onPaginateClick));
-    scope.querySelectorAll('.lira-delete-form').forEach(form => form.addEventListener('submit', onDeleteSubmit));
   }
 
   async function loadList(url) {
@@ -404,11 +438,35 @@ document.addEventListener('DOMContentLoaded', function(){
         .replace(/<(?!\/?(strong|b|em|ol|ul|li|br|p)\b)[^>]*>/gi, '')
         .replace(/on\w+\s*=\s*(['"]).*?\1/gi, '');
     };
+    const formatDateOnly = (value) => {
+      if (!value) return '-';
+      const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!match) return String(value);
+      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      return Number.isNaN(date.getTime())
+        ? String(value)
+        : date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+    const formatDateTime = (value) => {
+      if (!value) return '-';
+      const date = new Date(value);
+      return Number.isNaN(date.getTime())
+        ? String(value)
+        : date.toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit'
+          });
+    };
     const fullName = [item.first_name, item.middle_name, item.last_name].filter(Boolean).join(' ');
     const statusText = item.loan_status === 'borrowed'
       ? 'Borrowed'
       : item.loan_status === 'returned'
         ? 'Returned'
+        : item.status === 'canceled'
+          ? 'Canceled'
         : (item.status === 'accepted' && item.response_sent_at)
           ? 'Responded'
           : (item.status || 'Pending');
@@ -416,6 +474,8 @@ document.addEventListener('DOMContentLoaded', function(){
       ? 'bg-success'
       : statusText === 'Rejected'
         ? 'bg-danger'
+        : statusText === 'Canceled'
+          ? 'bg-secondary'
         : statusText === 'Responded'
           ? 'bg-info text-dark'
           : statusText === 'Borrowed'
@@ -425,7 +485,6 @@ document.addEventListener('DOMContentLoaded', function(){
               : 'bg-warning text-dark';
     const assistance = Array.isArray(item.assistance_types) ? item.assistance_types.join(', ') : (item.assistance_types || '-');
     const resources = Array.isArray(item.resource_types) ? item.resource_types.join(', ') : (item.resource_types || '-');
-    const videos = Array.isArray(item.for_videos) ? item.for_videos.join(', ') : (item.for_videos || '-');
     const borrowScan = sanitizeRich(item.for_borrow_scan || '-');
     const hasCatalogInventory = item.catalog && item.catalog.copies_count !== null && item.catalog.copies_count !== undefined;
     const totalCopies = hasCatalogInventory ? Number(item.catalog.copies_count) : null;
@@ -446,7 +505,7 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="lira-detail-card"><div class="lira-detail-label">Designation</div><div class="lira-detail-value">${esc(item.designation || '-')}</div></div>
         <div class="lira-detail-card"><div class="lira-detail-label">Department</div><div class="lira-detail-value">${esc(item.department || '-')}</div></div>
         <div class="lira-detail-card"><div class="lira-detail-label">Action</div><div class="lira-detail-value">${esc(item.action || '-')}</div></div>
-        <div class="lira-detail-card"><div class="lira-detail-label">Submitted</div><div class="lira-detail-value">${esc(item.created_at || '-')}</div></div>
+        <div class="lira-detail-card"><div class="lira-detail-label">Submitted</div><div class="lira-detail-value">${esc(formatDateTime(item.created_at))}</div></div>
       </div>
 
       <div class="lira-detail-grid mt-2">
@@ -476,20 +535,18 @@ document.addEventListener('DOMContentLoaded', function(){
         <div class="lira-detail-label">Borrow/Scan Details</div>
         <div class="lira-detail-value lira-detail-richtext">${borrowScan || '-'}</div>
       </div>
-
-      <div class="lira-detail-card mt-2">
-        <div class="lira-detail-label">Videos</div>
-        <div class="lira-detail-value">${esc(videos)}</div>
-      </div>
     `;
+    if (item.return_due_date) {
+      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Return Due Date</div><div class="lira-detail-value">${esc(formatDateOnly(item.return_due_date))}</div></div>`;
+    }
     if (item.decision_reason) {
       html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Decision Reason</div><div class="lira-detail-value">${esc(item.decision_reason)}</div></div>`;
     }
     if (item.borrowed_at) {
-      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Borrowed At</div><div class="lira-detail-value">${esc(item.borrowed_at)}</div></div>`;
+      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Borrowed At</div><div class="lira-detail-value">${esc(formatDateTime(item.borrowed_at))}</div></div>`;
     }
     if (item.returned_at) {
-      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Returned At</div><div class="lira-detail-value">${esc(item.returned_at)}</div></div>`;
+      html += `<div class="lira-detail-card mt-2"><div class="lira-detail-label">Returned At</div><div class="lira-detail-value">${esc(formatDateTime(item.returned_at))}</div></div>`;
     }
     details.innerHTML = html;
     decisionForm.action = '/lira/' + item.id + '/decide';
@@ -527,6 +584,8 @@ document.addEventListener('DOMContentLoaded', function(){
     const respondNotice = document.getElementById('respondNotice');
     const manualWrap = document.getElementById('manualCopyCheckWrap');
     const manualCheckbox = document.getElementById('manual_copy_check_confirmed');
+    const returnDueDateWrap = document.getElementById('returnDueDateWrap');
+    const returnDueDateField = document.getElementById('return_due_date');
     const info = document.getElementById('liraRespondInfo');
     const parts = [];
     parts.push(`<strong>${item.first_name} ${item.last_name}</strong> <span class="text-muted">(${item.email})</span>`);
@@ -534,6 +593,7 @@ document.addEventListener('DOMContentLoaded', function(){
     if (item.titles_of) parts.push(`<div class="mt-1"><em>${item.titles_of}</em></div>`);
     info.innerHTML = parts.join('');
     const canRespond = (item.status === 'accepted') && !item.response_sent_at;
+    const requiresReturnDate = item.action === 'borrow';
     const requiresManualCheck = item.action === 'borrow' && item.catalog && (item.catalog.copies_count === null || item.catalog.copies_count === undefined);
     subjectField.value = 'Response to your LiRA request';
     const submittedStr = item.created_at ? new Date(item.created_at).toLocaleString() : '';
@@ -541,10 +601,21 @@ document.addEventListener('DOMContentLoaded', function(){
     const submitBtn = document.querySelector('#liraRespondModal button[type="submit"]');
     if (manualCheckbox) manualCheckbox.checked = false;
     if (manualWrap) manualWrap.classList.toggle('d-none', !requiresManualCheck);
+    if (returnDueDateWrap) returnDueDateWrap.classList.toggle('d-none', !requiresReturnDate);
+    if (returnDueDateField) {
+      returnDueDateField.disabled = !canRespond || !requiresReturnDate;
+      returnDueDateField.required = requiresReturnDate;
+      returnDueDateField.value = item.return_due_date ? String(item.return_due_date).slice(0, 10) : '';
+      if (requiresReturnDate && !returnDueDateField.value) {
+        const suggested = new Date();
+        suggested.setDate(suggested.getDate() + 7);
+        returnDueDateField.value = suggested.toISOString().slice(0, 10);
+      }
+    }
     submitBtn.disabled = !canRespond;
     subjectField.disabled = !canRespond;
     messageField.disabled = !canRespond;
-    respondNotice.textContent = canRespond ? '' : (item.response_sent_at ? ('A response was already sent on ' + item.response_sent_at + '.') : 'Responses can be sent only after accepting the request.');
+    respondNotice.textContent = canRespond ? '' : (item.response_sent_at ? ('A response was already sent on ' + formatDateTime(item.response_sent_at) + '.') : 'Responses can be sent only after accepting the request.');
     respondModal.show();
   }
 
@@ -582,6 +653,40 @@ document.addEventListener('DOMContentLoaded', function(){
       alert('Failed to delete request via AJAX. Attempting normal delete...');
       form.submit();
     });
+  }
+
+  function onCancelClick(e){
+    e.stopPropagation();
+    let item;
+    try {
+      const raw = this.getAttribute('data-item') || '';
+      item = JSON.parse(atob(raw));
+    } catch(err) {
+      console.error('Failed to parse LiRA row data:', err);
+      return;
+    }
+
+    cancelForm.action = '/lira/' + item.id + '/cancel';
+    const retInput = cancelForm.querySelector('input[name="return_url"]');
+    if (retInput) retInput.value = window.location.href;
+
+    const info = document.getElementById('liraCancelInfo');
+    const notice = document.getElementById('cancelNotice');
+    const reasonField = document.getElementById('cancel_reason');
+    const canCancel = (item.status === 'accepted') && !item.response_sent_at && item.loan_status !== 'borrowed' && item.loan_status !== 'returned';
+
+    const parts = [];
+    parts.push(`<strong>${item.first_name} ${item.last_name}</strong> <span class="text-muted">(${item.email})</span>`);
+    if (item.for_borrow_scan) parts.push(`<div class="mt-1">${item.for_borrow_scan}</div>`);
+    if (item.titles_of) parts.push(`<div class="mt-1"><em>${item.titles_of}</em></div>`);
+    info.innerHTML = parts.join('');
+
+    reasonField.value = '';
+    reasonField.disabled = !canCancel;
+    const submitBtn = document.querySelector('#liraCancelModal button[type="submit"]');
+    submitBtn.disabled = !canCancel;
+    notice.textContent = canCancel ? '' : 'Only accepted requests that have not yet been processed can be canceled.';
+    cancelModal.show();
   }
 
   function onReturnSubmit(e) {
@@ -810,9 +915,15 @@ document.addEventListener('DOMContentLoaded', function(){
     e.preventDefault();
     const manualWrap = document.getElementById('manualCopyCheckWrap');
     const manualCheckbox = document.getElementById('manual_copy_check_confirmed');
+    const returnDueDateField = document.getElementById('return_due_date');
     if (manualWrap && !manualWrap.classList.contains('d-none') && manualCheckbox && !manualCheckbox.checked) {
       alert('Please confirm manual copy verification before sending the response.');
       manualCheckbox.focus();
+      return;
+    }
+    if (returnDueDateField && !returnDueDateField.disabled && !returnDueDateField.value) {
+      alert('Please select the return date for this borrow request.');
+      returnDueDateField.focus();
       return;
     }
     const formData = new FormData(respondForm);
@@ -838,6 +949,40 @@ document.addEventListener('DOMContentLoaded', function(){
       console.error('Error submitting response:', err);
       // Fallback to normal form submission
       respondForm.submit();
+    });
+  });
+
+  cancelForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const reasonField = document.getElementById('cancel_reason');
+    const reason = reasonField.value.trim();
+    if (!reason) {
+      alert('Please provide the reason for cancellation.');
+      reasonField.focus();
+      return;
+    }
+
+    const formData = new FormData(cancelForm);
+    fetch(cancelForm.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'Accept': 'application/json'
+      },
+      credentials: 'same-origin'
+    }).then(async res => {
+      const data = await res.json().catch(() => ({ success: false }));
+      if (res.ok && data.success !== false) {
+        cancelModal.hide();
+        showSuccessMessage(data.message || 'Accepted request canceled successfully.');
+        loadList(window.location.href);
+      } else {
+        alert(data.message || 'Failed to cancel the accepted request. Please try again.');
+      }
+    }).catch(err => {
+      console.error('Error canceling accepted request:', err);
+      cancelForm.submit();
     });
   });
 

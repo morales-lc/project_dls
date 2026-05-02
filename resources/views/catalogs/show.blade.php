@@ -182,7 +182,7 @@
                         </tr>
                         <tr>
                             <th>Additional Details</th>
-                            <td style="white-space: pre-line;">{!! nl2br(e($catalog->additional_details ?? '-')) !!}</td>
+                            <td style="white-space: pre-line;">{!! nl2br(e(preg_replace('/^\s*\d{3}\s*:\s*/m', '', $catalog->additional_details ?? '-'))) !!}</td>
                         </tr>
                     </tbody>
                 </table>

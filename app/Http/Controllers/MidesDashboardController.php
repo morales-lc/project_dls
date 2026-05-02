@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\MidesDocument;
 use App\Models\MidesCategory;
+use App\Models\ResourceView;
+use Illuminate\Support\Facades\Auth;
 
 class MidesDashboardController extends Controller
 {
@@ -63,6 +65,36 @@ class MidesDashboardController extends Controller
     {
         $allowed = ['publication_date', 'year', 'title', 'author'];
         return in_array($sort, $allowed, true) ? $sort : 'publication_date';
+    }
+
+    private function logResourceUsage(string $documentType, string $action, ?int $documentId = null, ?string $searchTerm = null): void
+    {
+        $normalizedTerm = trim((string) $searchTerm);
+        if ($action === 'search' && $normalizedTerm === '') {
+            return;
+        }
+
+        try {
+            $user = Auth::user();
+            if (!$user || !in_array((string) $user->role, ['student', 'faculty'], true)) {
+                return;
+            }
+
+            $sf = $user->studentFaculty ?? null;
+
+            ResourceView::create([
+                'student_faculty_id' => $sf->id ?? null,
+                'document_type' => $documentType,
+                'document_id' => $documentId,
+                'program_id' => $sf->program_id ?? null,
+                'course' => $sf->course ?? null,
+                'role' => $user->role ?? ($sf->role ?? null),
+                'action' => $action,
+                'search_term' => $normalizedTerm !== '' ? $normalizedTerm : null,
+            ]);
+        } catch (\Throwable $e) {
+            // ignore analytics failures so user flow continues
+        }
     }
 
     // AJAX endpoint for fetching programs by type
@@ -129,6 +161,10 @@ class MidesDashboardController extends Controller
         $year = $request->input('year');
         $tagFilters = $this->parseTagFilters($request);
         $tagSuggestions = $this->getTagSuggestions();
+
+        if (trim((string) $search) !== '' && (int) $request->input('page', 1) === 1) {
+            $this->logResourceUsage('mides', 'search', null, $search);
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -209,6 +245,10 @@ class MidesDashboardController extends Controller
         $tagFilters = $this->parseTagFilters($request);
         $tagSuggestions = $this->getTagSuggestions();
 
+        if (trim((string) $search) !== '' && (int) $request->input('page', 1) === 1) {
+            $this->logResourceUsage('mides', 'search', null, $search);
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%$search%")
@@ -286,6 +326,7 @@ class MidesDashboardController extends Controller
     public function viewer($id)
     {
         $doc = MidesDocument::findOrFail($id);
+        $this->logResourceUsage('mides', 'view', (int) $doc->id);
         return view('mides-pdf-viewer', compact('doc'));
     }
 }

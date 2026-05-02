@@ -313,7 +313,7 @@
                 $route = $item->pdf_path ? asset('storage/' . $item->pdf_path) : null;
                 $typeValue = 'alert_book';
                 } elseif ($bm->bookmarkable_type === \App\Models\SidlakArticle::class) {
-                $route = $item->pdf_file ? asset('storage/' . $item->pdf_file) : null;
+                $route = route('sidlak.article.download', $item->id);
                 $typeValue = 'sidlak';
                 } elseif ($bm->bookmarkable_type === \App\Models\SidlakJournal::class) {
                 $route = route('sidlak.show', $item->id);

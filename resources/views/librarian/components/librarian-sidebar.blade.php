@@ -12,6 +12,20 @@
             $newAlinetCount = \App\Models\AlinetAppointment::where(function ($q) {
                 $q->where('status', 'pending')->orWhereNull('status');
             })->count();
+            $newFeedbackCount = \App\Models\Feedback::query()
+                ->threads()
+                ->where('status', 'open')
+                ->count();
+            $newFeedbackCommentCount = \App\Models\Feedback::query()
+                ->replies()
+                ->whereHas('parent', function ($q) {
+                    $q->threads()->where('status', 'open');
+                })
+                ->where(function ($q) {
+                    $q->whereNull('role')->orWhereNotIn('role', ['admin', 'librarian']);
+                })
+                ->count();
+            $newFeedbackTotalCount = $newFeedbackCount + $newFeedbackCommentCount;
 
             $sidebarSections = [
                 'general' => [
@@ -100,6 +114,12 @@
                             'label' => 'LiRA Requests',
                             'badge' => 'lira',
                         ],
+                        [
+                            'route' => 'feedback.admin',
+                            'icon' => 'bi-chat-dots',
+                            'label' => 'Feedback',
+                            'badge' => 'feedback',
+                        ],
                     ],
                 ],
                 'system' => [
@@ -140,6 +160,10 @@
 
                         @if(($item['badge'] ?? null) === 'lira' && $newLiraCount > 0)
                             <span class="badge bg-danger rounded-pill ms-auto">{{ $newLiraCount > 99 ? '99+' : $newLiraCount }}</span>
+                        @endif
+
+                        @if(($item['badge'] ?? null) === 'feedback' && $newFeedbackTotalCount > 0)
+                            <span class="badge bg-danger rounded-pill ms-auto">{{ $newFeedbackTotalCount > 99 ? '99+' : $newFeedbackTotalCount }}</span>
                         @endif
                     </a>
                 </li>

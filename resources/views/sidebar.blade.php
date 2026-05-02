@@ -11,6 +11,7 @@
     $bookmarkCount = 0;
     $historyCount = 0;
     $cartCount = 0;
+    $liraHistoryCount = 0;
     $canUseCart = in_array(auth()->user()->role ?? '', ['student', 'faculty'], true);
     if ($sf) {
     try {
@@ -29,6 +30,13 @@
     $cartCount = \App\Models\CartItem::where('student_faculty_id', $sf->id)->count();
     } catch (\Throwable $e) {
     $cartCount = 0;
+    }
+    try {
+    $liraHistoryCount = \App\Models\LiraRequest::where('user_id', auth()->id())
+        ->whereIn('action', ['borrow', 'scanning'])
+        ->count();
+    } catch (\Throwable $e) {
+    $liraHistoryCount = 0;
     }
     }
     }
@@ -79,6 +87,15 @@
                     @endif
                 </a>
             </li>
+            <li class="nav-item mb-3">
+                <a class="nav-link d-flex align-items-center text-dark p-2 rounded {{ request()->routeIs('lira.history.*') ? 'bg-light' : '' }}" href="{{ route('lira.history.index') }}">
+                    <i class="bi bi-journal-check me-2 fs-5"></i>
+                    <span>LiRA History</span>
+                    @if($liraHistoryCount > 0)
+                    <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $liraHistoryCount }}</span>
+                    @endif
+                </a>
+            </li>
             @endif
 
         </ul>
@@ -107,6 +124,7 @@
                 $bookmarkCount = 0;
                 $historyCount = 0;
                 $cartCount = 0;
+                $liraHistoryCount = 0;
                 $canUseCart = in_array(auth()->user()->role ?? '', ['student', 'faculty'], true);
                 if ($sf) {
                 try {
@@ -125,6 +143,13 @@
                 $cartCount = \App\Models\CartItem::where('student_faculty_id', $sf->id)->count();
                 } catch (\Throwable $e) {
                 $cartCount = 0;
+                }
+                try {
+                $liraHistoryCount = \App\Models\LiraRequest::where('user_id', auth()->id())
+                    ->whereIn('action', ['borrow', 'scanning'])
+                    ->count();
+                } catch (\Throwable $e) {
+                $liraHistoryCount = 0;
                 }
                 }
                 }
@@ -172,6 +197,15 @@
                             <span>My Cart</span>
                             @if($cartCount > 0)
                             <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $cartCount }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li class="nav-item mb-3">
+                        <a class="nav-link d-flex align-items-center text-dark p-2 rounded {{ request()->routeIs('lira.history.*') ? 'bg-light' : '' }}" href="{{ route('lira.history.index') }}">
+                            <i class="bi bi-journal-check me-2 fs-5"></i>
+                            <span>LiRA History</span>
+                            @if($liraHistoryCount > 0)
+                            <span class="badge rounded-pill bg-pink text-white ms-auto">{{ $liraHistoryCount }}</span>
                             @endif
                         </a>
                     </li>

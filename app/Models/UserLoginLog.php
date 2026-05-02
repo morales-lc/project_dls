@@ -44,18 +44,21 @@ class UserLoginLog extends Model
 
     public static function recordForUser(User $user, ?Request $request = null): void
     {
-        if (!in_array($user->role, ['student', 'faculty'], true)) {
+        $sf = $user->studentFaculty;
+        $effectiveRole = in_array($sf?->role, ['student', 'faculty'], true)
+            ? $sf->role
+            : $user->role;
+
+        if (!in_array($effectiveRole, ['student', 'faculty'], true)) {
             return;
         }
-
-        $sf = $user->studentFaculty;
 
         self::create([
             'user_id' => $user->id,
             'student_faculty_id' => $sf?->id,
             'program_id' => $sf?->program_id,
             'course' => $sf?->course,
-            'role' => $user->role,
+            'role' => $effectiveRole,
             'ip_address' => $request?->ip(),
             'user_agent' => $request?->userAgent(),
             'logged_in_at' => now(),

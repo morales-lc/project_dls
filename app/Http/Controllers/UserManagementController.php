@@ -47,6 +47,7 @@ class UserManagementController extends Controller
             $user->email = $request->email;
             $user->name = $request->first_name . ' ' . $request->last_name;
             $user->username = $request->username;
+            $user->role = $request->role_type;
             if ($request->filled('password')) {
                 $user->password = bcrypt($request->password);
             }
@@ -164,6 +165,7 @@ class UserManagementController extends Controller
             if ($sf->user) {
                 $sf->user->email = $request->email;
                 $sf->user->username = $request->username;
+                $sf->user->role = $request->role;
                 if ($request->filled('password')) {
                     $sf->user->password = bcrypt($request->password);
                 }

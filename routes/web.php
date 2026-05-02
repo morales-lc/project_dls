@@ -16,6 +16,7 @@ use App\Http\Controllers\InformationLiteracyController;
 use App\Http\Controllers\LearningSpaceController;
 use App\Http\Controllers\LibraryContentController;
 use App\Http\Controllers\LibraryStaffController;
+use App\Http\Controllers\LiraHistoryController;
 use App\Http\Controllers\LiRAController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\MidesController;
@@ -28,6 +29,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ResourceController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SidlakJournalController;
+use App\Http\Controllers\StaffNotificationController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\YearbookController;
 use Illuminate\Support\Facades\Auth;
@@ -111,13 +113,17 @@ Route::post('/profile/complete', [ProfileController::class, 'completeProfile'])-
 
 // MIDES and Catalog
 // MIDES dashboard and search restricted to authenticated users (student/faculty/guest)
-Route::middleware(['auth', 'role:student,faculty,guest'])->group(function () {
+Route::middleware(['auth', 'role:student,faculty,guest,admin,librarian'])->group(function () {
     Route::get('/mides', [MidesDashboardController::class, 'index'])->name('mides.dashboard');
     Route::get('/mides-search', [MidesDashboardController::class, 'search'])->name('mides.search');
     Route::get('/mides/tag/{tag}', [MidesController::class, 'tag'])->name('mides.tag');
     Route::get('/mides/document/{id}', [MidesController::class, 'show'])->whereNumber('id')->name('mides.document.show');
     // AJAX endpoint for program dropdown
     Route::get('/mides/programs', [\App\Http\Controllers\MidesDashboardController::class, 'getPrograms']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/mides/pdf/{id}', [MidesController::class, 'streamPdf'])->whereNumber('id')->name('mides.pdf.stream');
 });
 
 // Catalog routes
@@ -194,6 +200,10 @@ Route::middleware(['auth', 'role:student,faculty,admin,librarian'])->group(funct
     Route::get('/my-cart', [\App\Http\Controllers\CartController::class, 'index'])->name('cart.index');
     Route::post('/my-cart/toggle', [\App\Http\Controllers\CartController::class, 'toggle'])->name('cart.toggle');
     Route::post('/my-cart/checkout', [\App\Http\Controllers\CartController::class, 'checkout'])->name('cart.checkout');
+});
+
+Route::middleware(['auth', 'role:student,faculty'])->group(function () {
+    Route::get('/my-lira-history', [LiraHistoryController::class, 'index'])->name('lira.history.index');
 });
 
 
@@ -308,12 +318,6 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
         Route::get('/libraries/staff/{id}/edit', [LibraryStaffController::class, 'edit'])->name('libraries.staff.edit');
         Route::put('/libraries/staff/{id}', [LibraryStaffController::class, 'update'])->name('libraries.staff.update');
         Route::delete('/libraries/staff/{id}', [LibraryStaffController::class, 'destroy'])->name('libraries.staff.destroy');
-        // Admin-only: keep feedback admin here (categories panel declared below in the dedicated section)
-        Route::get('/admin/feedback', [App\Http\Controllers\FeedbackController::class, 'adminList'])->name('feedback.admin');
-        Route::get('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'adminShow'])->whereNumber('id')->name('feedback.admin.show');
-        Route::patch('/admin/feedback/{id}/status', [App\Http\Controllers\FeedbackController::class, 'updateStatus'])->name('feedback.status.update');
-        Route::post('/admin/feedback/{id}/reply', [App\Http\Controllers\FeedbackController::class, 'adminReply'])->name('feedback.admin.reply');
-        Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'destroy'])->name('feedback.delete');
         // contact-info GET declared above together with PUT; avoid duplicates
         // ALINET manage is shared with librarians below; do not declare here
         // Admin Profile (My Profile)
@@ -363,12 +367,21 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
 // Librarian routes: grant access to management modules (same as admin)
 Route::middleware(['auth', 'role:librarian,admin'])->group(function () {
+    Route::get('/staff/notifications/pending-counts', [StaffNotificationController::class, 'pendingCounts'])
+        ->name('staff.notifications.pending-counts');
+
+        Route::get('/admin/feedback', [App\Http\Controllers\FeedbackController::class, 'adminList'])->name('feedback.admin');
+        Route::get('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'adminShow'])->whereNumber('id')->name('feedback.admin.show');
+        Route::patch('/admin/feedback/{id}/status', [App\Http\Controllers\FeedbackController::class, 'updateStatus'])->name('feedback.status.update');
+        Route::post('/admin/feedback/{id}/reply', [App\Http\Controllers\FeedbackController::class, 'adminReply'])->name('feedback.admin.reply');
+        Route::delete('/admin/feedback/{id}', [App\Http\Controllers\FeedbackController::class, 'destroy'])->name('feedback.delete');
         
         // LiRA management routes
         Route::get('/lira/manage', [LiRAController::class, 'index'])->name('lira.manage');
         Route::get('/lira/export-xlsx', [LiRAController::class, 'exportXlsx'])->name('lira.export.xlsx');
         Route::post('/lira/{id}/decide', [LiRAController::class, 'decide'])->name('lira.decide');
         Route::post('/lira/{id}/respond', [LiRAController::class, 'respond'])->name('lira.respond');
+        Route::post('/lira/{id}/cancel', [LiRAController::class, 'cancel'])->name('lira.cancel');
         Route::post('/lira/{id}/return', [LiRAController::class, 'markReturned'])->name('lira.return');
         Route::delete('/lira/{id}', [LiRAController::class, 'destroy'])->name('lira.destroy');
 

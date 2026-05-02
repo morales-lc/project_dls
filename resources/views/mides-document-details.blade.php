@@ -132,9 +132,6 @@
                     <a href="{{ route('mides.search.viewer', $doc->id) }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary action-btn">
                         <i class="bi bi-eye me-1"></i> View Document
                     </a>
-                    <a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary action-btn">
-                        <i class="bi bi-download me-1"></i> Download PDF
-                    </a>
                     @if(Auth::check() && Auth::user()->role !== 'guest' && $sf && $sf->id)
                         <form method="POST" action="{{ route('bookmarks.toggle') }}" class="bookmark-toggle m-0">
                             @csrf
@@ -147,6 +144,7 @@
                         </form>
                     @endif
                 </div>
+                <div class="small text-muted mt-3">MIDES documents are view-only in the browser for portal users.</div>
             </div>
 
             @if($relatedDocuments->isNotEmpty())

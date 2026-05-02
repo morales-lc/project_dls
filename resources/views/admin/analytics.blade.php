@@ -23,6 +23,8 @@
     <div class="mb-3 d-flex align-items-center gap-3">
         <form method="GET" class="w-100">
             <input type="hidden" name="type" value="{{ $documentType }}">
+            <input type="hidden" name="active_sub_tab" id="activeSubTabInput" value="{{ request('active_sub_tab', 'table-tab') }}">
+            <input type="hidden" name="top_mides_limit" value="{{ (int) ($topMidesLimit ?? 10) }}">
             @if(request('action'))
             <input type="hidden" name="action" value="{{ request('action') }}">
             @endif
@@ -67,17 +69,51 @@
         </form>
     </div>
 
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">Most searched term ({{ strtoupper($documentType) }}, {{ $timeLabel }})</div>
+                    @if(!empty($mostSearchedTerm))
+                        <div class="fs-5 fw-bold text-primary">{{ $mostSearchedTerm }}</div>
+                        <div class="small text-muted">Search hits: {{ $mostSearchedCount }}</div>
+                    @else
+                        <div class="fs-6 text-muted">No tracked search terms in this timeframe yet.</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-lg-6">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body">
+                    <div class="text-muted small mb-1">
+                        {{ $documentType === 'mides' ? 'Most visited MIDES category' : 'Most visited SIDLAK journal' }} ({{ $timeLabel }})
+                    </div>
+                    @if($documentType === 'mides' && !empty($mostVisitedMidesCategory))
+                        <div class="fs-5 fw-bold text-success">{{ $mostVisitedMidesCategory }}</div>
+                        <div class="small text-muted">Total views: {{ $mostVisitedMidesCategoryCount }}</div>
+                    @elseif($documentType === 'sidlak' && !empty($mostVisitedSidlakJournal))
+                        <div class="fs-5 fw-bold text-success">{{ $mostVisitedSidlakJournal }}</div>
+                        <div class="small text-muted">Total downloads: {{ $mostVisitedSidlakJournalCount }}</div>
+                    @else
+                        <div class="fs-6 text-muted">No data in this timeframe yet.</div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MIDES / SIDLAK Tabs -->
     <ul class="nav nav-tabs mb-3" id="documentTypeTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <a class="nav-link {{ $documentType === 'mides' ? 'active' : '' }}"
-                href="{{ route('admin.analytics', array_merge(request()->query(), ['type' => 'mides'])) }}">
+                href="{{ route('admin.analytics', array_merge(request()->except(['type', 'active_sub_tab']), ['type' => 'mides'])) }}">
                 📘 MIDES (Views)
             </a>
         </li>
         <li class="nav-item" role="presentation">
             <a class="nav-link {{ $documentType === 'sidlak' ? 'active' : '' }}"
-                href="{{ route('admin.analytics', array_merge(request()->query(), ['type' => 'sidlak'])) }}">
+                href="{{ route('admin.analytics', array_merge(request()->except(['type', 'active_sub_tab']), ['type' => 'sidlak'])) }}">
                 📗 SIDLAK (Downloads)
             </a>
         </li>
@@ -93,6 +129,21 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart-view" type="button" role="tab">
                 📈 Chart View
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="most-searched-tab" data-bs-toggle="tab" data-bs-target="#most-searched-view" type="button" role="tab">
+                🔎 Most Searched Terms
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="most-visited-mides-tab" data-bs-toggle="tab" data-bs-target="#most-visited-mides-view" type="button" role="tab">
+                {{ $documentType === 'mides' ? '🗂️ Most Visited MIDES Programs' : '📰 Most Visited SIDLAK Journal' }}
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="top-mides-tab" data-bs-toggle="tab" data-bs-target="#top-mides-view" type="button" role="tab">
+                {{ $documentType === 'mides' ? '🏆 Top MIDES Documents' : '🏆 Top SIDLAK Articles' }}
             </button>
         </li>
     </ul>
@@ -276,6 +327,201 @@
                 </div>
             </div>
         </div>
+
+        <div class="tab-pane fade" id="most-searched-view" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <h5 class="fw-semibold text-primary text-uppercase mb-0">Most Searched Terms ({{ $timeLabel }})</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <label for="mostSearchedTypeSelector" class="small text-muted mb-0">Collection</label>
+                            <select id="mostSearchedTypeSelector" class="form-select form-select-sm" style="width:auto;">
+                                <option value="mides" {{ $documentType === 'mides' ? 'selected' : '' }}>MIDES</option>
+                                <option value="sidlak" {{ $documentType === 'sidlak' ? 'selected' : '' }}>SIDLAK</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="mostSearchedTopCard" class="p-3 rounded-3 bg-light border mb-3"></div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width:90px;">Rank</th>
+                                    <th>Search Term</th>
+                                    <th class="text-center" style="width:160px;">Hits</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mostSearchedTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="most-visited-mides-view" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-semibold text-primary text-uppercase mb-3">
+                        {{ $documentType === 'mides' ? 'Most Visited MIDES Categories' : 'Most Visited SIDLAK Journals' }} ({{ $timeLabel }})
+                    </h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th style="width:90px;">Rank</th>
+                                    <th>{{ $documentType === 'mides' ? 'Category' : 'Journal' }}</th>
+                                    @if($documentType === 'sidlak')
+                                        <th style="width:170px;">Issue</th>
+                                    @endif
+                                    <th class="text-center" style="width:160px;">{{ $documentType === 'mides' ? 'Views' : 'Downloads' }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if($documentType === 'mides')
+                                    @forelse($mostVisitedMidesCategories as $idx => $row)
+                                        <tr>
+                                            <td>#{{ $idx + 1 }}</td>
+                                            <td>{{ $row['category_name'] }}</td>
+                                            <td class="text-center fw-semibold">{{ $row['total'] }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="3" class="text-center text-muted py-3">No MIDES category views in this timeframe yet.</td>
+                                        </tr>
+                                    @endforelse
+                                @else
+                                    @forelse($mostVisitedSidlakJournals as $idx => $row)
+                                        <tr>
+                                            <td>#{{ $idx + 1 }}</td>
+                                            <td>
+                                                <a href="{{ route('sidlak.show', $row['journal_id']) }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                                    {{ $row['journal_title'] }}
+                                                </a>
+                                            </td>
+                                            <td>{{ $row['journal_period'] ?: '—' }}</td>
+                                            <td class="text-center fw-semibold">{{ $row['total'] }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">No SIDLAK journal downloads in this timeframe yet.</td>
+                                        </tr>
+                                    @endforelse
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="top-mides-view" role="tabpanel">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                        <h5 class="fw-semibold text-primary text-uppercase mb-0">
+                            {{ $documentType === 'mides' ? 'Top MIDES Documents by Views' : 'Top SIDLAK Articles by Downloads' }} ({{ $timeLabel }})
+                        </h5>
+                        <form method="GET" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="type" value="{{ $documentType }}">
+                            <input type="hidden" name="mode" value="{{ $mode }}">
+                            <input type="hidden" name="year" value="{{ $year }}">
+                            <input type="hidden" name="month" value="{{ $month }}">
+                            <input type="hidden" name="start_date" value="{{ $startDateInput }}">
+                            <input type="hidden" name="end_date" value="{{ $endDateInput }}">
+                            <input type="hidden" name="active_sub_tab" value="top-mides-tab">
+                            @if(request('action'))
+                                <input type="hidden" name="action" value="{{ request('action') }}">
+                            @endif
+
+                            <label for="topMidesLimit" class="small text-muted mb-0">Show top</label>
+                            <select id="topMidesLimit" name="top_mides_limit" class="form-select form-select-sm" style="width:auto;">
+                                <option value="10" {{ (int) $topMidesLimit === 10 ? 'selected' : '' }}>10</option>
+                                <option value="50" {{ (int) $topMidesLimit === 50 ? 'selected' : '' }}>50</option>
+                                <option value="100" {{ (int) $topMidesLimit === 100 ? 'selected' : '' }}>100</option>
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">Apply</button>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive mb-4">
+                        <table class="table table-sm table-hover align-middle">
+                            @if($documentType === 'mides')
+                                <thead>
+                                    <tr>
+                                        <th style="width:90px;">Rank</th>
+                                        <th>Document Title</th>
+                                        <th style="width:210px;">Author</th>
+                                        <th style="width:220px;">Collection Type</th>
+                                        <th class="text-center" style="width:120px;">Views</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($topMidesDocuments as $idx => $row)
+                                        <tr>
+                                            <td>#{{ $idx + 1 }}</td>
+                                            <td>
+                                                <a href="{{ route('mides.pdf.stream', $row->document_id) }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                                    {{ $row->title }}
+                                                </a>
+                                            </td>
+                                            <td>{{ $row->author ?: '—' }}</td>
+                                            <td>{{ $row->type ?: '—' }}</td>
+                                            <td class="text-center fw-semibold">{{ (int) $row->total_views }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3">No MIDES views in this timeframe yet.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            @else
+                                <thead>
+                                    <tr>
+                                        <th style="width:90px;">Rank</th>
+                                        <th>Article Title</th>
+                                        <th style="width:210px;">Authors</th>
+                                        <th style="width:240px;">Journal</th>
+                                        <th class="text-center" style="width:120px;">Downloads</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @forelse($topSidlakArticles as $idx => $row)
+                                        <tr>
+                                            <td>#{{ $idx + 1 }}</td>
+                                            <td>
+                                                <a href="{{ route('sidlak.article.download', $row->article_id) }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                                    {{ $row->article_title }}
+                                                </a>
+                                            </td>
+                                            <td>{{ $row->article_authors ?: '—' }}</td>
+                                            <td>
+                                                <a href="{{ route('sidlak.show', $row->journal_id) }}" target="_blank" rel="noopener noreferrer" class="text-decoration-none">
+                                                    {{ $row->journal_title }}
+                                                </a>
+                                            </td>
+                                            <td class="text-center fw-semibold">{{ (int) $row->total_downloads }}</td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted py-3">No SIDLAK downloads in this timeframe yet.</td>
+                                        </tr>
+                                    @endforelse
+                                </tbody>
+                            @endif
+                        </table>
+                    </div>
+
+                    <h6 class="fw-semibold mb-2">
+                        {{ $documentType === 'mides' ? 'Bar Graph: Top 10 MIDES Documents' : 'Bar Graph: Top 10 SIDLAK Articles' }}
+                    </h6>
+                    <div class="chart-container position-relative p-3 rounded-4 bg-light" style="height: 430px;">
+                        <canvas id="topMidesTop10Chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -307,6 +553,13 @@
         const chartData = <?php echo json_encode($chartTotals); ?>;
         const isYearMode = <?php echo json_encode($mode === 'year'); ?>;
         const monthlyByProgram = <?php echo json_encode($monthlyByProgram ?? []); ?>;
+        const documentType = @json($documentType);
+        const mostSearchedTermsByType = <?php echo json_encode($mostSearchedTermsByType ?? []); ?>;
+        const topMidesTop10Labels = <?php echo json_encode($topMidesTop10Labels ?? []); ?>;
+        const topMidesTop10Values = <?php echo json_encode($topMidesTop10Values ?? []); ?>;
+        const topSidlakTop10Labels = <?php echo json_encode($topSidlakTop10Labels ?? []); ?>;
+        const topSidlakTop10Values = <?php echo json_encode($topSidlakTop10Values ?? []); ?>;
+        const activeSubTabInput = document.getElementById('activeSubTabInput');
 
         // 🌈 Rainbow basic colors
         const rainbowColors = [
@@ -468,6 +721,92 @@
             };
         }
 
+        function escapeHtml(value) {
+            return String(value || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function renderMostSearched(type) {
+            const tableBody = document.getElementById('mostSearchedTableBody');
+            const topCard = document.getElementById('mostSearchedTopCard');
+            if (!tableBody || !topCard) return;
+
+            const rows = Array.isArray(mostSearchedTermsByType[type]) ? mostSearchedTermsByType[type] : [];
+            if (!rows.length) {
+                topCard.innerHTML = '<div class="text-muted">No tracked search terms for this collection and timeframe.</div>';
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">No data available.</td></tr>';
+                return;
+            }
+
+            topCard.innerHTML = '<div class="small text-muted">Top term</div>' +
+                '<div class="fs-5 fw-bold text-primary">' + escapeHtml(rows[0].term) + '</div>' +
+                '<div class="small text-muted">Hits: ' + Number(rows[0].total || 0) + '</div>';
+
+            tableBody.innerHTML = rows.map(function(row, idx) {
+                return '<tr>' +
+                    '<td>#' + (idx + 1) + '</td>' +
+                    '<td>' + escapeHtml(row.term) + '</td>' +
+                    '<td class="text-center fw-semibold">' + Number(row.total || 0) + '</td>' +
+                    '</tr>';
+            }).join('');
+        }
+
+        const mostSearchedTypeSelector = document.getElementById('mostSearchedTypeSelector');
+        if (mostSearchedTypeSelector) {
+            renderMostSearched(mostSearchedTypeSelector.value || 'mides');
+            mostSearchedTypeSelector.addEventListener('change', function() {
+                renderMostSearched(this.value || 'mides');
+            });
+        }
+
+        const topMidesCanvas = document.getElementById('topMidesTop10Chart');
+        if (topMidesCanvas) {
+            const topContentLabels = documentType === 'sidlak' ? topSidlakTop10Labels : topMidesTop10Labels;
+            const topContentValues = documentType === 'sidlak' ? topSidlakTop10Values : topMidesTop10Values;
+            const topContentLabel = documentType === 'sidlak' ? 'SIDLAK Downloads' : 'MIDES Views';
+            new Chart(topMidesCanvas.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: topContentLabels.map(label => {
+                        const text = String(label || '');
+                        return text.length > 48 ? (text.slice(0, 48) + '...') : text;
+                    }),
+                    datasets: [{
+                        label: topContentLabel,
+                        data: topContentValues,
+                        backgroundColor: 'rgba(13, 110, 253, 0.65)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 10,
+                            },
+                        },
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0 },
+                        },
+                    },
+                },
+            });
+        }
+
         // 🎚️ Handle chart type switching
         document.getElementById('chartTypeSelect').addEventListener('change', function() {
             const selectedType = this.value;
@@ -485,15 +824,18 @@
         });
 
         // 🧠 Persist active subtab
-        const subTabKey = 'activeSubTab';
+        const subTabKey = 'activeSubTab_' + documentType;
+        const requestedSub = new URLSearchParams(window.location.search).get('active_sub_tab');
         const savedSub = localStorage.getItem(subTabKey);
-        if (savedSub) {
-            const subTab = document.querySelector(`#${savedSub}`);
+        const tabToShow = requestedSub || savedSub;
+        if (tabToShow) {
+            const subTab = document.querySelector(`#${tabToShow}`);
             if (subTab) new bootstrap.Tab(subTab).show();
         }
         document.querySelectorAll('button[data-bs-toggle="tab"]').forEach(tab => {
             tab.addEventListener('shown.bs.tab', function(e) {
                 localStorage.setItem(subTabKey, e.target.id);
+                if (activeSubTabInput) activeSubTabInput.value = e.target.id;
             });
         });
 

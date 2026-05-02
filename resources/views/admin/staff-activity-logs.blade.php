@@ -104,9 +104,9 @@
                             <th>When</th>
                             <th>User</th>
                             <th>Role</th>
-                            <th>Method</th>
+                            
                             <th>Activity</th>
-                            <th>Status</th>
+                            
                             <th>IP</th>
                         </tr>
                     </thead>
@@ -119,12 +119,12 @@
                                     <small class="text-muted">{{ $log->user->email ?? '-' }}</small>
                                 </td>
                                 <td class="text-capitalize">{{ $log->role }}</td>
-                                <td><span class="badge bg-light text-dark border">{{ $log->method }}</span></td>
+                                
                                 <td>
                                     <div class="fw-semibold">{{ $log->description ?: ucfirst($log->action ?: 'viewed') . ' ' . ($log->subject_type ?: 'resource') }}</div>
                                     <small class="text-muted">{{ $log->subject_type ?: '-' }}</small>
                                 </td>
-                                <td>{{ $log->status_code }}</td>
+                                
                                 <td>{{ $log->ip_address ?: '-' }}</td>
                             </tr>
                         @empty

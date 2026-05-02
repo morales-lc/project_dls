@@ -4,10 +4,33 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\MidesDocument;
+use App\Models\ResourceView;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class MidesController extends Controller
 {
+    private function buildPdfFilename(MidesDocument $doc): string
+    {
+        $filename = preg_replace('/[^A-Za-z0-9\-_]+/', '-', (string) ($doc->title ?: 'mides-document'));
+        $filename = trim((string) $filename, '-');
+
+        return ($filename !== '' ? $filename : 'mides-document') . '.pdf';
+    }
+
+    private function resolvePdfAbsolutePath(MidesDocument $doc): string
+    {
+        abort_if(blank($doc->pdf_path), 404);
+
+        foreach (['local', 'public'] as $disk) {
+            if (Storage::disk($disk)->exists($doc->pdf_path)) {
+                return Storage::disk($disk)->path($doc->pdf_path);
+            }
+        }
+
+        abort(404);
+    }
+
     private function parseTagList(?string $tags): array
     {
         if (!$tags) {
@@ -120,17 +143,7 @@ class MidesController extends Controller
     private function duplicateDocumentExists(array $payload, ?int $ignoreId = null): bool
     {
         $query = MidesDocument::query()
-            ->whereRaw('LOWER(TRIM(title)) = ?', [$this->normalizeForCompare($payload['title'] ?? '')])
-            ->whereRaw('LOWER(TRIM(author)) = ?', [$this->normalizeForCompare($payload['author'] ?? '')])
-            ->whereDate('publication_date', $payload['publication_date']);
-
-        if (!empty($payload['mides_category_id'])) {
-            $query->where('mides_category_id', $payload['mides_category_id']);
-        } else {
-            $query->where('type', $payload['type'] ?? '')
-                ->whereRaw('LOWER(TRIM(COALESCE(category, ""))) = ?', [$this->normalizeForCompare($payload['category'] ?? '')])
-                ->whereRaw('LOWER(TRIM(COALESCE(program, ""))) = ?', [$this->normalizeForCompare($payload['program'] ?? '')]);
-        }
+            ->whereRaw('LOWER(TRIM(title)) = ?', [$this->normalizeForCompare($payload['title'] ?? '')]);
 
         if ($ignoreId) {
             $query->where('id', '!=', $ignoreId);
@@ -263,17 +276,11 @@ class MidesController extends Controller
 
         $duplicatePayload = [
             'title' => $request->input('title'),
-            'author' => $request->input('author'),
-            'publication_date' => $request->input('publication_date'),
-            'mides_category_id' => $doc->mides_category_id,
-            'type' => $doc->type,
-            'category' => $doc->category,
-            'program' => $doc->program,
         ];
 
         if ($this->duplicateDocumentExists($duplicatePayload, (int) $doc->id)) {
             return back()
-                ->withErrors(['title' => 'A MIDES document with the same title, author, publication date, and category/program already exists.'])
+                ->withErrors(['title' => 'A MIDES document with this title already exists.'])
                 ->withInput();
         }
         
@@ -288,7 +295,7 @@ class MidesController extends Controller
         if ($request->hasFile('pdf')) {
             $pdf = $request->file('pdf');
             $originalName = $pdf->getClientOriginalName();
-            $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
+            $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'local');
             $doc->pdf_path = $pdfPath;
         }
         
@@ -381,6 +388,13 @@ class MidesController extends Controller
         }
 
         $documents = $query->paginate(12)->appends(request()->query());
+        $viewCountsByDocument = ResourceView::query()
+            ->where('document_type', 'mides')
+            ->where('action', 'view')
+            ->whereIn('document_id', $documents->getCollection()->pluck('id'))
+            ->selectRaw('document_id, COUNT(*) as total_views')
+            ->groupBy('document_id')
+            ->pluck('total_views', 'document_id');
         $types = \App\Models\MidesCategory::select('type')->distinct()->pluck('type');
 
         // Build lookup arrays for type and category/program names
@@ -391,7 +405,7 @@ class MidesController extends Controller
             $categoryNames[$cat->type][$cat->id] = $cat->name;
         }
 
-        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'year', 'month', 'typeNames', 'categoryNames'));
+        return view('mides-management', compact('documents', 'types', 'search', 'type', 'sort', 'year', 'month', 'typeNames', 'categoryNames', 'viewCountsByDocument'));
     }
 
     public function create()
@@ -420,7 +434,7 @@ class MidesController extends Controller
 
         $pdf = $request->file('pdf');
         $originalName = $pdf->getClientOriginalName();
-        $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'public');
+        $pdfPath = $pdf->storeAs('mides_pdfs', $originalName, 'local');
 
         $midesCategoryId = $request->input('mides_category_id');
 
@@ -446,17 +460,11 @@ class MidesController extends Controller
 
         $duplicatePayload = [
             'title' => $request->input('title'),
-            'author' => $request->input('author'),
-            'publication_date' => $request->input('publication_date'),
-            'mides_category_id' => $midesCategoryId,
-            'type' => $type,
-            'category' => $category,
-            'program' => $program,
         ];
 
         if ($this->duplicateDocumentExists($duplicatePayload)) {
             return back()
-                ->withErrors(['title' => 'A MIDES document with the same title, author, publication date, and category/program already exists.'])
+                ->withErrors(['title' => 'A MIDES document with this title already exists.'])
                 ->withInput();
         }
 
@@ -494,6 +502,21 @@ class MidesController extends Controller
             : false;
 
         return view('mides-document-details', compact('doc', 'relatedDocuments', 'isBookmarked', 'sf'));
+    }
+
+    public function streamPdf($id)
+    {
+        $doc = MidesDocument::findOrFail($id);
+        $absolutePath = $this->resolvePdfAbsolutePath($doc);
+
+        return response()->file($absolutePath, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $this->buildPdfFilename($doc) . '"',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function tag(Request $request, string $tag)

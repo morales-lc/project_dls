@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Catalog;
 
 class LiraRequest extends Model
@@ -18,7 +20,7 @@ class LiraRequest extends Model
         'status', 'decision_reason', 'processed_by', 'processed_at',
         'response_subject', 'response_message', 'responded_by', 'response_sent_at',
         // circulation fields
-        'catalog_id', 'loan_status', 'borrowed_at', 'borrowed_by', 'returned_at', 'returned_by'
+        'catalog_id', 'loan_status', 'borrowed_at', 'borrowed_by', 'returned_at', 'returned_by', 'return_due_date'
     ];
 
     protected $casts = [
@@ -32,6 +34,7 @@ class LiraRequest extends Model
         'response_sent_at' => 'datetime',
         'borrowed_at' => 'datetime',
         'returned_at' => 'datetime',
+        'return_due_date' => 'date',
     ];
 
     // simple status enum: pending, accepted, rejected
@@ -45,7 +48,39 @@ class LiraRequest extends Model
         return $this->loan_status === 'borrowed';
     }
 
-    public function catalog()
+    public function isSuccessfulFulfillment(): bool
+    {
+        return $this->status === 'accepted'
+            && (!is_null($this->response_sent_at) || in_array($this->loan_status, ['borrowed', 'returned'], true));
+    }
+
+    public function scopeBorrowHistory(Builder $query): Builder
+    {
+        return $query->whereIn('action', ['borrow', 'scanning']);
+    }
+
+    public function scopeSuccessfulFulfillment(Builder $query): Builder
+    {
+        return $query
+            ->where('status', 'accepted')
+            ->where(function (Builder $fulfilledQuery) {
+                $fulfilledQuery
+                    ->whereNotNull('response_sent_at')
+                    ->orWhereIn('loan_status', ['borrowed', 'returned']);
+            });
+    }
+
+    public function scopeRejected(Builder $query): Builder
+    {
+        return $query->whereIn('status', ['rejected', 'canceled']);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function catalog(): BelongsTo
     {
         return $this->belongsTo(Catalog::class, 'catalog_id');
     }

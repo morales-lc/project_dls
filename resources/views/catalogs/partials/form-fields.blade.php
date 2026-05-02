@@ -74,7 +74,7 @@
     </div>
     <div class="col-12">
         <label class="form-label">Additional Details</label>
-        <textarea name="additional_details" class="form-control" rows="4">{{ old('additional_details', $catalog->additional_details ?? '') }}</textarea>
+        <textarea name="additional_details" class="form-control" rows="4">{{ old('additional_details', preg_replace('/^\s*\d{3}\s*:\s*/m', '', $catalog->additional_details ?? '')) }}</textarea>
     </div>
 
     <div class="col-md-6">

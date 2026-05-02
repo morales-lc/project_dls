@@ -243,7 +243,7 @@
         import * as pdfjsLib from "/pdfjs/pdf.mjs";
         pdfjsLib.GlobalWorkerOptions.workerSrc = "/pdfjs/pdf.worker.mjs";
 
-        const url = "{{ asset('storage/' . $doc->pdf_path) }}";
+        const url = "{{ route('mides.pdf.stream', $doc->id) }}";
 
         let pdfDoc = null,
             pageNum = 1,

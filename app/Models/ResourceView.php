@@ -16,6 +16,7 @@ class ResourceView extends Model
         'course',
         'role',
         'action',
+        'search_term',
     ];
 
     public function studentFaculty()

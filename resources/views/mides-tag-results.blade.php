@@ -76,9 +76,6 @@
                                         <a href="{{ route('mides.search.viewer', $doc->id) }}" class="btn btn-outline-primary btn-sm" target="_blank" rel="noopener noreferrer">
                                             <i class="bi bi-eye"></i> View
                                         </a>
-                                        <a href="{{ asset('storage/' . $doc->pdf_path) }}" class="btn btn-primary btn-sm" target="_blank" rel="noopener noreferrer">
-                                            <i class="bi bi-download"></i> Download
-                                        </a>
                                         @if(Auth::check() && Auth::user()->role !== 'guest' && $sf && $sf->id)
                                             @php
                                                 $isBookmarked = \App\Models\Bookmark::where('student_faculty_id', $sf->id)

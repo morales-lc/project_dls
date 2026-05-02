@@ -668,20 +668,17 @@ class LiRAController extends Controller
             'response_subject' => 'required|string|max:255',
             'response_message' => 'required|string|max:10000',
         ];
+        if ($lira->action === 'borrow') {
+            $rules['return_due_date'] = 'required|date|after_or_equal:today';
+        }
         if ($catalogForCheck && is_null($catalogForCheck->copies_count)) {
             $rules['manual_copy_check_confirmed'] = 'accepted';
         }
         $validated = $request->validate($rules, [
             'manual_copy_check_confirmed.accepted' => 'Manual library copy verification is required for this catalog before sending a response.',
+            'return_due_date.required' => 'A return date is required for borrow requests.',
+            'return_due_date.after_or_equal' => 'The return date must be today or a future date.',
         ]);
-
-        // Send email to requester
-        try {
-            // Queue the post-acceptance response email
-            Mail::to($lira->email)->queue(new \App\Mail\LiraResponse($lira, $validated['response_subject'], $validated['response_message']));
-        } catch (\Throwable $e) {
-            return redirect()->back()->with('status', 'Failed to send email: '.$e->getMessage());
-        }
 
         try {
             DB::transaction(function () use ($lira, $validated) {
@@ -693,27 +690,38 @@ class LiRAController extends Controller
                 $lockedLira->response_message = $validated['response_message'];
                 $lockedLira->response_sent_at = now();
                 $lockedLira->responded_by = Auth::id();
+                $lockedLira->return_due_date = $lockedLira->action === 'borrow'
+                    ? ($validated['return_due_date'] ?? null)
+                    : null;
 
-                // For borrow requests tied to a catalog, mark as borrowed and increment inventory usage.
-                if ($lockedLira->action === 'borrow' && !empty($lockedLira->catalog_id)) {
-                    $catalog = Catalog::whereKey($lockedLira->catalog_id)->lockForUpdate()->first();
-                    if ($catalog) {
-                        $totalCopies = is_null($catalog->copies_count) ? null : (int) $catalog->copies_count;
-                        $borrowedCount = (int) ($catalog->borrowed_count ?? 0);
+                // Borrow requests should become borrowed even without a catalog mapping.
+                if ($lockedLira->action === 'borrow') {
+                    if (!empty($lockedLira->catalog_id)) {
+                        $catalog = Catalog::whereKey($lockedLira->catalog_id)->lockForUpdate()->first();
+                        if ($catalog) {
+                            $totalCopies = is_null($catalog->copies_count) ? null : (int) $catalog->copies_count;
+                            $borrowedCount = (int) ($catalog->borrowed_count ?? 0);
 
-                        if (!is_null($totalCopies) && $borrowedCount >= $totalCopies) {
-                            throw new \RuntimeException('Cannot mark as borrowed: all copies are already borrowed.');
+                            if (!is_null($totalCopies) && $borrowedCount >= $totalCopies) {
+                                throw new \RuntimeException('Cannot mark as borrowed: all copies are already borrowed.');
+                            }
+
+                            $catalog->borrowed_count = $borrowedCount + 1;
+                            $catalog->save();
                         }
-
-                        $catalog->borrowed_count = $borrowedCount + 1;
-                        $catalog->save();
-
-                        $lockedLira->loan_status = 'borrowed';
-                        $lockedLira->borrowed_at = now();
-                        $lockedLira->borrowed_by = Auth::id();
-                        $lockedLira->returned_at = null;
-                        $lockedLira->returned_by = null;
                     }
+
+                    $lockedLira->loan_status = 'borrowed';
+                    $lockedLira->borrowed_at = now();
+                    $lockedLira->borrowed_by = Auth::id();
+                    $lockedLira->returned_at = null;
+                    $lockedLira->returned_by = null;
+                } else {
+                    $lockedLira->loan_status = null;
+                    $lockedLira->borrowed_at = null;
+                    $lockedLira->borrowed_by = null;
+                    $lockedLira->returned_at = null;
+                    $lockedLira->returned_by = null;
                 }
 
                 $lockedLira->save();
@@ -725,6 +733,13 @@ class LiRAController extends Controller
             }
 
             return redirect()->back()->with('status', $message);
+        }
+
+        try {
+            $freshLira = LiraRequest::findOrFail($lira->id);
+            Mail::to($freshLira->email)->queue(new \App\Mail\LiraResponse($freshLira, $validated['response_subject'], $validated['response_message']));
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('status', 'Failed to send email: '.$e->getMessage());
         }
 
         $successMessage = 'Response sent successfully to the requester.';
@@ -779,6 +794,78 @@ class LiRAController extends Controller
         });
 
         $successMessage = 'Request marked as returned and inventory updated.';
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $successMessage,
+            ]);
+        }
+
+        $returnUrl = $request->input('return_url');
+        if ($returnUrl) {
+            return redirect($returnUrl)->with('status', $successMessage);
+        }
+
+        return redirect()->back()->with('status', $successMessage);
+    }
+
+    public function cancel(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'cancel_reason' => 'required|string|max:2000',
+        ]);
+
+        $lira = LiraRequest::findOrFail($id);
+
+        if ($lira->status !== 'accepted' || !empty($lira->response_sent_at) || in_array($lira->loan_status, ['borrowed', 'returned'], true)) {
+            $message = 'Only accepted requests that have not yet been processed can be canceled.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
+            return redirect()->back()->with('status', $message);
+        }
+
+        try {
+            DB::transaction(function () use ($lira, $validated) {
+                $lockedLira = LiraRequest::whereKey($lira->id)->lockForUpdate()->firstOrFail();
+
+                if ($lockedLira->status !== 'accepted' || !empty($lockedLira->response_sent_at) || in_array($lockedLira->loan_status, ['borrowed', 'returned'], true)) {
+                    throw new \RuntimeException('Only accepted requests that have not yet been processed can be canceled.');
+                }
+
+                $lockedLira->status = 'canceled';
+                $lockedLira->decision_reason = $validated['cancel_reason'];
+                $lockedLira->response_subject = null;
+                $lockedLira->response_message = null;
+                $lockedLira->response_sent_at = null;
+                $lockedLira->responded_by = null;
+                $lockedLira->loan_status = null;
+                $lockedLira->borrowed_at = null;
+                $lockedLira->borrowed_by = null;
+                $lockedLira->returned_at = null;
+                $lockedLira->returned_by = null;
+                $lockedLira->return_due_date = null;
+                $lockedLira->save();
+            });
+        } catch (\Throwable $e) {
+            $message = $e->getMessage() ?: 'Failed to cancel accepted request.';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+
+            return redirect()->back()->with('status', $message);
+        }
+
+        try {
+            $freshLira = LiraRequest::findOrFail($lira->id);
+            Mail::to($freshLira->email)->queue(new LiraDecision($freshLira, 'canceled', $validated['cancel_reason']));
+        } catch (\Throwable $e) {
+            return redirect()->back()->with('status', 'Accepted request canceled, but the email could not be sent: ' . $e->getMessage());
+        }
+
+        $successMessage = 'Accepted request canceled successfully. An email notification has been sent to the requester.';
 
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([

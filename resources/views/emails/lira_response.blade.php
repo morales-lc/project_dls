@@ -40,7 +40,10 @@
                     <div style="margin-top:10px;color:#6b7280;font-size:14px;">Below are the details of your original request for reference:</div>
 
                     <table width="100%" style="margin-top:14px;font-size:14px;color:#374151;">
-                        <tr><td width="180" style="color:#6b7280;">Submitted</td><td>{{ optional($lira->created_at)->format('F d, Y g:i A') }}</td></tr>
+                        <tr><td width="180" style="color:#6b7280;">Submitted</td><td>{{ optional($lira->created_at)->format('F d, Y') }}</td></tr>
+                        @if($lira->action === 'borrow' && !empty($lira->return_due_date))
+                        <tr><td style="color:#6b7280;">Return date</td><td>{{ optional($lira->return_due_date)->format('F d, Y') }}</td></tr>
+                        @endif
                         @if(!empty($lira->action))
                         <tr><td style="color:#6b7280;">Action</td><td>{{ $lira->action }}</td></tr>
                         @endif
@@ -60,10 +63,6 @@
                         @endif
                         @if(!empty($lira->for_list))
                         <tr><td style="color:#6b7280;">For list</td><td>{{ $lira->for_list }}</td></tr>
-                        @endif
-                        @if(!empty($lira->for_videos))
-                        <tr><td style="color:#6b7280;">Videos requested</td>
-                            <td>{{ is_array($lira->for_videos) ? implode(', ', $lira->for_videos) : $lira->for_videos }}</td></tr>
                         @endif
                     </table>
 

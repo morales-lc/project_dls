@@ -189,7 +189,7 @@ $chartTotals = $programs->map(fn($p) => ($programCounts->get($p->name)?->sum('to
         const backgroundColors = chartLabels.map((_, i) => pastelColors[i % pastelColors.length]);
         const borderColors = backgroundColors.map(c => c.replace('0.8', '1'));
 
-        // ⚙️ Chart configuration function
+        // Chart configuration function
         const config = (type) => ({
             type: type,
             data: {
@@ -238,10 +238,10 @@ $chartTotals = $programs->map(fn($p) => ($programCounts->get($p->name)?->sum('to
             }
         });
         ctx.parentElement.classList.add('animate__animated', 'animate__fadeIn');
-        // 📊 Create default chart
+        // Create default chart
         let chartInstance = new Chart(ctx, config('bar'));
 
-        // 🎚️ Handle chart type switching
+        // Handle chart type switching
         document.getElementById('chartTypeSelect').addEventListener('change', function() {
             const selectedType = this.value;
 
@@ -256,7 +256,7 @@ $chartTotals = $programs->map(fn($p) => ($programCounts->get($p->name)?->sum('to
             chartInstance = new Chart(ctx, config(selectedType));
         });
 
-        // 🧠 Persist active subtab
+        //  Persist active subtab
         const subTabKey = 'activeSubTab';
         const savedSub = localStorage.getItem(subTabKey);
         if (savedSub) {
@@ -269,7 +269,7 @@ $chartTotals = $programs->map(fn($p) => ($programCounts->get($p->name)?->sum('to
             });
         });
 
-        // ✅ Set default container height initially
+        // Set default container height initially
         ctx.parentElement.style.height = '500px';
     });
 </script>

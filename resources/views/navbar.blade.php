@@ -483,16 +483,16 @@
                                 @auth
                                     <li><a class="dropdown-item {{ request()->routeIs('mides.*') ? 'active' : '' }}"
                                             href="{{ route('mides.dashboard') }}">MIDES Repository</a></li>
-                                    <li><a class="dropdown-item {{ request()->routeIs('yearbook.*') ? 'active' : '' }}"
-                                            href="{{ route('yearbook.index') }}">Yearbook Archive</a></li>
+
                                 @endauth
                                 <li><a class="dropdown-item {{ request()->routeIs('sidlak.*') ? 'active' : '' }}"
                                         href="{{ route('sidlak.index') }}">SIDLAK</a></li>
 
-                                        @auth
+                                @auth
+                                    <li><a class="dropdown-item {{ request()->routeIs('yearbook.*') ? 'active' : '' }}"
+                                            href="{{ route('yearbook.index') }}">Yearbook Archive</a></li>
 
-
-                                        @endauth
+                                @endauth
                             </ul>
                         </li>
                     @endif
@@ -535,6 +535,7 @@
                                             $sf = Auth::user()->studentFaculty ?? null;
                                             $bookmarkCount = 0;
                                             $cartCount = 0;
+                                            $liraHistoryCount = 0;
                                             $canUseCart = in_array(Auth::user()->role ?? '', ['student', 'faculty'], true);
                                             if ($sf) {
                                                 try {
@@ -547,6 +548,13 @@
                                                         $cartCount = \App\Models\CartItem::where('student_faculty_id', $sf->id)->count();
                                                     } catch (\Throwable $e) {
                                                         $cartCount = 0;
+                                                    }
+                                                    try {
+                                                        $liraHistoryCount = \App\Models\LiraRequest::where('user_id', Auth::id())
+                                                            ->whereIn('action', ['borrow', 'scanning'])
+                                                            ->count();
+                                                    } catch (\Throwable $e) {
+                                                        $liraHistoryCount = 0;
                                                     }
                                                 }
                                             }
@@ -569,6 +577,16 @@
                                                     @if($cartCount > 0)
                                                         <span
                                                             class="badge rounded-pill bg-pink text-white ms-auto">{{ $cartCount }}</span>
+                                                    @endif
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item d-flex align-items-center"
+                                                    href="{{ route('lira.history.index') }}">
+                                                    <i class="bi bi-journal-check me-2"></i>Borrow History
+                                                    @if($liraHistoryCount > 0)
+                                                        <span
+                                                            class="badge rounded-pill bg-pink text-white ms-auto">{{ $liraHistoryCount }}</span>
                                                     @endif
                                                 </a>
                                             </li>

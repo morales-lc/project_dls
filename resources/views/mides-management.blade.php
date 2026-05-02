@@ -92,10 +92,11 @@
                             data-author="{{ $doc->author }}"
                             data-advisors="{{ $doc->advisors }}"
                             data-publication-date="{{ optional($doc->publication_date)->format('Y-m-d') }}"
+                            data-view-count="{{ (int) ($viewCountsByDocument[$doc->id] ?? 0) }}"
                             data-tags="{{ $doc->tags }}"
                             data-type="{{ $typeNames[$doc->type] ?? $doc->type }}"
                             data-category="{{ optional($doc->midesCategory)->name ?? $doc->category ?? $doc->program ?? '—' }}"
-                            data-pdf-url="{{ asset('storage/' . $doc->pdf_path) }}"
+                            data-pdf-url="{{ route('mides.pdf.stream', $doc->id) }}"
                             data-update-modal-id="updateModal{{ $doc->id }}"
                             data-delete-url="{{ route('mides.delete', $doc->id) }}">
                             <td>{{ $doc->title }}</td>
@@ -339,6 +340,10 @@
                         <div id="docPublicationDate" class="fw-semibold">-</div>
                     </div>
                     <div class="col-sm-6">
+                        <div class="small text-uppercase text-muted">Total Views</div>
+                        <div id="docViewCount" class="fw-semibold">0</div>
+                    </div>
+                    <div class="col-sm-6">
                         <div class="small text-uppercase text-muted">Advisor(s)</div>
                         <div id="docAdvisors" class="fw-semibold">-</div>
                     </div>
@@ -402,6 +407,7 @@
                 var title = this.dataset.title || '-';
                 var author = this.dataset.author || '-';
                 var publicationDate = this.dataset.publicationDate || '-';
+                var viewCount = this.dataset.viewCount || '0';
                 var advisors = this.dataset.advisors || '-';
                 var tags = this.dataset.tags || '-';
                 var description = this.dataset.description || '-';
@@ -414,6 +420,7 @@
                 setText('docTitle', title);
                 setText('docAuthor', author);
                 setText('docPublicationDate', publicationDate);
+                setText('docViewCount', viewCount);
                 setText('docAdvisors', advisors);
                 setText('docTags', tags);
                 setText('docDescription', description);

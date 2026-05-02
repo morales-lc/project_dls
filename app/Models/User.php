@@ -67,4 +67,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(UserLoginLog::class);
     }
+
+    public function liraRequests()
+    {
+        return $this->hasMany(LiraRequest::class);
+    }
 }

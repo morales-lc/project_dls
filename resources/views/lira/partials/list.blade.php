@@ -8,6 +8,7 @@
 
       $hasResponded = ($it->status === 'accepted') && !empty($it->response_sent_at);
       $canRespond = ($it->status === 'accepted') && empty($it->response_sent_at);
+      $canCancel = ($it->status === 'accepted') && empty($it->response_sent_at) && !in_array($it->loan_status, ['borrowed', 'returned'], true);
       $canMarkReturned = ($it->loan_status === 'borrowed');
       $catalog = $it->catalog;
       $hasInventory = $catalog && !is_null($catalog->copies_count);
@@ -19,6 +20,7 @@
       if ($it->loan_status === 'borrowed') { $badge = 'primary'; $statusText = 'Borrowed'; }
       elseif ($it->loan_status === 'returned') { $badge = 'success'; $statusText = 'Returned'; }
       elseif ($it->status === 'pending') { $badge = 'warning'; $statusText = 'Pending'; }
+      elseif ($it->status === 'canceled') { $badge = 'secondary'; $statusText = 'Canceled'; }
       elseif ($it->status === 'rejected') { $badge = 'danger'; $statusText = 'Rejected'; }
       elseif ($hasResponded) { $badge = 'info'; $statusText = 'Responded'; }
       elseif ($it->status === 'accepted') { $badge = 'success'; $statusText = 'Accepted'; }
@@ -38,6 +40,9 @@
         @if(!empty($borrowScanHtml))
           <div class="mt-2 lira-richtext-preview">{!! $borrowScanHtml !!}</div>
         @endif
+        @if($it->action === 'borrow' && !empty($it->return_due_date))
+          <div class="mt-2 small text-muted">Return due: {{ $it->return_due_date->format('F d, Y') }}</div>
+        @endif
         @if($hasInventory)
           <div class="mt-2 d-flex flex-wrap gap-1 small">
             <span class="badge bg-secondary-subtle text-dark border">Total: {{ $totalCopies }}</span>
@@ -54,6 +59,9 @@
           @if($canRespond)
             <button type="button" class="btn btn-sm btn-primary lira-respond-btn" data-item="{{ base64_encode($it->toJson()) }}">Respond</button>
           @endif
+          @if($canCancel)
+            <button type="button" class="btn btn-sm btn-outline-danger lira-cancel-btn" data-item="{{ base64_encode($it->toJson()) }}">Cancel</button>
+          @endif
           @if($canMarkReturned)
             <form class="lira-return-form" method="POST" action="{{ route('lira.return', $it->id) }}">
               @csrf
@@ -61,11 +69,6 @@
               <button type="submit" class="btn btn-sm btn-success">Mark Returned</button>
             </form>
           @endif
-          <form class="lira-delete-form" method="POST" action="{{ route('lira.destroy', $it->id) }}">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-          </form>
         </div>
       </div>
     </div>

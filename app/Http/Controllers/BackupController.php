@@ -23,6 +23,47 @@ use App\Jobs\RunManualBackup;
 class BackupController extends Controller
 {
     /**
+     * Stream a backup file safely to the client.
+     *
+     * @param string $path Relative local disk path
+     * @param string $downloadName Filename for the client
+     * @param bool $deleteAfterSend Delete file after streaming completes
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    private function streamBackupFile(string $path, string $downloadName, bool $deleteAfterSend = false)
+    {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+
+        @ini_set('zlib.output_compression', '0');
+        @ini_set('output_buffering', 'Off');
+        ignore_user_abort(true);
+
+        // Remove any buffered output so binary downloads start with PK signature bytes.
+        while (ob_get_level() > 0) {
+            @ob_end_clean();
+        }
+
+        $absolutePath = Storage::disk('local')->path($path);
+
+        $response = response()->download($absolutePath, $downloadName, [
+            'Content-Type' => 'application/zip',
+            'Content-Transfer-Encoding' => 'binary',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
+
+        if ($deleteAfterSend) {
+            $response->deleteFileAfterSend(true);
+        }
+
+        return $response;
+    }
+
+    /**
      * Display the backup management interface
      * 
      * Shows recent backup logs with user information and status,
@@ -53,8 +94,8 @@ class BackupController extends Controller
      * Serves a backup file for download. Includes security check to prevent
      * directory traversal attacks.
      * 
-     * @param string $file Filename to download
-     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+        * @param string $file Filename to download
+        * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException 404 if file not found
      */
     public function download($file)
@@ -67,8 +108,7 @@ class BackupController extends Controller
             abort(404, 'Backup file not found.');
         }
         
-        $fullPath = Storage::disk('local')->path($path);
-        return response()->download($fullPath);
+        return $this->streamBackupFile($path, $file, false);
     }
     
     /**
@@ -77,8 +117,8 @@ class BackupController extends Controller
      * Streams the file directly to the client and removes it from storage
      * after successful transmission. Used for temporary/one-time downloads.
      * 
-     * @param string $file Filename to download and delete
-     * @return void (sends file and exits)
+        * @param string $file Filename to download and delete
+        * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
      * @throws \Symfony\Component\HttpKernel\Exception\HttpException 404 if file not found
      */
     public function downloadAndDelete($file)
@@ -91,32 +131,7 @@ class BackupController extends Controller
             abort(404, 'Backup file not found.');
         }
         
-        $fullPath = Storage::disk('local')->path($path);
-        
-        // Clear any output buffers to prevent corruption
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        // Set headers for binary download
-        header('Content-Type: application/zip');
-        header('Content-Disposition: attachment; filename="' . $file . '"');
-        header('Content-Length: ' . filesize($fullPath));
-        header('Cache-Control: no-cache, must-revalidate');
-        header('Pragma: no-cache');
-        
-        // Read and output the file in chunks
-        $handle = fopen($fullPath, 'rb');
-        while (!feof($handle)) {
-            echo fread($handle, 8192);
-            flush();
-        }
-        fclose($handle);
-        
-        // Delete the file after sending
-        @unlink($fullPath);
-        
-        exit;
+        return $this->streamBackupFile($path, $file, true);
     }
 
     /**

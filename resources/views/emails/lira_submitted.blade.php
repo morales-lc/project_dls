@@ -143,10 +143,6 @@
                                 @if(!empty($lira->for_list))
                                 <tr><td style="color:#6b7280;">For list</td><td>{{ $lira->for_list }}</td></tr>
                                 @endif
-                                @if(!empty($lira->for_videos))
-                                <tr><td style="color:#6b7280;">Videos requested</td>
-                                    <td>{{ is_array($lira->for_videos) ? implode(', ', $lira->for_videos) : $lira->for_videos }}</td></tr>
-                                @endif
                                 @if(!empty($lira->program_strand_grade_level))
                                 <tr><td style="color:#6b7280;">Program/Strand/Grade</td><td>{{ $lira->program_strand_grade_level }}</td></tr>
                                 @endif

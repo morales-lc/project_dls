@@ -5,12 +5,81 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SidlakJournal;
 use App\Models\SidlakArticle;
+use App\Models\ResourceView;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\RedirectResponse;
 
 class SidlakJournalController extends Controller
 {
+    private function buildArticlePdfFilename(SidlakArticle $article): string
+    {
+        $filename = preg_replace('/[^A-Za-z0-9\-_]+/', '-', (string) ($article->title ?: 'sidlak-article'));
+        $filename = trim((string) $filename, '-');
+
+        return ($filename !== '' ? $filename : 'sidlak-article') . '.pdf';
+    }
+
+    private function logResourceUsage(string $action, ?int $documentId = null, ?string $searchTerm = null): void
+    {
+        $normalizedTerm = trim((string) $searchTerm);
+        if ($action === 'search' && $normalizedTerm === '') {
+            return;
+        }
+
+        try {
+            $user = Auth::user();
+            if (!$user || !in_array((string) $user->role, ['student', 'faculty'], true)) {
+                return;
+            }
+
+            $sf = $user->studentFaculty ?? null;
+
+            ResourceView::create([
+                'student_faculty_id' => $sf->id ?? null,
+                'document_type' => 'sidlak',
+                'document_id' => $documentId,
+                'program_id' => $sf->program_id ?? null,
+                'course' => $sf->course ?? null,
+                'role' => $user->role ?? ($sf->role ?? null),
+                'action' => $action,
+                'search_term' => $normalizedTerm !== '' ? $normalizedTerm : null,
+            ]);
+        } catch (\Throwable $e) {
+            // ignore analytics failures so download/search still works
+        }
+    }
+
+    private function normalizeForCompare(?string $value): string
+    {
+        return strtolower(trim((string) $value));
+    }
+
+    private function duplicateJournalTitleExists(string $title, ?int $ignoreId = null): bool
+    {
+        $query = SidlakJournal::query()
+            ->whereRaw('LOWER(TRIM(title)) = ?', [$this->normalizeForCompare($title)]);
+
+        if ($ignoreId !== null) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        return $query->exists();
+    }
+
+    private function duplicateJournalIssnExists(string $printIssn, ?int $ignoreId = null): bool
+    {
+        $query = SidlakJournal::query()
+            ->whereRaw('LOWER(TRIM(print_issn)) = ?', [$this->normalizeForCompare($printIssn)]);
+
+        if ($ignoreId !== null) {
+            $query->where('id', '!=', $ignoreId);
+        }
+
+        return $query->exists();
+    }
+
     public function manage(Request $request)
     {
         // Provide a list of distinct years for the year filter
@@ -102,6 +171,21 @@ class SidlakJournalController extends Controller
             ]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->validator)->withInput();
+        }
+
+        $incomingTitle = (string) $request->input('title');
+        $incomingPrintIssn = (string) $request->input('print_issn');
+
+        if ($this->duplicateJournalTitleExists($incomingTitle, (int) $journal->id)) {
+            return redirect()->back()->withErrors([
+                'title' => 'A SIDLAK journal with this title already exists.',
+            ])->withInput();
+        }
+
+        if ($this->duplicateJournalIssnExists($incomingPrintIssn, (int) $journal->id)) {
+            return redirect()->back()->withErrors([
+                'print_issn' => 'A SIDLAK journal with this Print ISSN already exists.',
+            ])->withInput();
         }
 
         // Split month_year (YYYY-MM) into month and year
@@ -218,6 +302,10 @@ class SidlakJournalController extends Controller
                 $inner->where('title', 'like', "%{$q}%")
                     ->orWhere('print_issn', 'like', "%{$q}%");
             });
+
+            if ((int) $request->input('page', 1) === 1) {
+                $this->logResourceUsage('search', null, $q);
+            }
         }
 
         if ($request->filled('year')) {
@@ -245,25 +333,21 @@ class SidlakJournalController extends Controller
     public function articleDownload($id)
     {
         $article = SidlakArticle::findOrFail($id);
-        try {
-            $user = Auth::user();
-            if ($user) {
-                $sf = $user->studentFaculty ?? null;
-                \App\Models\ResourceView::create([
-                    'student_faculty_id' => $sf->id ?? null,
-                    'document_type' => 'sidlak',
-                    'document_id' => $article->id,
-                    'program_id' => $sf->program_id ?? null,
-                    'course' => $sf->course ?? null,
-                    'role' => $sf->role ?? null,
-                    'action' => 'download',
-                ]);
-            }
-        } catch (\Throwable $e) {
-            // ignore
-        }
+        $this->logResourceUsage('download', (int) $article->id);
 
-        return redirect(asset('storage/' . $article->pdf_file));
+        abort_if(blank($article->pdf_file), 404);
+        abort_unless(Storage::disk('public')->exists($article->pdf_file), 404);
+
+        $absolutePath = Storage::disk('public')->path($article->pdf_file);
+        $downloadName = $this->buildArticlePdfFilename($article);
+
+        return response()->download($absolutePath, $downloadName, [
+            'Content-Type' => 'application/pdf',
+            'Cache-Control' => 'private, no-store, no-cache, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     public function create()
@@ -307,6 +391,18 @@ class SidlakJournalController extends Controller
                 'peer_reviewers.*.institution.required_with' => 'Reviewer institution is required.',
                 'peer_reviewers.*.city.required_with' => 'Reviewer city is required.',
             ]);
+
+            if ($this->duplicateJournalTitleExists((string) $request->input('title'))) {
+                return redirect()->back()->withErrors([
+                    'title' => 'A SIDLAK journal with this title already exists.',
+                ])->withInput();
+            }
+
+            if ($this->duplicateJournalIssnExists((string) $request->input('print_issn'))) {
+                return redirect()->back()->withErrors([
+                    'print_issn' => 'A SIDLAK journal with this Print ISSN already exists.',
+                ])->withInput();
+            }
 
 
             //  Parse month & year
